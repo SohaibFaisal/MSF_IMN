@@ -93,7 +93,7 @@ show_mesh = False
 
 
 imn_training = True
-cost_live_plot = True
+cost_live_plot = False
 
 imn_validation = False
 val_solve = True
