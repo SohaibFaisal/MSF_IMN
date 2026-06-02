@@ -298,7 +298,7 @@ def train_hybrid_one_graph(
             weight_decay=weight_decay
         )
 
-        best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial)
+        best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial,accumulation_steps=50, samples_per_epoch=2500)
         imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
         GNN_FILE_PATH = imn_trained_data_folder / f"gnn_imn_generator.pt"
 

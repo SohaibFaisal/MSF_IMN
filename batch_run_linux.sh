@@ -1,7 +1,7 @@
 #!/bin/bash
 
 GPU_ID=2
-EPOCHS=5
+EPOCHS=100
 
 for LAYERS in 3 4 5
 do

@@ -260,6 +260,7 @@ def run_optimization(
     force_float32=True,
     cache_imn_by_phase_count=True,
     imn_dtype="float32",
+        samples_per_epoch =None
 ):
     global finish_optim
     finish_optim = False
@@ -314,7 +315,14 @@ def run_optimization(
     for epoch in range(num_epochs):
         model.train()
         optimizer.zero_grad(set_to_none=True)
-        perm = train_idx[torch.randperm(len(train_idx))]
+
+        if samples_per_epoch is None:
+            epoch_train_idx = train_idx
+        else:
+            n_epoch_samples = min(int(samples_per_epoch), len(train_idx))
+            epoch_train_idx = train_idx[torch.randperm(len(train_idx))[:n_epoch_samples]]
+
+        perm = epoch_train_idx[torch.randperm(len(epoch_train_idx))]
         main_train_sum = 0.0
         c_train_sum = 0.0
         w_train_sum = 0.0
@@ -361,7 +369,7 @@ def run_optimization(
 
             del main_loss, c_loss, w_loss, scaled_loss
 
-        n_train = max(1, len(train_idx))
+        n_train = max(1, len(perm))
         avg_train = main_train_sum / n_train
         c_train = c_train_sum / n_train
         w_train = w_train_sum / n_train
@@ -446,6 +454,7 @@ def run_live_optimization_GNN_IMN(
     force_float32=True,
     cache_imn_by_phase_count=True,
     imn_dtype="float32",
+        samples_per_epoch=None
 ):
     plot_data = {"Train": [], "Val": [], "C_train": [], "C_val": [], "W_train": [], "W_val": []}
 
@@ -472,6 +481,7 @@ def run_live_optimization_GNN_IMN(
             force_float32,
             cache_imn_by_phase_count,
             imn_dtype,
+            samples_per_epoch,
         )
 
     import pyqtgraph as pg
@@ -584,6 +594,7 @@ def run_live_optimization_GNN_IMN(
             force_float32,
             cache_imn_by_phase_count,
             imn_dtype,
+            samples_per_epoch,
         ),
         daemon=False,
     )
