@@ -314,6 +314,12 @@ class IMNCalculator:
 
         eps = 1e-8 if self.dtype == torch.float32 else 1e-12
         K = K + eps * torch.eye(dim, dtype=K.dtype, device=K.device)
+        # Safety for AMP: torch.linalg.solve does not support Half on CUDA
+        # K = K.float()
+        # Mmat = Mmat.float()
+        # Y = Y.float()
+        # C_avg = C_avg.float()
+        #
         X = torch.linalg.solve(K, -Mmat)
         return C_avg + Y @ X
 

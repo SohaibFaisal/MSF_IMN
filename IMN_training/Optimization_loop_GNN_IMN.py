@@ -140,19 +140,44 @@ def _compute_losses_for_sample(
     sample = training_data_set[sid]
     phases = sample["Phases"]
     main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, device)
+
     flat_p = model.forward(phases, main_graph, phase_graphs)
-    imn = imn_cache.get(phases) if imn_cache is not None else _make_imn(phases, N_layers, nodes_per_mech_per_phase, device, imn_dtype)
+
+    imn = imn_cache.get(phases) if imn_cache is not None else _make_imn(
+        phases,
+        N_layers,
+        nodes_per_mech_per_phase,
+        device,
+        imn_dtype,
+    )
+
     imn.assign_node_stiffness(sample)
 
-    C_pred = imn.homogenize_from_flat_params(flat_p)
-    C_tgt = sample["C_Target"].to(device=device, dtype=C_pred.dtype, non_blocking=True)
-    FVC = main_graph.FVC.to(device=device, dtype=C_pred.dtype, non_blocking=True)
+    # IMPORTANT:
+    # Keep IMN homogenization in float32.
+    # torch.linalg.solve does not support Half on CUDA.
+    with torch.amp.autocast(device_type=device.type, enabled=False):
+        flat_p_imn = flat_p.float()
+        C_pred = imn.homogenize_from_flat_params(flat_p_imn)
 
-    C_loss = imn.normalized_frobenius_mse(C_pred, C_tgt)
-    W_loss = imn.phase_fraction_error(flat_p[: imn.N], FVC)
-    main_loss = C_loss_scale * C_loss + W_loss_scale * W_loss
+        C_tgt = sample["C_Target"].to(
+            device=device,
+            dtype=C_pred.dtype,
+            non_blocking=True,
+        )
 
-    del main_graph, phase_graphs, flat_p, C_pred, C_tgt, FVC
+        FVC = main_graph.FVC.to(
+            device=device,
+            dtype=C_pred.dtype,
+            non_blocking=True,
+        )
+
+        C_loss = imn.normalized_frobenius_mse(C_pred, C_tgt)
+        W_loss = imn.phase_fraction_error(flat_p_imn[: imn.N], FVC)
+        main_loss = C_loss_scale * C_loss + W_loss_scale * W_loss
+
+
+    del main_graph, phase_graphs, flat_p, flat_p_imn, C_pred, C_tgt, FVC
     return main_loss, C_loss, W_loss
 
 
