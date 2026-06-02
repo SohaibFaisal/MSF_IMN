@@ -15,9 +15,11 @@ def safe_masked_mean_pool(x, batch, mask):
     If a graph has zero selected nodes, output is temporarily zero.
     The caller can replace empty pools with global pools.
     """
+
     num_graphs = int(batch.max().item()) + 1 if batch.numel() > 0 else 1
 
-    mask = mask.float().view(-1, 1)
+    batch = batch.to(device=x.device, dtype=torch.long)
+    mask = mask.to(device=x.device, dtype=x.dtype).view(-1, 1)
 
     out = x.new_zeros((num_graphs, x.size(-1)))
     count = x.new_zeros((num_graphs, 1))
