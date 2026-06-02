@@ -296,7 +296,6 @@ def run_optimization(
         accumulated = 0
 
         for it, idx in enumerate(perm):
-            print(it)
             sid = str(idx.item())
             with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
                 main_loss, c_loss, w_loss = _compute_losses_for_sample(
