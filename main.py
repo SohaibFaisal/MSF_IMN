@@ -8,33 +8,32 @@ start = dt.now()
 
 
 
-# import argparse
-# parser = argparse.ArgumentParser()
-#
-# parser.add_argument("--layers", type=int, default=3)
-# parser.add_argument("--nodes", type=int, default=2)
-# parser.add_argument("--epochs", type=int, default=100)
-#
-#
-# args = parser.parse_args()
-#
-# print('Running study for : ')
-# print("Layers:", args.layers)
-# print("Batch size:", args.nodes)
-# print("Epochs:", args.epochs)
-# print('Start at : ', dt.now())
-# N_layers = args.layers
-# nodes_per_mech_per_phase = args.nodes
-# num_epochs = args.epochs
-# train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
+import argparse
+parser = argparse.ArgumentParser()
 
+parser.add_argument("--layers", type=int, default=3)
+parser.add_argument("--nodes", type=int, default=2)
+parser.add_argument("--epochs", type=int, default=100)
 
+args = parser.parse_args()
 
-
-N_layers = 4
-nodes_per_mech_per_phase = 1
-num_epochs = 5
+print('Running study for : ')
+print("Layers:", args.layers)
+print("Nodes per mech per phase:", args.nodes)
+print("Epochs:", args.epochs)
+print('Start at : ', dt.now())
+N_layers = args.layers
+nodes_per_mech_per_phase = args.nodes
+num_epochs = args.epochs
 train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
+
+
+
+
+#N_layers = 4
+#nodes_per_mech_per_phase = 1
+#num_epochs = 5
+#train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
 # Example:
 # train_model(lr=learning_rate, batch_size=batch_size, epochs=epochs)
 
