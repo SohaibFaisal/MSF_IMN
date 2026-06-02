@@ -92,7 +92,7 @@ show_mesh = False
 
 
 
-imn_training = True
+imn_training = False
 cost_live_plot = True
 
 imn_validation = False
@@ -411,10 +411,18 @@ if False:
     new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(824):04d}")  # Define here
     dataset_subset(source_dataset_folder, new_dataset_folder,1500)
 
-if False:
+if True:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
-    folders = {'name1': 115, 'name2': 640}
+    folders = {'Layers: 3 - Nodes: 1': 31,
+               'Layers: 3 - Nodes: 2': 32,
+               'Layers: 3 - Nodes: 3': 33,
+               'Layers: 4 - Nodes: 1': 41,
+               'Layers: 4 - Nodes: 2': 42,
+               'Layers: 4 - Nodes: 3': 43,
+               'Layers: 5 - Nodes: 1': 51,
+               'Layers: 5 - Nodes: 2': 52,
+               'Layers: 5 - Nodes: 3': 53 }
     compare_trainings(folders, False) # Set True to show the plot, False to save it in the main Directory
 
 

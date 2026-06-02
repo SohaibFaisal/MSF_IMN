@@ -1,2 +1,7 @@
 .idea/
 Training_data_generation/Training_data*/
+# Python bytecode/cache
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
