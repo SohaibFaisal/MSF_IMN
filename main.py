@@ -31,7 +31,7 @@ start = dt.now()
 
 
 
-N_layers = 3
+N_layers = 4
 nodes_per_mech_per_phase = 1
 num_epochs = 5
 train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
