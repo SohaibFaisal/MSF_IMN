@@ -1,6 +1,7 @@
 
 from torch_geometric.data import Data, Batch
 from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_pool, GATv2Conv, GlobalAttention, JumpingKnowledge, Set2Set
+from torch_geometric.utils import softmax
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -57,6 +58,143 @@ def target_context_global_pool(x, batch, target_mask):
 
     # If there are no context nodes, use global pool instead.
     # This can happen for individual phase graphs if all nodes are target.
+    no_context = context_count.squeeze(-1) == 0
+    z_context[no_context] = z_global[no_context]
+
+    return torch.cat([z_target, z_context, z_global], dim=-1)
+
+
+
+def get_graph_batch(graph: Data, x: torch.Tensor) -> torch.Tensor:
+    """
+    Returns graph.batch if it exists, otherwise creates a single-graph batch vector.
+    This keeps the extractors usable for both Data and Batch inputs.
+    """
+
+    batch = getattr(graph, "batch", None)
+    if batch is None:
+        batch = x.new_zeros(x.size(0), dtype=torch.long)
+
+    return batch.to(device=x.device, dtype=torch.long)
+
+
+def get_target_mask(graph: Data, x: torch.Tensor, target_col: int) -> torch.Tensor:
+    """
+    Gets the phase/target mask used by the phase-aware models.
+
+    Priority:
+      1. graph.target_mask, if present
+      2. x[:, target_col] > 0.5
+    """
+
+    if hasattr(graph, "target_mask"):
+        target_mask = graph.target_mask.to(device=x.device).bool()
+    else:
+        target_mask = x[:, target_col] > 0.5
+
+    return target_mask.view(-1)
+
+
+def safe_masked_attention_pool(x, batch, mask, gate_nn):
+    """
+    Attention pool over nodes selected by mask.
+    If a graph has zero selected nodes, output is temporarily zero.
+    The caller can replace empty pools with global pools.
+    """
+
+    num_graphs = int(batch.max().item()) + 1 if batch.numel() > 0 else 1
+
+    batch = batch.to(device=x.device, dtype=torch.long)
+    mask = mask.to(device=x.device).bool().view(-1)
+
+    out = x.new_zeros((num_graphs, x.size(-1)))
+    count = x.new_zeros((num_graphs, 1))
+
+    if mask.any():
+        x_sel = x[mask]
+        batch_sel = batch[mask]
+
+        gate = gate_nn(x_sel)
+        alpha = softmax(gate, batch_sel, num_nodes=num_graphs)
+
+        out.index_add_(0, batch_sel, x_sel * alpha)
+        count.index_add_(0, batch_sel, x.new_ones((x_sel.size(0), 1)))
+
+    return out, count
+
+
+def target_context_attention_pool(x, batch, target_mask, gate_nn):
+    """
+    Returns attention-pooled [target, context, global].
+    Empty target/context groups fall back to the corresponding graph-level global pool.
+    """
+
+    global_mask = torch.ones_like(target_mask, dtype=torch.bool)
+    context_mask = ~target_mask
+
+    z_global, _ = safe_masked_attention_pool(x, batch, global_mask, gate_nn)
+    z_target, target_count = safe_masked_attention_pool(x, batch, target_mask, gate_nn)
+    z_context, context_count = safe_masked_attention_pool(x, batch, context_mask, gate_nn)
+
+    no_target = target_count.squeeze(-1) == 0
+    z_target[no_target] = z_global[no_target]
+
+    no_context = context_count.squeeze(-1) == 0
+    z_context[no_context] = z_global[no_context]
+
+    return torch.cat([z_target, z_context, z_global], dim=-1)
+
+
+def safe_masked_set2set_pool(x, batch, mask, pool):
+    """
+    Set2Set pool over nodes selected by mask.
+    If a graph has zero selected nodes, output is temporarily zero.
+    The caller can replace empty pools with global pools.
+    """
+
+    num_graphs = int(batch.max().item()) + 1 if batch.numel() > 0 else 1
+
+    batch = batch.to(device=x.device, dtype=torch.long)
+    mask = mask.to(device=x.device).bool().view(-1)
+
+    out_dim = 2 * x.size(-1)
+    out = x.new_zeros((num_graphs, out_dim))
+    count = x.new_zeros((num_graphs, 1))
+
+    if mask.any():
+        x_sel = x[mask]
+        batch_sel = batch[mask]
+        pooled = pool(x_sel, batch_sel)
+
+        # Some PyG versions return only up to max(batch_sel) + 1 rows.
+        # Pad so indexing always matches the original graph ids.
+        if pooled.size(0) < num_graphs:
+            padded = x.new_zeros((num_graphs, pooled.size(-1)))
+            padded[: pooled.size(0)] = pooled
+            pooled = padded
+
+        out[:] = pooled[:num_graphs]
+        count.index_add_(0, batch_sel, x.new_ones((x_sel.size(0), 1)))
+
+    return out, count
+
+
+def target_context_set2set_pool(x, batch, target_mask, pool):
+    """
+    Returns Set2Set-pooled [target, context, global].
+    Empty target/context groups fall back to the corresponding graph-level global pool.
+    """
+
+    global_mask = torch.ones_like(target_mask, dtype=torch.bool)
+    context_mask = ~target_mask
+
+    z_global, _ = safe_masked_set2set_pool(x, batch, global_mask, pool)
+    z_target, target_count = safe_masked_set2set_pool(x, batch, target_mask, pool)
+    z_context, context_count = safe_masked_set2set_pool(x, batch, context_mask, pool)
+
+    no_target = target_count.squeeze(-1) == 0
+    z_target[no_target] = z_global[no_target]
+
     no_context = context_count.squeeze(-1) == 0
     z_context[no_context] = z_global[no_context]
 
@@ -506,6 +644,260 @@ class GraphFeatureExtractor_JK_Set2Set(nn.Module):
         x_jk = self.jk(layer_outputs)
 
         y = self.pool(x_jk, batch)
+
+        y = F.relu(self.fc3(y))
+        y = self.fc4(y)
+
+        return y
+
+
+
+class GraphFeatureExtractor_MultiPoolResidual_phase_aware(nn.Module):
+    """
+    Phase-aware version of GraphFeatureExtractor_MultiPoolResidual.
+
+    Message passing:
+        same residual GATv2 blocks as GraphFeatureExtractor_MultiPoolResidual
+
+    Readout:
+        target/context/global mean pooling
+
+    Head:
+        MLP -> x_dim
+    """
+
+    def __init__(
+        self,
+        in_dim: int,
+        hidden_dim: int = 128,
+        x_dim: int = 32,
+        heads: int = 4,
+        num_layers: int = 2,
+        dropout: float = 0.1,
+        target_col: int = 9,
+    ):
+        super().__init__()
+
+        assert hidden_dim % heads == 0
+        assert num_layers >= 1
+
+        self.num_layers = num_layers
+        self.dropout = dropout
+        self.target_col = target_col
+
+        self.gats = nn.ModuleList()
+        self.lins = nn.ModuleList()
+        self.norms = nn.ModuleList()
+
+        for layer in range(num_layers):
+            layer_in_dim = in_dim if layer == 0 else hidden_dim
+
+            self.gats.append(
+                GATv2Conv(
+                    layer_in_dim,
+                    hidden_dim // heads,
+                    heads=heads,
+                    concat=True,
+                )
+            )
+
+            self.lins.append(nn.Linear(hidden_dim, hidden_dim))
+            self.norms.append(nn.LayerNorm(hidden_dim))
+
+        # target_context_global_pool returns [target, context, global]
+        self.fc3 = nn.Linear(3 * hidden_dim, hidden_dim)
+        self.fc4 = nn.Linear(hidden_dim, x_dim)
+
+    def forward(self, graph: Data) -> torch.Tensor:
+        x, edge_index = graph.x, graph.edge_index
+        batch = get_graph_batch(graph, x)
+        target_mask = get_target_mask(graph, x, self.target_col)
+
+        prev = None
+
+        for gat, lin, norm in zip(self.gats, self.lins, self.norms):
+            h = gat(x, edge_index)
+            h = lin(h)
+            h = norm(h)
+            h = F.relu(h)
+            h = F.dropout(h, p=self.dropout, training=self.training)
+
+            if prev is not None:
+                h = h + prev
+
+            x = h
+            prev = h
+
+        y = target_context_global_pool(x, batch, target_mask)
+
+        y = F.relu(self.fc3(y))
+        y = self.fc4(y)
+
+        return y
+
+
+class GraphFeatureExtractor_AttentionPool_phase_aware(nn.Module):
+    """
+    Phase-aware version of GraphFeatureExtractor_AttentionPool.
+
+    Message passing:
+        same GATv2 layers as GraphFeatureExtractor_AttentionPool
+
+    Readout:
+        target/context/global attention pooling
+
+    Head:
+        MLP -> x_dim
+    """
+
+    def __init__(
+        self,
+        in_dim: int,
+        hidden_dim: int = 128,
+        x_dim: int = 32,
+        heads: int = 4,
+        num_layers: int = 2,
+        dropout: float = 0.1,
+        target_col: int = 9,
+    ):
+        super().__init__()
+
+        assert hidden_dim % heads == 0
+        assert num_layers >= 1
+
+        self.num_layers = num_layers
+        self.dropout = dropout
+        self.target_col = target_col
+
+        self.gats = nn.ModuleList()
+        self.norms = nn.ModuleList()
+
+        for layer in range(num_layers):
+            layer_in_dim = in_dim if layer == 0 else hidden_dim
+
+            self.gats.append(
+                GATv2Conv(
+                    layer_in_dim,
+                    hidden_dim // heads,
+                    heads=heads,
+                    concat=True,
+                )
+            )
+
+            self.norms.append(nn.LayerNorm(hidden_dim))
+
+        self.gate_nn = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1),
+        )
+
+        # target_context_attention_pool returns [target, context, global]
+        self.fc3 = nn.Linear(3 * hidden_dim, hidden_dim)
+        self.fc4 = nn.Linear(hidden_dim, x_dim)
+
+    def forward(self, graph: Data) -> torch.Tensor:
+        x, edge_index = graph.x, graph.edge_index
+        batch = get_graph_batch(graph, x)
+        target_mask = get_target_mask(graph, x, self.target_col)
+
+        for gat, norm in zip(self.gats, self.norms):
+            x = gat(x, edge_index)
+            x = norm(x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+
+        y = target_context_attention_pool(x, batch, target_mask, self.gate_nn)
+
+        y = F.relu(self.fc3(y))
+        y = self.fc4(y)
+
+        return y
+
+
+class GraphFeatureExtractor_JK_Set2Set_phase_aware(nn.Module):
+    """
+    Phase-aware version of GraphFeatureExtractor_JK_Set2Set.
+
+    Message passing:
+        same GATv2 + JumpingKnowledge(cat) as GraphFeatureExtractor_JK_Set2Set
+
+    Readout:
+        target/context/global Set2Set pooling
+
+    Head:
+        MLP -> x_dim
+    """
+
+    def __init__(
+        self,
+        in_dim: int,
+        hidden_dim: int = 96,
+        x_dim: int = 32,
+        heads: int = 4,
+        num_layers: int = 2,
+        dropout: float = 0.1,
+        set2set_steps: int = 3,
+        target_col: int = 9,
+    ):
+        super().__init__()
+
+        assert hidden_dim % heads == 0
+        assert num_layers >= 1
+
+        self.num_layers = num_layers
+        self.dropout = dropout
+        self.target_col = target_col
+
+        self.gats = nn.ModuleList()
+        self.norms = nn.ModuleList()
+
+        for layer in range(num_layers):
+            layer_in_dim = in_dim if layer == 0 else hidden_dim
+
+            self.gats.append(
+                GATv2Conv(
+                    layer_in_dim,
+                    hidden_dim // heads,
+                    heads=heads,
+                    concat=True,
+                )
+            )
+
+            self.norms.append(nn.LayerNorm(hidden_dim))
+
+        self.jk = JumpingKnowledge(mode="cat")
+
+        jk_dim = hidden_dim * num_layers
+
+        self.pool = Set2Set(
+            in_channels=jk_dim,
+            processing_steps=set2set_steps,
+        )
+
+        # Set2Set returns 2 * jk_dim. Phase-aware readout concatenates
+        # [target, context, global], so the input is 3 * 2 * jk_dim.
+        self.fc3 = nn.Linear(6 * jk_dim, hidden_dim)
+        self.fc4 = nn.Linear(hidden_dim, x_dim)
+
+    def forward(self, graph: Data) -> torch.Tensor:
+        x, edge_index = graph.x, graph.edge_index
+        batch = get_graph_batch(graph, x)
+        target_mask = get_target_mask(graph, x, self.target_col)
+
+        layer_outputs = []
+
+        for gat, norm in zip(self.gats, self.norms):
+            x = gat(x, edge_index)
+            x = norm(x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+
+            layer_outputs.append(x)
+
+        x_jk = self.jk(layer_outputs)
+
+        y = target_context_set2set_pool(x_jk, batch, target_mask, self.pool)
 
         y = F.relu(self.fc3(y))
         y = self.fc4(y)

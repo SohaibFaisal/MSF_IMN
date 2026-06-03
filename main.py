@@ -25,7 +25,7 @@ print('Start at : ', dt.now())
 N_layers = args.layers
 nodes_per_mech_per_phase = args.nodes
 num_epochs = args.epochs
-train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
+# train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
 
 
 
@@ -64,9 +64,9 @@ optimizing_variables = [TNN_hidden_dim, GNN_hidden_dim, X_feat, GNN_structure]
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 724
+main_id = 821
 data_gen_folder_id = main_id # Change here if needed
-# train_folder_id = main_id # Change here if needed
+train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -257,7 +257,7 @@ if imn_training:
     use_GPU = True
 
 
-    total_samples = 4500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     if training_mode == 'GNN_IMN':
         GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
     elif training_mode == 'IMN':
@@ -407,11 +407,11 @@ if imn_validation_2:
 if False:
     # Create a randomized subset from training data
     from Training_data_generation.dataset_subset import dataset_subset
-    source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(724):04d}")  # Define here
-    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(824):04d}")  # Define here
-    dataset_subset(source_dataset_folder, new_dataset_folder,1500)
+    source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(721):04d}")  # Define here
+    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(821):04d}")  # Define here
+    dataset_subset(source_dataset_folder, new_dataset_folder,500)
 
-if True:
+if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
     folders = {'Layers: 3 - Nodes: 1': 31,
