@@ -1,5 +1,5 @@
 import os
-
+import shutil
 from IMN_training.GNN_IMN import *
 from IMN_validation.Test_IMN import *
 from datetime import datetime as dt
@@ -86,13 +86,13 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 training_mode = 'GNN_IMN' # GNN_IMN, IMN,
 
-training_data_generation = True
+training_data_generation = False
 show_mesh = False
 
 
 
 
-imn_training = False
+imn_training = True
 cost_live_plot = False
 
 imn_validation = False
@@ -201,8 +201,11 @@ if training_data_generation:
                         print(f"Mesh attempt {attempts} failed for RVE {r}, mesh {g_id}: {e}")
 
 
-        os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
-        os.system(f'copy Extracting_graph_from_mesh.py ' + str(mesh_folder))
+        # os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
+        # os.system(f'copy Extracting_graph_from_mesh.py ' + str(mesh_folder))
+
+        shutil.copy("temp_abaqus.py", mesh_folder)
+        shutil.copy("Extracting_graph_from_mesh.py", mesh_folder)
         for r in range(len(rve_info_training_data)):
             for g_id in range(mesh_per_config):
                 print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')

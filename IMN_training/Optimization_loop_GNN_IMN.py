@@ -123,7 +123,7 @@ def _sample_graphs_to_device(sample: dict, mesh_folder: str | Path, graph_cache:
     return main_graph, phase_graphs
 
 
-def _compute_losses_for_sample(
+def _compute_loss_for_sample(
     sid: str,
     training_data_set: dict,
     mesh_folder: str | Path,
@@ -132,8 +132,6 @@ def _compute_losses_for_sample(
     N_layers: int,
     nodes_per_mech_per_phase: int,
     device: torch.device,
-    C_loss_scale: float,
-    W_loss_scale: float,
     imn_dtype: torch.dtype,
     imn_cache: IMNPhaseCountCache | None,
 ):
@@ -153,8 +151,7 @@ def _compute_losses_for_sample(
 
     imn.assign_node_stiffness(sample)
 
-    # IMPORTANT:
-    # Keep IMN homogenization in float32.
+    # Keep IMN homogenization in float32/float64.
     # torch.linalg.solve does not support Half on CUDA.
     with torch.amp.autocast(device_type=device.type, enabled=False):
         flat_p_imn = flat_p.float()
@@ -166,20 +163,13 @@ def _compute_losses_for_sample(
             non_blocking=True,
         )
 
-        FVC = main_graph.FVC.to(
-            device=device,
-            dtype=C_pred.dtype,
-            non_blocking=True,
-        )
+        # Correct paper loss:
+        # ||C_pred - C_tgt||_F / ||C_tgt||_F
+        denom = torch.linalg.norm(C_tgt, ord="fro").clamp_min(torch.finfo(C_tgt.dtype).eps)
+        loss = torch.linalg.norm(C_pred - C_tgt, ord="fro") / denom
 
-        C_loss = imn.normalized_frobenius_mse(C_pred, C_tgt)
-        W_loss = imn.phase_fraction_error(flat_p_imn[: imn.N], FVC)
-        main_loss = C_loss_scale * C_loss + W_loss_scale * W_loss
-
-
-    del main_graph, phase_graphs, flat_p, flat_p_imn, C_pred, C_tgt, FVC
-    return main_loss, C_loss, W_loss
-
+    del main_graph, phase_graphs, flat_p, flat_p_imn, C_pred, C_tgt
+    return loss
 
 def _average_validation_loss(
     val_idx: torch.Tensor,
@@ -190,23 +180,19 @@ def _average_validation_loss(
     N_layers: int,
     nodes_per_mech_per_phase: int,
     device: torch.device,
-    C_loss_scale: float,
-    W_loss_scale: float,
     use_amp: bool,
     imn_dtype: torch.dtype,
     imn_cache: IMNPhaseCountCache | None,
 ):
     model.eval()
-    main_sum = 0.0
-    c_sum = 0.0
-    w_sum = 0.0
+    loss_sum = 0.0
     amp_enabled = bool(use_amp and device.type == "cuda")
 
     with torch.inference_mode():
         for idx in val_idx:
             sid = str(idx.item())
             with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
-                main_loss, c_loss, w_loss = _compute_losses_for_sample(
+                loss = _compute_loss_for_sample(
                     sid,
                     training_data_set,
                     mesh_folder,
@@ -215,19 +201,14 @@ def _average_validation_loss(
                     N_layers,
                     nodes_per_mech_per_phase,
                     device,
-                    C_loss_scale,
-                    W_loss_scale,
                     imn_dtype,
                     imn_cache,
                 )
-            main_sum += float(main_loss.detach().cpu())
-            c_sum += float(c_loss.detach().cpu())
-            w_sum += float(w_loss.detach().cpu())
-            del main_loss, c_loss, w_loss
+            loss_sum += float(loss.detach().cpu())
+            del loss
 
     n_val = max(1, len(val_idx))
-    return main_sum / n_val, c_sum / n_val, w_sum / n_val
-
+    return loss_sum / n_val
 
 def _append_plot_values(epoch: int, avg_train: float, avg_val: float, plot_data: dict) -> None:
     with lock:
@@ -299,13 +280,9 @@ def run_optimization(
     print("IMN phase-count cache:", bool(cache_imn_by_phase_count))
     print("IMN dtype:", imn_torch_dtype)
 
-    C_loss_scale = 1.0
-    W_loss_scale = 5.0
     best_val = float("inf")
     best_epoch = -1
     last_val = float("nan")
-    last_c_val = float("nan")
-    last_w_val = float("nan")
 
     graph_cache = GraphCPUCache(max_graphs=graph_cache_size)
     imn_cache = IMNPhaseCountCache(N_layers, nodes_per_mech_per_phase, device, imn_torch_dtype) if cache_imn_by_phase_count else None
@@ -323,15 +300,13 @@ def run_optimization(
             epoch_train_idx = train_idx[torch.randperm(len(train_idx))[:n_epoch_samples]]
 
         perm = epoch_train_idx[torch.randperm(len(epoch_train_idx))]
-        main_train_sum = 0.0
-        c_train_sum = 0.0
-        w_train_sum = 0.0
+        train_loss_sum = 0.0
         accumulated = 0
 
         for it, idx in enumerate(perm):
             sid = str(idx.item())
             with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
-                main_loss, c_loss, w_loss = _compute_losses_for_sample(
+                loss = _compute_loss_for_sample(
                     sid,
                     training_data_set,
                     mesh_folder,
@@ -340,18 +315,14 @@ def run_optimization(
                     N_layers,
                     nodes_per_mech_per_phase,
                     device,
-                    C_loss_scale,
-                    W_loss_scale,
                     imn_torch_dtype,
                     imn_cache,
                 )
-                scaled_loss = main_loss / accumulation_steps
+                scaled_loss = loss / accumulation_steps
 
             scaler.scale(scaled_loss).backward()
             accumulated += 1
-            main_train_sum += float(main_loss.detach().cpu())
-            c_train_sum += float(c_loss.detach().cpu())
-            w_train_sum += float(w_loss.detach().cpu())
+            train_loss_sum += float(loss.detach().cpu())
 
             is_boundary = accumulated == accumulation_steps
             is_last = it == len(perm) - 1
@@ -367,16 +338,14 @@ def run_optimization(
                 optimizer.zero_grad(set_to_none=True)
                 accumulated = 0
 
-            del main_loss, c_loss, w_loss, scaled_loss
+            del loss, scaled_loss
 
         n_train = max(1, len(perm))
-        avg_train = main_train_sum / n_train
-        c_train = c_train_sum / n_train
-        w_train = w_train_sum / n_train
+        avg_train = train_loss_sum / n_train
         run_validation = ((epoch + 1) % val_every == 0) or (epoch == num_epochs - 1)
 
         if run_validation:
-            last_val, last_c_val, last_w_val = _average_validation_loss(
+            last_val = _average_validation_loss(
                 val_idx,
                 training_data_set,
                 mesh_folder,
@@ -385,8 +354,6 @@ def run_optimization(
                 N_layers,
                 nodes_per_mech_per_phase,
                 device,
-                C_loss_scale,
-                W_loss_scale,
                 use_amp,
                 imn_torch_dtype,
                 imn_cache,
@@ -403,10 +370,6 @@ def run_optimization(
             trial.set_user_attr("epochs_ran", epoch + 1)
             trial.set_user_attr("best_epoch", best_epoch + 1 if best_epoch >= 0 else None)
 
-        plot_data["W_train"].append(w_train)
-        plot_data["C_train"].append(c_train)
-        plot_data["W_val"].append(last_w_val)
-        plot_data["C_val"].append(last_c_val)
         _append_plot_values(epoch, avg_train, last_val, plot_data)
 
         val_text = f"{last_val:.6f}" if np.isfinite(last_val) else "skipped"
@@ -422,10 +385,6 @@ def run_optimization(
         str(imn_trained_data_folder / f"epoch_costs_{stage}.npz"),
         train=np.array(plot_data["Train"], dtype=np.float32),
         val=np.array(plot_data["Val"], dtype=np.float32),
-        W_train=np.array(plot_data["W_train"], dtype=np.float32),
-        C_train=np.array(plot_data["C_train"], dtype=np.float32),
-        W_val=np.array(plot_data["W_val"], dtype=np.float32),
-        C_val=np.array(plot_data["C_val"], dtype=np.float32),
     )
 
     finish_optim = True
@@ -456,7 +415,7 @@ def run_live_optimization_GNN_IMN(
     imn_dtype="float32",
         samples_per_epoch=None
 ):
-    plot_data = {"Train": [], "Val": [], "C_train": [], "C_val": [], "W_train": [], "W_val": []}
+    plot_data = {"Train": [], "Val": []}
 
     if not cost_live_plot:
         return run_optimization(

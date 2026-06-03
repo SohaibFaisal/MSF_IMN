@@ -321,7 +321,20 @@ class IMNCalculator:
         # C_avg = C_avg.float()
         #
         X = torch.linalg.solve(K, -Mmat)
+        return self.fix_predicted_matrix(C_avg + Y @ X)
         return C_avg + Y @ X
+
+    def fix_predicted_matrix(self, C:Tensor) -> Tensor:
+        C[0:3, 3:6] = 0
+        C[3:6, 0:3] = 0
+        C[3, 4] = 0
+        C[3, 5] = 0
+        C[4, 3] = 0
+        C[4, 5] = 0
+        C[5, 3] = 0
+        C[5, 4] = 0
+        return C
+
 
     def homogenize_from_flat_params(self, p_hat_1d: Tensor) -> Tensor:
         if p_hat_1d.ndim != 1:
