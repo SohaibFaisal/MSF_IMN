@@ -63,14 +63,14 @@ class HybridGNNIMN(nn.Module):
             from .GNNs import GraphFeatureExtractor_phase_aware
             self.gnn = GraphFeatureExtractor_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads) #ok
         elif GNN_structure == 2:
-            from .GNNs import GraphFeatureExtractor_AttentionPool
-            self.gnn = GraphFeatureExtractor_AttentionPool(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Good
+            from .GNNs import GraphFeatureExtractor_AttentionPool_phase_aware
+            self.gnn = GraphFeatureExtractor_AttentionPool_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Good
         elif GNN_structure == 3:
             from .GNNs import GraphFeatureExtractor_MultiPoolResidual
             self.gnn = GraphFeatureExtractor_MultiPoolResidual(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Not good
         elif GNN_structure == 4:
-            from .GNNs import GraphFeatureExtractor_JK_Set2Set
-            self.gnn = GraphFeatureExtractor_JK_Set2Set(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)
+            from .GNNs import GraphFeatureExtractor_JK_Set2Set_phase_aware
+            self.gnn = GraphFeatureExtractor_JK_Set2Set_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)
 
 
 
