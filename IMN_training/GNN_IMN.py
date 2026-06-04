@@ -66,11 +66,13 @@ class HybridGNNIMN(nn.Module):
             from .GNNs import GraphFeatureExtractor_AttentionPool_phase_aware
             self.gnn = GraphFeatureExtractor_AttentionPool_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Good
         elif GNN_structure == 3:
-            from .GNNs import GraphFeatureExtractor_MultiPoolResidual
-            self.gnn = GraphFeatureExtractor_MultiPoolResidual(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Not good
-        elif GNN_structure == 4:
             from .GNNs import GraphFeatureExtractor_JK_Set2Set_phase_aware
             self.gnn = GraphFeatureExtractor_JK_Set2Set_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)
+
+        # elif GNN_structure == 4:
+        #     from .GNNs import GraphFeatureExtractor_MultiPoolResidual
+        #     self.gnn = GraphFeatureExtractor_MultiPoolResidual(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Not good
+
 
 
 
@@ -268,7 +270,7 @@ def train_hybrid_one_graph(
     weight_decay:float = 0.0,
     nodes_per_mech_per_phase=2,
     trial=None,
-        use_GPU=True
+        use_GPU=False
 
 ):
 
@@ -282,23 +284,27 @@ def train_hybrid_one_graph(
         training_data_set = get_dataset_main(num_samples, training_dataset_folder)
         cfg = dict(
             node_feat_dim=10,  # derived
-            gnn_hidden_dim=optimizing_variables[1],
-            gnn_heads=int(optimizing_variables[1]/8),
             tnn_hidden_dim=int(optimizing_variables[0]),
-            x_dim=int(optimizing_variables[2]),  # embedding size
+            gnn_hidden_dim=int(optimizing_variables[1]),
+            gnn_heads=int(optimizing_variables[2]),
+            x_dim=int(optimizing_variables[3]),
+            gnn_structure=int(optimizing_variables[4]),
+            nodes_per_mech_per_phase=int(optimizing_variables[5]),
+            tnn_layers=int(optimizing_variables[6]),
+            gnn_layers=int(optimizing_variables[7]),
         )
 
 
 
         model = HybridGNNIMN(node_feat_dim=cfg['node_feat_dim'],N_layers=N_layers, gnn_hidden_dim=cfg['gnn_hidden_dim'], tnn_hidden_dim=cfg['tnn_hidden_dim'],
-                             heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure = optimizing_variables[3], nodes_per_mech_per_phase=nodes_per_mech_per_phase).float().to(device)
+                             heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure = cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase).float().to(device)
 
         opt = optim.Adam(
             [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr_rest}],
             weight_decay=weight_decay
         )
 
-        best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial,accumulation_steps=50, samples_per_epoch=2500)
+        best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial,accumulation_steps=100, samples_per_epoch=2500)
         imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
         GNN_FILE_PATH = imn_trained_data_folder / f"gnn_imn_generator.pt"
 
@@ -465,7 +471,7 @@ def get_dataset_main(num_samples,training_dataset_folder):
 
 
 @torch.inference_mode()
-def generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, rve, mesh, training_dataset_folder, num_sam, mode):
+def generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, rve, mesh, training_dataset_folder, num_sam, mode, nodes_per_mech_per_phase):
     GNN_FILE_PATH = imn_trained_data_folder / 'gnn_imn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
@@ -488,10 +494,10 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_
 
     if mode == 1:
         main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}.npz')).to(device)
-        phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}_phase_{ph}.npz')) for ph in phases]
+        phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}_target_{ph}.npz')) for ph in phases]
         phase_g = [g.to(device) for g in phase_g]
         p_flat = new_model.forward(phases, main_g, phase_g)
-        imn = IMNCalculator(N_layers, phases)
+        imn = IMNCalculator(N_layers, phases, nodes_per_mech_per_phase)
         imn.output_params_from_p_flat(p_flat, imn_validation_folder)
 
     else:
@@ -502,11 +508,11 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_
             sid = str(id)
             ss, rr, mm = training_data_set[sid]['ids']
             main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device)
-            phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}_phase_{ph}.npz')) for ph in training_data_set[sid][f"Phases"]]
+            phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}_target_{ph}.npz')) for ph in training_data_set[sid][f"Phases"]]
             phase_g = [g.to(device) for g in phase_g]
             flat_p = new_model.forward(training_data_set[sid]['Phases'], main_g,
                                    phase_g)
-            imn = IMNCalculator(N_layers, training_data_set[sid]['Phases'])
+            imn = IMNCalculator(N_layers, training_data_set[sid]['Phases'], nodes_per_mech_per_phase)
             imn.assign_node_stiffness(training_data_set[sid])
             C_pred = imn.homogenize_from_flat_params(flat_p)
             C_tgt = training_data_set[sid]["C_Target"]

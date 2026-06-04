@@ -1,0 +1,78 @@
+====================================
+timestamp : 2026-06-04 09:33:50
+trial     : 0
+status    : COMPLETED
+parameters:
+  N_layers : 3
+  nodes_per_mech_per_phase : 3
+  tnn_hidden_dim : 64
+  gnn_hidden_dim : 128
+  x_feat : 256
+  gnn_structure : 1
+  lr : 0.0004781009079897085
+  gnn_heads : 16
+  weight_decay : 0.00015745215194006774
+best_val_loss : None
+runtime_sec   : 0.29
+epochs_ran     : None
+====================================
+
+====================================
+timestamp : 2026-06-04 09:34:44
+trial     : 0
+status    : COMPLETED
+parameters:
+  N_layers : 3
+  nodes_per_mech_per_phase : 1
+  tnn_hidden_dim : 32
+  gnn_hidden_dim : 32
+  x_feat : 128
+  gnn_structure : 2
+  lr : 0.00045148469306699793
+  gnn_heads : 16
+  weight_decay : 0.00019976668548557917
+best_val_loss : None
+runtime_sec   : 0.29
+epochs_ran     : None
+====================================
+
+====================================
+timestamp : 2026-06-04 09:35:19
+trial     : 0
+status    : COMPLETED
+parameters:
+  N_layers : 5
+  nodes_per_mech_per_phase : 3
+  tnn_hidden_dim : 32
+  gnn_hidden_dim : 32
+  x_feat : 256
+  gnn_structure : 2
+  lr : 0.0041756821551762096
+  gnn_heads : 8
+  weight_decay : 6.309237931430538e-08
+best_val_loss : None
+runtime_sec   : 0.65
+epochs_ran     : None
+====================================
+
+====================================
+timestamp : 2026-06-04 09:43:29
+trial     : 0
+status    : COMPLETED
+parameters:
+  N_layers : 4
+  nodes_per_mech_per_phase : 3
+  tnn_hidden_dim : 32
+  gnn_hidden_dim : 32
+  x_feat : 64
+  tnn_layers : 1
+  gnn_layers : 2
+  gnn_structure : 2
+  lr : 0.001081574813819359
+  gnn_heads : 16
+  weight_decay : 5.062917445348578e-08
+best_val_loss : None
+runtime_sec   : 6.88
+epochs_ran     : None
+====================================
+

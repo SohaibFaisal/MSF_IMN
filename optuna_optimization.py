@@ -17,7 +17,7 @@ def objective(trial):
     num_samples = 90
     num_epochs = 50
 
-    training_dataset_folder = Path(r"Training_data_generation\Training_data0116")  # your folder
+    training_dataset_folder = Path(r"Training_data_generation\Training_data0924")  # your folder
     out_dir = Path(r"IMN_training\optuna") / f"trial_{trial.number:04d}"
     out_dir.mkdir(parents=True, exist_ok=True)
     start_time = time.perf_counter()
@@ -30,22 +30,49 @@ def objective(trial):
         # Hyperparameter suggestions
         # ----------------------------
 
-        N_layers = trial.suggest_int("N_layers", 3, 6)
+        N_layers = trial.suggest_int("N_layers", 3, 5)
 
-        tnn_hidden_dim = trial.suggest_categorical("tnn_hidden_dim", [32, 64, 128])
-        gnn_hidden_dim = trial.suggest_categorical("gnn_hidden_dim", [32, 64, 128])
-        x_feat = trial.suggest_categorical("x_feat", [32, 64, 128, 256])
+        nodes_per_mech_per_phase = trial.suggest_int(
+            "nodes_per_mech_per_phase", 1, 3
+        )
 
-        gnn_structure = trial.suggest_int("gnn_structure", 1, 4)
+        tnn_hidden_dim = trial.suggest_categorical(
+            "tnn_hidden_dim", [32, 64, 128]
+        )
+
+        gnn_hidden_dim = trial.suggest_categorical(
+            "gnn_hidden_dim", [32, 64, 128]
+        )
+
+        x_feat = trial.suggest_categorical(
+            "x_feat", [32, 64, 128, 256]
+        )
+
+        tnn_layers = trial.suggest_int(
+            "tnn_layers", 1, 3
+        )
+
+        gnn_layers = trial.suggest_int(
+            "gnn_layers", 1, 3
+        )
+
+        gnn_structure = trial.suggest_int(
+            "gnn_structure", 1, 3
+        )
 
         lr = trial.suggest_float("lr", 8e-5, 8e-3, log=True)
+        gnn_heads = trial.suggest_categorical("gnn_heads", [4, 8, 16])
         weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-3, log=True)
 
         optimizing_variables = [
             tnn_hidden_dim,
             gnn_hidden_dim,
+            gnn_heads,
             x_feat,
-            gnn_structure
+            gnn_structure,
+            nodes_per_mech_per_phase,
+            tnn_layers,
+            gnn_layers,
         ]
 
         # ----------------------------
@@ -62,7 +89,8 @@ def objective(trial):
             imn_trained_data_folder=out_dir,
             optimizing_variables=optimizing_variables,
             weight_decay=weight_decay,
-            trial=trial
+            trial=trial,
+            use_GPU=True,
         )
 
     except optuna.TrialPruned:
@@ -212,19 +240,19 @@ def export_trials_csv(study, csv_path: Path):
 
 if __name__ == "__main__":
 
-    # pruner = optuna.pruners.MedianPruner(n_startup_trials=12, n_warmup_steps=8)
-    # storage = "sqlite:///optuna_gnn_imn.db"  # creates a local file
-    # study_name = "gnn_imn_v1"
-    # study = optuna.create_study(
-    #     study_name=study_name,
-    #     storage=storage,
-    #     direction="minimize",
-    #     load_if_exists=False,  # lets you resume later
-    #     pruner=pruner
-    # )
-    # study.optimize(objective, n_trials=80)
-    # print("Best value:", study.best_value)
-    # print("Best params:", study.best_params)
+    pruner = optuna.pruners.MedianPruner(n_startup_trials=12, n_warmup_steps=8)
+    storage = "sqlite:///optuna_gnn_imn.db"  # creates a local file
+    study_name = "gnn_imn_v1"
+    study = optuna.create_study(
+        study_name=study_name,
+        storage=storage,
+        direction="minimize",
+        load_if_exists=False,  # lets you resume later
+        pruner=pruner
+    )
+    study.optimize(objective, n_trials=10)
+    print("Best value:", study.best_value)
+    print("Best params:", study.best_params)
 
     # CSV
 

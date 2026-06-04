@@ -10,11 +10,9 @@ start = dt.now()
 
 import argparse
 parser = argparse.ArgumentParser()
-
 parser.add_argument("--layers", type=int, default=3)
 parser.add_argument("--nodes", type=int, default=2)
 parser.add_argument("--epochs", type=int, default=50)
-
 args = parser.parse_args()
 
 print('Running study for : ')
@@ -52,11 +50,7 @@ F_Training_data_generation = 'Training_data_generation'
 # -------------------------------------
 # HYPER-PARAMETERS
 # -------------------------------------
-TNN_hidden_dim = 64
-GNN_hidden_dim = 64
-X_feat = 128
-GNN_structure = 1
-optimizing_variables = [TNN_hidden_dim, GNN_hidden_dim, X_feat, GNN_structure]
+
 # -------------------------------------
 
 
@@ -64,7 +58,7 @@ optimizing_variables = [TNN_hidden_dim, GNN_hidden_dim, X_feat, GNN_structure]
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 725
+main_id = 31
 data_gen_folder_id = main_id # Change here if needed
 train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
@@ -92,7 +86,7 @@ show_mesh = False
 
 
 
-imn_training = True
+imn_training = False
 cost_live_plot = False
 
 imn_validation = False
@@ -259,6 +253,25 @@ if imn_training:
     # nodes_per_mech_per_phase = 2
     use_GPU = True
 
+    tnn_hidden_dim = 64
+    gnn_hidden_dim = 64
+    gnn_heads = 4
+    x_feat = 128
+    gnn_structure = 1
+    nodes_per_mech_per_phase = 2
+    tnn_layers = 1
+    gnn_layers = 1
+
+    optimizing_variables = [
+        tnn_hidden_dim,
+        gnn_hidden_dim,
+        gnn_heads,
+        x_feat,
+        gnn_structure,
+        nodes_per_mech_per_phase,
+        tnn_layers,
+        gnn_layers,
+    ]
 
     total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     if training_mode == 'GNN_IMN':
@@ -278,8 +291,9 @@ if imn_training:
 if imn_validation:
 
     steps = 50
-    create_new_mesh = False # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
+    create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
+    nodes_per_mech_per_phase = 1
 
     '''
     --- MATERIAL SPECIFICATION ---
@@ -343,11 +357,11 @@ if imn_validation:
                 create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id)
 
                 if training_mode == 'GNN_IMN':
-                    generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, r, g_id, 0,0,1)
+                    generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, r, g_id, 0,0,1, nodes_per_mech_per_phase)
                 elif training_mode == 'IMN':
                     generate_imn_params(imn_trained_data_folder, imn_validation_folder)
 
-                validation(new_folder, val_solve,val_plot, stage, r, g_id, [1,2,3,4,5,6])
+                validation(new_folder, val_solve,val_plot, stage, r, g_id, [1,2,4,5])
 
 
     else:
@@ -407,11 +421,11 @@ if imn_validation_2:
 # -------------------------------------
 # SECONDARY FUNCTIONS
 # -------------------------------------
-if False:
+if True:
     # Create a randomized subset from training data
     from Training_data_generation.dataset_subset import dataset_subset
-    source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(721):04d}")  # Define here
-    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(821):04d}")  # Define here
+    source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(724):04d}")  # Define here
+    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(924):04d}")  # Define here
     dataset_subset(source_dataset_folder, new_dataset_folder,500)
 
 if False:

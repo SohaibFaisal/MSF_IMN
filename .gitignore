@@ -5,3 +5,7 @@ __pycache__/
 *.pyc
 *.py[cod]
 *$py.class
+*.zip
+IMN_validation/*
+echo Training_data_generation/Training_data0725.zip >> .gitignore
+echo *.zip >> .gitignore
