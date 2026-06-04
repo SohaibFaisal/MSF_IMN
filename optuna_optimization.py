@@ -219,20 +219,18 @@ def export_trials_csv(study, csv_path: Path):
             state = t.state.name
             pruned = (t.state == TrialState.PRUNED)
 
+            runtime_sec = t.user_attrs.get("runtime_sec", None)
+
             row = {
                 "trial_number": t.number,
                 "state": state,
                 "pruned": pruned,
-                # Optuna's recorded objective value (None for some pruned/failed)
                 "value": t.value,
-                # Your stored attrs (more explicit, survives your logic)
                 "best_val_loss": t.user_attrs.get("best_val_loss", None),
-                "runtime_sec": int(t.user_attrs.get("runtime_sec", None)),
-                # "runtime_ms": t.user_attrs.get("runtime_ms", None),
+                "runtime_sec": int(runtime_sec) if runtime_sec is not None else None,
                 "epochs_ran": t.user_attrs.get("epochs_ran", None),
             }
 
-            # Fill hyperparams (blank if not present, e.g. failed early)
             for k in all_param_keys:
                 row[k] = t.params.get(k, None)
 
@@ -250,7 +248,7 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    study.optimize(objective, n_trials=10)
+    # study.optimize(objective, n_trials=10)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
