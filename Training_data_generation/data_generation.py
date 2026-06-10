@@ -6,13 +6,7 @@ import gmsh
 from math import isclose
 import math
 
-
 from .material_sampling_new import RangeSpec, sample_many_orthotropic_materials, sample_many_interface_materials
-
-
-
-
-
 
 
 def split_annulus_face_transfinite(faceTag, cy, cz, ri, ro, xconst,
@@ -24,13 +18,13 @@ def split_annulus_face_transfinite(faceTag, cy, cz, ri, ro, xconst,
     nThetaQuarter: divisions per 90deg arc
     nRad: divisions across cohesive thickness
     """
-    angles = [0, math.pi/2, math.pi, 3*math.pi/2]
+    angles = [0, math.pi / 2, math.pi, 3 * math.pi / 2]
 
     # Points on inner/outer circles in the face plane (x fixed)
     p_in, p_out = [], []
     for a in angles:
-        p_in.append(gmsh.model.occ.addPoint(xconst, cy + ri*math.cos(a), cz + ri*math.sin(a)))
-        p_out.append(gmsh.model.occ.addPoint(xconst, cy + ro*math.cos(a), cz + ro*math.sin(a)))
+        p_in.append(gmsh.model.occ.addPoint(xconst, cy + ri * math.cos(a), cz + ri * math.sin(a)))
+        p_out.append(gmsh.model.occ.addPoint(xconst, cy + ro * math.cos(a), cz + ro * math.sin(a)))
 
     # Radial lines
     radials = [gmsh.model.occ.addLine(p_in[i], p_out[i]) for i in range(4)]
@@ -63,7 +57,7 @@ def split_annulus_face_transfinite(faceTag, cy, cz, ri, ro, xconst,
     return patches
 
 
-def surfaces_on_plane(dim=2, axis="x", value=0.0, L=(1,1,1), eps=None):
+def surfaces_on_plane(dim=2, axis="x", value=0.0, L=(1, 1, 1), eps=None):
     """
     Return surface tags whose bounding box touches the plane axis=value
     (within eps).
@@ -87,6 +81,7 @@ def surfaces_on_plane(dim=2, axis="x", value=0.0, L=(1,1,1), eps=None):
             raise ValueError("axis must be x, y, or z")
     return tags
 
+
 def bbox_signature(surf_tag, axis, eps):
     """
     Signature based on bbox ranges in the two directions orthogonal to 'axis'.
@@ -105,6 +100,7 @@ def bbox_signature(surf_tag, axis, eps):
     if axis == "z":
         return (q(xmin), q(xmax), q(ymin), q(ymax))
 
+
 def set_periodic_pairs(axis, master_tags, slave_tags, shift, L, eps=None):
     """
     Match master/slave by bbox signature and set periodicity.
@@ -120,10 +116,10 @@ def set_periodic_pairs(axis, master_tags, slave_tags, shift, L, eps=None):
 
     # affine transform matrix (4x4) flattened row-major for gmsh
     dx, dy, dz = shift
-    T = [1,0,0,dx,
-         0,1,0,dy,
-         0,0,1,dz,
-         0,0,0,1]
+    T = [1, 0, 0, dx,
+         0, 1, 0, dy,
+         0, 0, 1, dz,
+         0, 0, 0, 1]
 
     used = set()
     for s in slave_tags:
@@ -139,48 +135,50 @@ def set_periodic_pairs(axis, master_tags, slave_tags, shift, L, eps=None):
 
         gmsh.model.mesh.setPeriodic(2, [s], [m], T)
 
+
 def apply_periodic(Lx, Ly, Lz):
     L = (Lx, Ly, Lz)
-    eps = 1e-8 * max(L)   # scale-aware tolerance
+    eps = 1e-8 * max(L)  # scale-aware tolerance
 
     gmsh.model.occ.synchronize()  # IMPORTANT: do once before querying model entities
 
     # Collect surfaces on each boundary plane
-    x0 = surfaces_on_plane(axis="x", value=0.0,   L=L, eps=eps)
-    x1 = surfaces_on_plane(axis="x", value=Lx,    L=L, eps=eps)
-    y0 = surfaces_on_plane(axis="y", value=0.0,   L=L, eps=eps)
-    y1 = surfaces_on_plane(axis="y", value=Ly,    L=L, eps=eps)
-    z0 = surfaces_on_plane(axis="z", value=0.0,   L=L, eps=eps)
-    z1 = surfaces_on_plane(axis="z", value=Lz,    L=L, eps=eps)
+    x0 = surfaces_on_plane(axis="x", value=0.0, L=L, eps=eps)
+    x1 = surfaces_on_plane(axis="x", value=Lx, L=L, eps=eps)
+    y0 = surfaces_on_plane(axis="y", value=0.0, L=L, eps=eps)
+    y1 = surfaces_on_plane(axis="y", value=Ly, L=L, eps=eps)
+    z0 = surfaces_on_plane(axis="z", value=0.0, L=L, eps=eps)
+    z1 = surfaces_on_plane(axis="z", value=Lz, L=L, eps=eps)
 
     # Define master->slave shifts (choose your convention)
     set_periodic_pairs("x", master_tags=x0, slave_tags=x1, shift=(Lx, 0, 0), L=L, eps=eps)
     set_periodic_pairs("y", master_tags=y0, slave_tags=y1, shift=(0, Ly, 0), L=L, eps=eps)
     set_periodic_pairs("z", master_tags=z0, slave_tags=z1, shift=(0, 0, Lz), L=L, eps=eps)
 
+
 # Example:
 # apply_periodic(rve_size[0], rve_size[1], rve_size[2])
 
-def check_collision_gmsh( fnc_new_origin, fnc_new_direction_vector, fnc_new_length, fnc_new_diameter,fnc_fiber_shape,fiber_info,rve_info):
-    #print('Checking collision gmsh ...')
+def check_collision_gmsh(fnc_new_origin, fnc_new_direction_vector, fnc_new_length, fnc_new_diameter, fnc_fiber_shape, fiber_info, rve_info):
+    # print('Checking collision gmsh ...')
     gmsh.model.setCurrent("collision_check")
 
-    #for rm3 in gmsh.model.getEntities(3):
+    # for rm3 in gmsh.model.getEntities(3):
     #    gmsh.model.remove_entities([rm3],True)
 
     if (fnc_fiber_shape == 'cylinder') or (fnc_fiber_shape == 'UD'):
-        new_fiber = gmsh.model.occ.addCylinder(fnc_new_origin[0]-fnc_new_length/2*fnc_new_direction_vector[0],
-                                   fnc_new_origin[1]-fnc_new_length/2*fnc_new_direction_vector[1],
-                                   fnc_new_origin[2]-fnc_new_length/2*fnc_new_direction_vector[2],
-                                   fnc_new_length*fnc_new_direction_vector[0],
-                                   fnc_new_length*fnc_new_direction_vector[1],
-                                   fnc_new_length*fnc_new_direction_vector[2], fnc_new_diameter/2)
+        new_fiber = gmsh.model.occ.addCylinder(fnc_new_origin[0] - fnc_new_length / 2 * fnc_new_direction_vector[0],
+                                               fnc_new_origin[1] - fnc_new_length / 2 * fnc_new_direction_vector[1],
+                                               fnc_new_origin[2] - fnc_new_length / 2 * fnc_new_direction_vector[2],
+                                               fnc_new_length * fnc_new_direction_vector[0],
+                                               fnc_new_length * fnc_new_direction_vector[1],
+                                               fnc_new_length * fnc_new_direction_vector[2], fnc_new_diameter / 2)
     elif fnc_fiber_shape == 'sphere':
-        new_fiber = gmsh.model.occ.addSphere(fnc_new_origin[0], fnc_new_origin[1], fnc_new_origin[2], fnc_new_diameter/2)
+        new_fiber = gmsh.model.occ.addSphere(fnc_new_origin[0], fnc_new_origin[1], fnc_new_origin[2], fnc_new_diameter / 2)
 
     gmsh.model.occ.synchronize()
-    for a in range(1,new_fiber):
-        out, _ = gmsh.model.occ.cut([(3, new_fiber)], [(3, int(a))],-1,False,False)
+    for a in range(1, new_fiber):
+        out, _ = gmsh.model.occ.cut([(3, new_fiber)], [(3, int(a))], -1, False, False)
         if out == []:
             gmsh.model.occ.remove([(3, new_fiber)])
             gmsh.model.occ.synchronize()
@@ -193,77 +191,364 @@ def check_collision_gmsh( fnc_new_origin, fnc_new_direction_vector, fnc_new_leng
     return False
 
 
-def check_collision_gmsh_new( fnc_new_origin, fnc_new_direction_vector, fnc_new_length, fnc_new_diameter,fnc_fiber_shape,all_fiber_info,fiber_info, rve_info):
+def ellipse_matrix(h, k, a, b, theta):
+    c = np.cos(theta)
+    s = np.sin(theta)
+    Q11 = (c ** 2 / a ** 2) + (s ** 2 / b ** 2)
+    Q12 = c * s * (1 / a ** 2 - 1 / b ** 2)
+    Q22 = (s ** 2 / a ** 2) + (c ** 2 / b ** 2)
+    Q13 = -h * Q11 - k * Q12
+    Q23 = -h * Q12 - k * Q22
+    Q33 = h ** 2 * Q11 + 2 * h * k * Q12 + k ** 2 * Q22 - 1
+    M = np.array([
+        [Q11, Q12, Q13],
+        [Q12, Q22, Q23],
+        [Q13, Q23, Q33]
+    ])
+    return M
 
+
+def calculate_s0(A, B):
+    # coeff=[a0,a1,a2,a3]
+    a3 = np.linalg.det(A)
+    a0 = np.linalg.det(B)
+
+    a2 = (-2 * A[1, 1] * B[0, 2] + 2 * A[1, 2] * B[0, 1]) * A[0, 2] + (2 * A[0, 2] * B[1, 2] + 2 * A[1, 2] * B[0, 2] - 2 * A[2, 2] * B[0, 1]) * A[0, 1] + (
+                A[1, 1] * B[2, 2] - 2 * A[1, 2] * B[1, 2] + A[2, 2] * B[1, 1]) * A[0, 0] - A[0, 1] ** 2 * B[2, 2] - A[0, 2] ** 2 * B[1, 1] + A[1, 1] * A[2, 2] * B[0, 0] - A[
+             1, 2] ** 2 * B[0, 0]
+    a1 = (B[0, 0] * B[1, 1] - B[0, 1] ** 2) * A[2, 2] + (-2 * B[0, 0] * B[1, 2] + 2 * B[0, 1] * B[0, 2]) * A[1, 2] + (B[0, 0] * B[2, 2] - B[0, 2] ** 2) * A[1, 1] + (
+                2 * B[0, 1] * B[1, 2] - 2 * B[0, 2] * B[1, 1]) * A[0, 2] + (-2 * B[0, 1] * B[2, 2] + 2 * B[0, 2] * B[1, 2]) * A[0, 1] + (B[1, 1] * B[2, 2] - B[1, 2] ** 2) * A[0, 0]
+
+    if a1 > 0 or a2 > 0:
+        s0 = a3 * (27 * (a0 * a3) ** 2 - 18 * a0 * a1 * a2 * a3 + 4 * a0 * a2 ** 3 + 4 * a3 * a1 ** 3 - (a1 * a2) ** 2)
+    else:
+        s0 = -1
+
+    return s0
+
+
+def check_collision_gmsh_new(fnc_new_origin, fnc_new_direction_vector, fnc_new_length, fnc_new_diameter_a, fiber_collision_tolerance, fnc_fiber_shape, all_fiber_info, fiber_info,
+                             rve_info, fnc_new_diameter_b, new_angle):
     rve_size = rve_info['MATRIX']['size']
+
     # print('Checking collision')
     # for fi in chain([fiber_info], all_fiber_info):
-    for fi in all_fiber_info+[fiber_info]:
+    for fi in all_fiber_info + [fiber_info]:
         # print(fi)
-        for k,v in fi.items():
+        for k, v in fi.items():
             if v[0][0] == -1:
                 return False
             else:
-                if fnc_fiber_shape == 'UD':
+                if fnc_fiber_shape == 'UCD':
+                    fnc_new_diameter = fnc_new_diameter_a + fiber_collision_tolerance
                     if v[-1] == 'yes_periodicity':
                         for p in v[6]:
                             new_origin = fi['p' + str(k) + ',' + str(p[3]) + ',' + str(p[4]) + ',' + str(p[5])][0]
-                            distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
-                            if distance < (fnc_new_diameter + v[1]) * 1.0001/2:
+                            if v[5] == 'UCD' or v[5] == 'cylinder' or v[5] == 'sphere':
+                                distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                                if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                                    return True
+                            elif v[5] == 'UED' or v[5] == 'ellcyl':
+                                a = fnc_new_diameter * 1.001 / 2
+                                b = fnc_new_diameter * 1.001 / 2
+                                h_a = fnc_new_origin[2]
+                                k_a = fnc_new_origin[1]
+                                h_b = new_origin[2]
+                                k_b = new_origin[1]
+                                aa = (v[1][0]) * 1.001 / 2
+                                bb = (v[1][1]) * 1.001 / 2
+                                angle = v[1][2]
+                                dist_y = abs(k_a - k_b)
+                                dist_z = abs(h_a - h_b)
+                                y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(
+                                    ((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                                z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(
+                                    ((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                                if dist_y < y_dist and dist_z < z_dist:
+                                    s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                                    if s0 <= 0:
+                                        return True
+                    if v[5] == 'UCD' or v[5] == 'cylinder' or v[5] == 'sphere':
+                        distance = ((v[0][2] - fnc_new_origin[2]) ** 2 + (v[0][1] - fnc_new_origin[1]) ** 2) ** 0.5
+                        if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                            return True
+                    elif v[5] == 'UED' or v[5] == 'ellcyl':
+                        a = fnc_new_diameter * 1.001 / 2
+                        b = fnc_new_diameter * 1.001 / 2
+                        h_a = fnc_new_origin[2]
+                        k_a = fnc_new_origin[1]
+                        new_origin = v[0]
+                        h_b = new_origin[2]
+                        k_b = new_origin[1]
+                        aa = (v[1][0]) * 1.001 / 2
+                        bb = (v[1][1]) * 1.001 / 2
+                        angle = v[1][2]
+                        dist_y = abs(k_a - k_b)
+                        dist_z = abs(h_a - h_b)
+                        y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                        z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                        if dist_y < y_dist and dist_z < z_dist:
+                            s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                            if s0 <= 0:
                                 return True
-                    distance = ((v[0][2]-fnc_new_origin[2])**2 + (v[0][1]-fnc_new_origin[1])**2)**0.5
-                    if distance < (fnc_new_diameter + v[1]) * 1.0001/2:
-                        return True
 
                 elif fnc_fiber_shape == 'cylinder':
+                    fnc_new_diameter = fnc_new_diameter_a + fiber_collision_tolerance
                     if v[-1] == 'yes_periodicity':
                         for p in v[6]:
                             new_origin = fi['p' + str(k) + ',' + str(p[3]) + ',' + str(p[4]) + ',' + str(p[5])][0]
-                            new_length = v[2]
-                            distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
-                            if distance < (fnc_new_diameter + v[1]) * 1.01/2:
-                                new_dist = abs(new_origin[0] - fnc_new_origin[0])  # FIXEDDD
-                                if new_dist < (fnc_new_length+new_length) * 1.01/2:
-
+                            if v[5] == 'cylinder':
+                                distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                                if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                                    new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                    if new_dist < (fnc_new_length + v[2]) * 1.0001 / 2:
+                                        return True
+                            elif v[5] == 'UCD':
+                                distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                                if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
                                     return True
-
-
-                    distance = ((v[0][2]-fnc_new_origin[2])**2 + (v[0][1]-fnc_new_origin[1])**2)**0.5
-                    if distance < (fnc_new_diameter + v[1]) * 1.01/2:
-                        new_dist = abs(v[0][0]- fnc_new_origin[0])
-                        if new_dist < (fnc_new_length+ v[2]) * 1.01/2:
-
+                            elif v[5] == 'sphere':
+                                distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                                if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                                    new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                    if new_dist < (fnc_new_length + v[1][0]) * 1.0001 / 2:
+                                        return True
+                            elif v[5] == 'UED' or v[5] == 'ellcyl':
+                                a = fnc_new_diameter * 1.001 / 2
+                                b = fnc_new_diameter * 1.001 / 2
+                                h_a = fnc_new_origin[2]
+                                k_a = fnc_new_origin[1]
+                                h_b = new_origin[2]
+                                k_b = new_origin[1]
+                                aa = (v[1][0]) * 1.001 / 2
+                                bb = (v[1][1]) * 1.001 / 2
+                                angle = v[1][2]
+                                dist_y = abs(k_a - k_b)
+                                dist_z = abs(h_a - h_b)
+                                y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(
+                                    ((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                                z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(
+                                    ((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                                if dist_y < y_dist and dist_z < z_dist:
+                                    s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                                    if s0 <= 0:
+                                        if v[5] == 'UED':
+                                            return True
+                                        else:
+                                            new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                            if new_dist < (fnc_new_length + v[2]) * 1.0001 / 2:
+                                                return True
+                    if v[5] == 'cylinder':
+                        distance = ((v[0][2] - fnc_new_origin[2]) ** 2 + (v[0][1] - fnc_new_origin[1]) ** 2) ** 0.5
+                        if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                            new_dist = abs(v[0][0] - fnc_new_origin[0])
+                            if new_dist < (fnc_new_length + v[2]) * 1.0001 / 2:
+                                return True
+                    elif v[5] == 'UCD':
+                        distance = ((v[0][2] - fnc_new_origin[2]) ** 2 + (v[0][1] - fnc_new_origin[1]) ** 2) ** 0.5
+                        if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
                             return True
-
+                    elif v[5] == 'sphere':
+                        distance = ((v[0][2] - fnc_new_origin[2]) ** 2 + (v[0][1] - fnc_new_origin[1]) ** 2) ** 0.5
+                        if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                            new_dist = abs(v[0][0] - fnc_new_origin[0])
+                            if new_dist < (fnc_new_length + v[1][0]) * 1.0001 / 2:
+                                return True
+                    elif v[5] == 'UED' or v[5] == 'ellcyl':
+                        a = fnc_new_diameter * 1.001 / 2
+                        b = fnc_new_diameter * 1.001 / 2
+                        h_a = fnc_new_origin[2]
+                        k_a = fnc_new_origin[1]
+                        new_origin = v[0]
+                        h_b = new_origin[2]
+                        k_b = new_origin[1]
+                        aa = (v[1][0]) * 1.001 / 2
+                        bb = (v[1][1]) * 1.001 / 2
+                        angle = v[1][2]
+                        dist_y = abs(k_a - k_b)
+                        dist_z = abs(h_a - h_b)
+                        y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                        z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                        if dist_y < y_dist and dist_z < z_dist:
+                            s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                            if s0 <= 0:
+                                if v[5] == 'UED':
+                                    return True
+                                else:
+                                    new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                    if new_dist < (fnc_new_length + v[2]) * 1.0001 / 2:
+                                        return True
 
                 elif fnc_fiber_shape == 'sphere':
-
+                    fnc_new_diameter = fnc_new_diameter_a + fiber_collision_tolerance
                     if v[-1] == 'yes_periodicity':
                         for p in v[6]:
                             new_origin = fi['p' + str(k) + ',' + str(p[3]) + ',' + str(p[4]) + ',' + str(p[5])][0]
-                            if 'PR' in v[-3]:
+                            if v[5] == 'sphere':
                                 distance = ((new_origin[0] - fnc_new_origin[0]) ** 2 + (new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
-                            else:
+                                if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                                    return True
+                            elif v[5] == 'UCD' or v[5] == 'cylinder':
                                 distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                                if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                                    if v[5] == 'UCD':
+                                        return True
+                                    else:
+                                        new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                        if new_dist < (fnc_new_diameter + v[2]) * 1.0001 / 2:  # changehere
+                                            return True
+                            elif v[5] == 'UED' or v[5] == 'ellcyl':
+                                a = fnc_new_diameter * 1.001 / 2
+                                b = fnc_new_diameter * 1.001 / 2
+                                h_a = fnc_new_origin[2]
+                                k_a = fnc_new_origin[1]
+                                h_b = new_origin[2]
+                                k_b = new_origin[1]
+                                aa = (v[1][0]) * 1.001 / 2
+                                bb = (v[1][1]) * 1.001 / 2
+                                angle = v[1][2]
+                                dist_y = abs(k_a - k_b)
+                                dist_z = abs(h_a - h_b)
+                                y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(
+                                    ((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                                z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(
+                                    ((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                                if dist_y < y_dist and dist_z < z_dist:
+                                    s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                                    if s0 <= 0:
+                                        if v[5] == 'UED':
+                                            return True
+                                        else:
+                                            new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                            if new_dist < (fnc_new_diameter + v[2]) * 1.0001 / 2:
+                                                return True
 
-
-                            if distance < (fnc_new_diameter + v[1]) * 1.0001/2:
-
-
+                    new_origin = v[0]
+                    if v[5] == 'sphere':
+                        distance = ((new_origin[0] - fnc_new_origin[0]) ** 2 + (new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                        if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                            return True
+                    elif v[5] == 'UCD' or v[5] == 'cylinder':
+                        distance = ((new_origin[1] - fnc_new_origin[1]) ** 2 + (new_origin[2] - fnc_new_origin[2]) ** 2) ** 0.5
+                        if distance < (fnc_new_diameter + v[1][0]) * 1.0001 / 2:
+                            if v[5] == 'UCD':
                                 return True
+                            else:
+                                new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                if new_dist < (fnc_new_diameter + v[2]) * 1.0001 / 2:  # changehere
+                                    return True
+                    elif v[5] == 'UED' or v[5] == 'ellcyl':
+                        a = fnc_new_diameter * 1.001 / 2
+                        b = fnc_new_diameter * 1.001 / 2
+                        h_a = fnc_new_origin[2]
+                        k_a = fnc_new_origin[1]
+                        h_b = new_origin[2]
+                        k_b = new_origin[1]
+                        aa = (v[1][0]) * 1.001 / 2
+                        bb = (v[1][1]) * 1.001 / 2
+                        angle = v[1][2]
+                        dist_y = abs(k_a - k_b)
+                        dist_z = abs(h_a - h_b)
+                        y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                        z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                        if dist_y < y_dist and dist_z < z_dist:
+                            s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                            if s0 <= 0:
+                                if v[5] == 'UED':
+                                    return True
+                                else:
+                                    new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                    if new_dist < (fnc_new_diameter + v[2]) * 1.0001 / 2:
+                                        return True
 
+                elif fnc_fiber_shape == 'ellcyl':
+                    a = (fnc_new_diameter_a + fiber_collision_tolerance) * 1.001 / 2
+                    b = (fnc_new_diameter_b + fiber_collision_tolerance) * 1.001 / 2
+                    h_a = fnc_new_origin[2]
+                    k_a = fnc_new_origin[1]
+                    if v[-1] == 'yes_periodicity':
+                        for p in v[6]:
+                            new_origin = fi['p' + str(k) + ',' + str(p[3]) + ',' + str(p[4]) + ',' + str(p[5])][0]
+                            h_b = new_origin[2]
+                            k_b = new_origin[1]
+                            aa = (v[1][0]) * 1.001 / 2
+                            bb = (v[1][1]) * 1.001 / 2
+                            angle = v[1][2]
+                            dist_y = abs(k_a - k_b)
+                            dist_z = abs(h_a - h_b)
+                            y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                            z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                            if dist_y < y_dist and dist_z < z_dist:
+                                s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                                if s0 <= 0:
+                                    if v[5] == 'UCD' or v[5] == 'UED':
+                                        return True
+                                    elif v[5] == 'ellcyl' or v[5] == 'cylinder':
+                                        new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                        if new_dist < (fnc_new_length + v[2]) * 1.0001 / 2:
+                                            return True
+                                    elif v[5] == 'sphere':
+                                        new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                        if new_dist < (fnc_new_length + v[1][0]) * 1.0001 / 2:
+                                            return True
+                    new_origin = v[0]
+                    h_b = new_origin[2]
+                    k_b = new_origin[1]
+                    aa = (v[1][0]) * 1.001 / 2
+                    bb = (v[1][1]) * 1.001 / 2
+                    angle = v[1][2]
+                    dist_y = abs(k_a - k_b)
+                    dist_z = abs(h_a - h_b)
+                    y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                    z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                    if dist_y < y_dist and dist_z < z_dist:
+                        s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                        if s0 <= 0:
+                            if v[5] == 'UCD' or v[5] == 'UED':
+                                return True
+                            elif v[5] == 'ellcyl' or v[5] == 'cylinder':
+                                new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                if new_dist < (fnc_new_length + v[2]) * 1.0001 / 2:
+                                    return True
+                            elif v[5] == 'sphere':
+                                new_dist = abs(new_origin[0] - fnc_new_origin[0])
+                                if new_dist < (fnc_new_length + v[1][0]) * 1.0001 / 2:
+                                    return True
 
-                    if 'PR' in v[-3]:
-                        distance = ((v[0][0]-fnc_new_origin[0])**2 + (v[0][2]-fnc_new_origin[2])**2 + (v[0][1]-fnc_new_origin[1])**2)**0.5
-                    else:
-                        distance = ((v[0][2] - fnc_new_origin[2]) ** 2 + (v[0][1] - fnc_new_origin[1]) ** 2) ** 0.5
-                    if distance < (fnc_new_diameter + v[1]) * 1.0001/2:
-
-                        return True
-
-
-
-
+                elif fnc_fiber_shape == 'UED':
+                    a = (fnc_new_diameter_a + fiber_collision_tolerance) * 1.001 / 2
+                    b = (fnc_new_diameter_b + fiber_collision_tolerance) * 1.001 / 2
+                    h_a = fnc_new_origin[2]
+                    k_a = fnc_new_origin[1]
+                    if v[-1] == 'yes_periodicity':
+                        for p in v[6]:
+                            new_origin = fi['p' + str(k) + ',' + str(p[3]) + ',' + str(p[4]) + ',' + str(p[5])][0]
+                            h_b = new_origin[2]
+                            k_b = new_origin[1]
+                            aa = (v[1][0]) * 1.001 / 2
+                            bb = (v[1][1]) * 1.001 / 2
+                            angle = v[1][2]
+                            dist_y = abs(k_a - k_b)
+                            dist_z = abs(h_a - h_b)
+                            y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                            z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                            if dist_y < y_dist and dist_z < z_dist:
+                                s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                                if s0 <= 0:
+                                    return True
+                    h_b = v[0][2]
+                    k_b = v[0][1]
+                    aa = (v[1][0]) * 1.001 / 2
+                    bb = (v[1][1]) * 1.001 / 2
+                    angle = v[1][2]
+                    dist_y = abs(k_a - k_b)
+                    dist_z = abs(h_a - h_b)
+                    y_dist = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2)) + np.sqrt(((bb * np.cos(angle)) ** 2) + ((aa * np.sin(angle)) ** 2))
+                    z_dist = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2)) + np.sqrt(((aa * np.cos(angle)) ** 2) + ((bb * np.sin(angle)) ** 2))
+                    if dist_y < y_dist and dist_z < z_dist:
+                        s0 = calculate_s0(ellipse_matrix(h_a, k_a, a, b, new_angle), ellipse_matrix(h_b, k_b, aa, bb, angle))
+                        if s0 <= 0:
+                            return True
 
 
 def clean_collision_check(a):
@@ -275,43 +560,41 @@ def clean_collision_check(a):
     gmsh.model.occ.synchronize()
 
 
-
-
-def check_periodicity_gmsh(fnc_new_origin, fnc_new_direction_vector,fnc_new_length, fnc_new_diameter, fnc_rve, fnc_fiber_shape):
+def check_periodicity_gmsh(fnc_new_origin, fnc_new_direction_vector, fnc_new_length, fnc_new_diameter, fnc_rve, fnc_fiber_shape):
     periodic_origins = []
     final_periodic_origins = []
     periodic_possibilities = [-1, 0, 1]
     min_distance = 0.01
-    #print('checking periodicity gmsh ...')
+    # print('checking periodicity gmsh ...')
     gmsh.model.setCurrent("periodicity_check")
     # for rm3 in gmsh.model.getEntities(3):
     #     gmsh.model.remove_entities([rm3],True)
     gmsh.model.removeEntities(gmsh.model.getEntities(), recursive=True)
     gmsh.model.occ.synchronize()
 
-    if (fnc_fiber_shape == 'cylinder') :
-        fiber = gmsh.model.occ.addCylinder(fnc_new_origin[0]-fnc_new_length/2*fnc_new_direction_vector[0],
-                                   fnc_new_origin[1]-fnc_new_length/2*fnc_new_direction_vector[1],
-                                   fnc_new_origin[2]-fnc_new_length/2*fnc_new_direction_vector[2],
-                                   fnc_new_length*fnc_new_direction_vector[0],
-                                   fnc_new_length*fnc_new_direction_vector[1],
-                                   fnc_new_length*fnc_new_direction_vector[2], fnc_new_diameter/2)
+    if (fnc_fiber_shape == 'cylinder'):
+        fiber = gmsh.model.occ.addCylinder(fnc_new_origin[0] - fnc_new_length / 2 * fnc_new_direction_vector[0],
+                                           fnc_new_origin[1] - fnc_new_length / 2 * fnc_new_direction_vector[1],
+                                           fnc_new_origin[2] - fnc_new_length / 2 * fnc_new_direction_vector[2],
+                                           fnc_new_length * fnc_new_direction_vector[0],
+                                           fnc_new_length * fnc_new_direction_vector[1],
+                                           fnc_new_length * fnc_new_direction_vector[2], fnc_new_diameter / 2)
 
     elif fnc_fiber_shape == 'UD':
         direction = [1, 0, 0]
-        fiber = gmsh.model.occ.addCylinder(fnc_new_origin[0]-fnc_rve[0]/2,
-                                   fnc_new_origin[1],
-                                   fnc_new_origin[2],
-                                   fnc_rve[0]*direction[0],
-                                   fnc_rve[1]*direction[1],
-                                   fnc_rve[2]*direction[2], fnc_new_diameter/2)
+        fiber = gmsh.model.occ.addCylinder(fnc_new_origin[0] - fnc_rve[0] / 2,
+                                           fnc_new_origin[1],
+                                           fnc_new_origin[2],
+                                           fnc_rve[0] * direction[0],
+                                           fnc_rve[1] * direction[1],
+                                           fnc_rve[2] * direction[2], fnc_new_diameter / 2)
 
     elif fnc_fiber_shape == 'sphere':
         fiber = gmsh.model.occ.addSphere(fnc_new_origin[0], fnc_new_origin[1], fnc_new_origin[2], fnc_new_diameter / 2)
 
     if fnc_fiber_shape == 'UD':
 
-        box = gmsh.model.occ.addBox(-fnc_rve[0], 0, 0, fnc_rve[0]*3, fnc_rve[1], fnc_rve[2])
+        box = gmsh.model.occ.addBox(-fnc_rve[0], 0, 0, fnc_rve[0] * 3, fnc_rve[1], fnc_rve[2])
     else:
         box = gmsh.model.occ.addBox(0, 0, 0, fnc_rve[0], fnc_rve[1], fnc_rve[2])
     gmsh.model.occ.synchronize()
@@ -324,14 +607,13 @@ def check_periodicity_gmsh(fnc_new_origin, fnc_new_direction_vector,fnc_new_leng
         return []
     else:
         new_vol = gmsh.model.occ.getMass(3, a[0][0][1])
-        if new_vol > 0.96*vol or new_vol < 0.04*vol:
+        if new_vol > 0.96 * vol or new_vol < 0.04 * vol:
             gmsh.model.occ.synchronize()
             return False
 
         gmsh.model.occ.remove([(3, box)])
         box = gmsh.model.occ.addBox(0, 0, 0, fnc_rve[0], fnc_rve[1], fnc_rve[2])
         if fnc_fiber_shape == 'UD':
-
 
             for y in periodic_possibilities:
                 for z in periodic_possibilities:
@@ -341,7 +623,7 @@ def check_periodicity_gmsh(fnc_new_origin, fnc_new_direction_vector,fnc_new_leng
                         xx = fnc_new_origin[0]
                         yy = fnc_new_origin[1] + y * fnc_rve[1]
                         zz = fnc_new_origin[2] + z * fnc_rve[2]
-                        periodic_origins.append([xx, yy, zz, 0,y,z])
+                        periodic_origins.append([xx, yy, zz, 0, y, z])
 
         else:
 
@@ -358,15 +640,15 @@ def check_periodicity_gmsh(fnc_new_origin, fnc_new_direction_vector,fnc_new_leng
 
         if (fnc_fiber_shape == 'cylinder') or (fnc_fiber_shape == 'UD'):
             for p in periodic_origins:
-                p_cyl = gmsh.model.occ.addCylinder(p[0]-fnc_new_length/2*fnc_new_direction_vector[0],
-                                   p[1]-fnc_new_length/2*fnc_new_direction_vector[1],
-                                   p[2]-fnc_new_length/2*fnc_new_direction_vector[2],
-                                   fnc_new_length*fnc_new_direction_vector[0],
-                                   fnc_new_length*fnc_new_direction_vector[1],
-                                   fnc_new_length*fnc_new_direction_vector[2], fnc_new_diameter/2)
-                b = gmsh.model.occ.intersect([(3, p_cyl)],[(3,box)],-1,True,False)
+                p_cyl = gmsh.model.occ.addCylinder(p[0] - fnc_new_length / 2 * fnc_new_direction_vector[0],
+                                                   p[1] - fnc_new_length / 2 * fnc_new_direction_vector[1],
+                                                   p[2] - fnc_new_length / 2 * fnc_new_direction_vector[2],
+                                                   fnc_new_length * fnc_new_direction_vector[0],
+                                                   fnc_new_length * fnc_new_direction_vector[1],
+                                                   fnc_new_length * fnc_new_direction_vector[2], fnc_new_diameter / 2)
+                b = gmsh.model.occ.intersect([(3, p_cyl)], [(3, box)], -1, True, False)
                 if b[0] == []:
-                    gmsh.model.occ.remove([(3, p_cyl)],True)
+                    gmsh.model.occ.remove([(3, p_cyl)], True)
                 else:
                     final_periodic_origins.append(p)
                     gmsh.model.occ.remove([(3, p_cyl)], True)
@@ -380,24 +662,27 @@ def check_periodicity_gmsh(fnc_new_origin, fnc_new_direction_vector,fnc_new_leng
                     final_periodic_origins.append(p)
                     gmsh.model.occ.remove([(3, p_sph)], True)
 
-        gmsh.model.occ.remove([(3,box)], True)
+        gmsh.model.occ.remove([(3, box)], True)
         gmsh.model.occ.synchronize()
         return final_periodic_origins
 
 
-
-def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector,fnc_new_length, fnc_new_diameter, fnc_rve, fnc_fiber_shape):
+def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector, fnc_new_length, fnc_new_diameter_a, fnc_rve, fnc_fiber_shape, fnc_new_diameter_b, new_angle):
     periodic_origins = []
     final_periodic_origins = []
     periodic_possibilities = [-1, 0, 1]
     min_distance = 0.01
-
+    a = fnc_new_diameter_a / 2
+    b = fnc_new_diameter_b / 2
+    z_max = np.sqrt(((a * np.cos(new_angle)) ** 2) + ((b * np.sin(new_angle)) ** 2))
+    y_max = np.sqrt(((b * np.cos(new_angle)) ** 2) + ((a * np.sin(new_angle)) ** 2))
     # []: No periodicity
     # False: Wrong periodicity
     # True: Yes periodiciity
     periodic = True
-    if fnc_fiber_shape == 'UD':
-        if fnc_new_origin[1] > fnc_rve[1]-fnc_new_diameter/2.0001 or fnc_new_origin[1] < fnc_new_diameter/2.0001 or fnc_new_origin[2] > fnc_rve[2]-fnc_new_diameter/2.0001 or fnc_new_origin[2] < fnc_new_diameter/2.0001:
+    if fnc_fiber_shape == 'UCD' or fnc_fiber_shape == 'UED':
+        if fnc_new_origin[1] > fnc_rve[1] - y_max / 1.00005 or fnc_new_origin[1] < y_max / 1.00005 or fnc_new_origin[2] > fnc_rve[2] - z_max / 1.00005 or fnc_new_origin[
+            2] < z_max / 1.00005:
             for y in periodic_possibilities:
                 for z in periodic_possibilities:
                     if y == 0 and z == 0:
@@ -406,19 +691,20 @@ def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector,fnc_new_lengt
                         xx = fnc_new_origin[0]
                         yy = fnc_new_origin[1] + y * fnc_rve[1]
                         zz = fnc_new_origin[2] + z * fnc_rve[2]
-                        periodic_origins.append([xx, yy, zz, 0,y,z])
+                        periodic_origins.append([xx, yy, zz, 0, y, z])
             for p in periodic_origins:
                 new_origin = [p[0], p[1], p[2]]
-                if new_origin[1] > -fnc_new_diameter / 2.0001 and new_origin[1] < fnc_rve[1] + fnc_new_diameter / 2.0001 and new_origin[2] < fnc_rve[
-                    2] + fnc_new_diameter / 2.0001 and new_origin[2] > -fnc_new_diameter / 2.0001:
+                if new_origin[1] > -y_max / 1.00005 and new_origin[1] < fnc_rve[1] + y_max / 1.00005 and new_origin[2] < fnc_rve[
+                    2] + z_max / 1.00005 and new_origin[2] > -z_max / 1.00005:
                     final_periodic_origins.append(p)
 
             return final_periodic_origins
         else:
             return []
 
-    elif fnc_fiber_shape == 'cylinder':
-        if fnc_new_origin[1] > fnc_rve[1]-fnc_new_diameter/2.0001 or fnc_new_origin[1] < fnc_new_diameter/2.0001 or fnc_new_origin[2] > fnc_rve[2]-fnc_new_diameter/2.0001 or fnc_new_origin[2] < fnc_new_diameter/2.0001 or fnc_new_origin[0]<fnc_new_length/2.0001 or fnc_new_origin[0]>fnc_rve[0]- fnc_new_length/2.0001:
+    elif fnc_fiber_shape == 'cylinder' or fnc_fiber_shape == 'ellcyl':
+        if fnc_new_origin[1] > fnc_rve[1] - y_max / 1.00005 or fnc_new_origin[1] < y_max / 1.00005 or fnc_new_origin[2] > fnc_rve[2] - z_max / 1.00005 or fnc_new_origin[
+            2] < z_max / 1.00005 or fnc_new_origin[0] < fnc_new_length / 2.0001 or fnc_new_origin[0] > fnc_rve[0] - fnc_new_length / 2.0001:
             for x in periodic_possibilities:
                 for y in periodic_possibilities:
                     for z in periodic_possibilities:
@@ -431,8 +717,8 @@ def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector,fnc_new_lengt
                             periodic_origins.append([xx, yy, zz, x, y, z])
             for p in periodic_origins:
                 new_origin = [p[0], p[1], p[2]]
-                if new_origin[1] > -fnc_new_diameter / 2.0001 and new_origin[1] < fnc_rve[1] + fnc_new_diameter / 2.0001 and new_origin[2] < fnc_rve[
-                    2] + fnc_new_diameter / 2.0001 and new_origin[2] > -fnc_new_diameter / 2.0001 and new_origin[0] > -fnc_new_length / 2.0001 and new_origin[0] < fnc_rve[0] + fnc_new_length / 2.0001:
+                if new_origin[1] > -y_max / 1.00005 and new_origin[1] < fnc_rve[1] + y_max / 1.00005 and new_origin[2] < fnc_rve[
+                    2] + z_max / 1.00005 and new_origin[2] > -z_max / 1.00005 and new_origin[0] > -fnc_new_length / 2.0001 and new_origin[0] < fnc_rve[0] + fnc_new_length / 2.0001:
                     final_periodic_origins.append(p)
 
             return final_periodic_origins
@@ -440,7 +726,10 @@ def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector,fnc_new_lengt
             return []
 
     elif fnc_fiber_shape == 'sphere':
-        if fnc_new_origin[0] > fnc_rve[0]-fnc_new_diameter/2.0001 or fnc_new_origin[0] < fnc_new_diameter/2.0001 or fnc_new_origin[1] > fnc_rve[1]-fnc_new_diameter/2.0001 or fnc_new_origin[1] < fnc_new_diameter/2.0001 or fnc_new_origin[2] > fnc_rve[2]-fnc_new_diameter/2.0001 or fnc_new_origin[2] < fnc_new_diameter/2.0001:
+        fnc_new_diameter = fnc_new_diameter_a
+        if fnc_new_origin[0] > fnc_rve[0] - fnc_new_diameter / 2.0001 or fnc_new_origin[0] < fnc_new_diameter / 2.0001 or fnc_new_origin[1] > fnc_rve[
+            1] - fnc_new_diameter / 2.0001 or fnc_new_origin[1] < fnc_new_diameter / 2.0001 or fnc_new_origin[2] > fnc_rve[2] - fnc_new_diameter / 2.0001 or fnc_new_origin[
+            2] < fnc_new_diameter / 2.0001:
             for x in periodic_possibilities:
                 for y in periodic_possibilities:
                     for z in periodic_possibilities:
@@ -454,7 +743,8 @@ def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector,fnc_new_lengt
 
             for p in periodic_origins:
                 new_origin = [p[0], p[1], p[2]]
-                if new_origin[0] > -fnc_new_diameter / 2.0001 and new_origin[0] < fnc_rve[0] + fnc_new_diameter / 2.0001 and new_origin[1] > -fnc_new_diameter / 2.0001 and new_origin[1] < fnc_rve[1] + fnc_new_diameter / 2.0001 and new_origin[2] < fnc_rve[
+                if new_origin[0] > -fnc_new_diameter / 2.0001 and new_origin[0] < fnc_rve[0] + fnc_new_diameter / 2.0001 and new_origin[1] > -fnc_new_diameter / 2.0001 and \
+                        new_origin[1] < fnc_rve[1] + fnc_new_diameter / 2.0001 and new_origin[2] < fnc_rve[
                     2] + fnc_new_diameter / 2.0001 and new_origin[2] > -fnc_new_diameter / 2.0001:
                     final_periodic_origins.append(p)
 
@@ -476,21 +766,16 @@ def check_periodicity_new(fnc_new_origin, fnc_new_direction_vector,fnc_new_lengt
     #                     periodic_origins.append([xx, yy, zz, x, y, z])
 
 
-
-
-
-#-------------------------------MAIN RSA Functions-----------------------------------#
+# -------------------------------MAIN RSA Functions-----------------------------------#
 
 # Uses gmsh boolean operations to detect collision/overlaps. (Slower than new_rsa)
 def rsa(rve_info, fiber_collision_tolerance):
-
-
     rsa_attempts = 200
     rsa_attempts_per_fiber = 2000
 
     # Calculate the number of fibers required to achieve FVF
     rve_size = rve_info['MATRIX']['size']
-    rve_volume = rve_size[0]*rve_size[1]*rve_size[2]
+    rve_volume = rve_size[0] * rve_size[1] * rve_size[2]
 
     for r in rve_info.keys():
         if 'COH' in r:
@@ -509,27 +794,23 @@ def rsa(rve_info, fiber_collision_tolerance):
         # print(rve_volume)
         # print(rve_info[r]['FVC'])
         # print(volume)
-        print(f'For inclusion {r} required numbers are: ' , rve_info[r]['numbers'])
+        print(f'For inclusion {r} required numbers are: ', rve_info[r]['numbers'])
         rve_info[r]['fiber_dia_list'] = np.random.normal(rve_info[r]['dia'][0], rve_info[r]['dia'][1], rve_info[r]['numbers'])
 
-
-        rve_info[r]['fiber_theta_list'] = np.random.normal(rve_info[r]['ori'][0], rve_info[r]['ori'][1],  rve_info[r]['numbers'])
+        rve_info[r]['fiber_theta_list'] = np.random.normal(rve_info[r]['ori'][0], rve_info[r]['ori'][1], rve_info[r]['numbers'])
         rve_info[r]['fiber_phi_list'] = np.random.normal(rve_info[r]['ori'][2], rve_info[r]['ori'][3], rve_info[r]['numbers'])
         rve_info[r]['fiber_length_list'] = np.random.normal(rve_info[r]['len'][0], rve_info[r]['len'][1], rve_info[r]['numbers'])
 
-
-
-
     # Total RSA Attempts
     RVE_achieved = False
-    for r_a in range(1,rsa_attempts):
+    for r_a in range(1, rsa_attempts):
 
         if RVE_achieved is True:
-            #print('RVE achieved')
+            # print('RVE achieved')
             break
 
         # print('RSA Attempt #{}'.format(r_a))
-        if r_a == rsa_attempts-1:
+        if r_a == rsa_attempts - 1:
             print('ERROR. CANT MAKE RVE')
             break
 
@@ -549,7 +830,7 @@ def rsa(rve_info, fiber_collision_tolerance):
             for x in range(0, rve_info[r]['numbers']):
                 fiber_info[str(x)] = [[-1, -1, -1], rve_info[r]['fiber_dia_list'][x], rve_info[r]['fiber_length_list'][x], rve_info[r]['fiber_theta_list'][x],
                                       rve_info[r]['fiber_phi_list'][x], r, [], 'no_periodicity']
-            #print('Attempt #', r_a)
+            # print('Attempt #', r_a)
             # Loop through each fiber
             fail = False
             for f in range(0, rve_info[r]['numbers']):
@@ -557,10 +838,10 @@ def rsa(rve_info, fiber_collision_tolerance):
                 if fail == True:
                     break
                 for r_a_p_f in range(1, rsa_attempts_per_fiber):
-                    if r_a_p_f == rsa_attempts_per_fiber-1:
+                    if r_a_p_f == rsa_attempts_per_fiber - 1:
                         fail = True
                         break
-                    new_diameter = fiber_info[str(f)][1] + coh_thickness*2
+                    new_diameter = fiber_info[str(f)][1] + coh_thickness * 2
                     if 'SFR' in r:
                         fiber_shape = 'cylinder'
                         new_direction_vector = np.array(
@@ -572,38 +853,36 @@ def rsa(rve_info, fiber_collision_tolerance):
                         mapping_array_z = [-new_length / 3, rve_size[2] + new_length / 3]
                     elif 'UD' in r:
                         fiber_shape = 'UD'
-                        new_direction_vector = np.array([1,0,0])
-                        new_length = rve_size[0]*2
-                        mapping_array_x = [rve_size[0]/2, rve_size[0]/2 ]
+                        new_direction_vector = np.array([1, 0, 0])
+                        new_length = rve_size[0] * 2
+                        mapping_array_x = [rve_size[0] / 2, rve_size[0] / 2]
                         mapping_array_y = [-new_diameter / 3, rve_size[1] + new_diameter / 3]
                         mapping_array_z = [-new_diameter / 3, rve_size[2] + new_diameter / 3]
-
 
                         # mapping_array_y = [(rve_size[1]/2 - (region)/100*rve_size[1]/2 - new_diameter / 3, rve_size[1]/2 - (region-10)/100*rve_size[1]/2 - new_diameter / 3), (rve_size[1]/2 + region/100*rve_size[1]/2 + new_diameter / 3,rve_size[1]/2 + (region+10)/100*rve_size[1]/2 + new_diameter / 3)]
                         # mapping_array_z = [(rve_size[2]/2 - (region)/100*rve_size[2]/2 - new_diameter / 3, rve_size[2]/2 - (region-10)/100*rve_size[2]/2 - new_diameter / 3), (rve_size[2]/2 + region/100*rve_size[2]/2 + new_diameter / 3,rve_size[2]/2 + (region+10)/100*rve_size[2]/2 + new_diameter / 3)]
                     elif 'PR' in r:
                         fiber_shape = 'sphere'
-                        new_direction_vector = np.array([1,0,0]) # Not needed
-                        new_length = rve_size[0]*1.1 # Not needed
+                        new_direction_vector = np.array([1, 0, 0])  # Not needed
+                        new_length = rve_size[0] * 1.1  # Not needed
                         mapping_array_x = [-new_diameter / 3, rve_size[0] + new_diameter / 3]
                         mapping_array_y = [-new_diameter / 3, rve_size[1] + new_diameter / 3]
                         mapping_array_z = [-new_diameter / 3, rve_size[1] + new_diameter / 3]
 
                     # Generate random coordinates
-                    mapping_array = [0,1]
-                    new_origin = [np.interp(rnd.random(),mapping_array,mapping_array_x),
-                                  np.interp(rnd.random(),mapping_array,mapping_array_y),
-                                  np.interp(rnd.random(),mapping_array,mapping_array_z)]
+                    mapping_array = [0, 1]
+                    new_origin = [np.interp(rnd.random(), mapping_array, mapping_array_x),
+                                  np.interp(rnd.random(), mapping_array, mapping_array_y),
+                                  np.interp(rnd.random(), mapping_array, mapping_array_z)]
 
-                    #if check_collision(fiber_info.values(), new_origin, new_direction_vector, new_length, new_diameter) == True:
+                    # if check_collision(fiber_info.values(), new_origin, new_direction_vector, new_length, new_diameter) == True:
                     #    continue
-                    if check_collision_gmsh_new(new_origin, new_direction_vector, new_length, new_diameter,fiber_shape,fiber_info,rve_info) == True:
+                    if check_collision_gmsh_new(new_origin, new_direction_vector, new_length, new_diameter, fiber_shape, fiber_info, rve_info) == True:
                         continue
                     else:
                         p = check_periodicity_new(new_origin, new_direction_vector, new_length, new_diameter, rve_size, fiber_shape)
 
-
-                        if p==False:
+                        if p == False:
                             continue
                         elif p == []:
                             pass
@@ -611,7 +890,7 @@ def rsa(rve_info, fiber_collision_tolerance):
                             checked_periodics = 0
                             periodic_clash = False
                             for pp in p:
-                                if check_collision_gmsh_new(pp[0:3], new_direction_vector, new_length, new_diameter,fiber_shape,fiber_info,rve_info) == True:
+                                if check_collision_gmsh_new(pp[0:3], new_direction_vector, new_length, new_diameter, fiber_shape, fiber_info, rve_info) == True:
                                     periodic_clash = True
                                     break
                                 else:
@@ -623,13 +902,14 @@ def rsa(rve_info, fiber_collision_tolerance):
 
                         fiber_info[str(f)][0] = new_origin
                         if p == []:
-                            break # Change
+                            break  # Change
                         else:
                             fiber_info[str(f)][-1] = 'yes_periodicity'
                             for pp in p:
                                 fiber_info[str(f)][5].append(pp)
-                                fiber_info['p'+str(f) +','+ str(pp[3])+','+ str(pp[4])+','+ str(pp[5])] = [pp[0:3], fiber_info[str(f)][1], fiber_info[str(f)][2], fiber_info[str(f)][3], fiber_info[str(f)][4],
-                                                                                            [], 'periodic_counter_part_of' + str(f)]
+                                fiber_info['p' + str(f) + ',' + str(pp[3]) + ',' + str(pp[4]) + ',' + str(pp[5])] = [pp[0:3], fiber_info[str(f)][1], fiber_info[str(f)][2],
+                                                                                                                     fiber_info[str(f)][3], fiber_info[str(f)][4],
+                                                                                                                     [], 'periodic_counter_part_of' + str(f)]
                             break
 
             if fail:
@@ -642,7 +922,7 @@ def rsa(rve_info, fiber_collision_tolerance):
     return
 
 
-#-------------------------------Generate mesh-----------------------------------#
+# -------------------------------Generate mesh-----------------------------------#
 # def remove_volume_elsets(inp_in, inp_out):
 #     with open(inp_in, "r", encoding="utf-8", errors="ignore") as f:
 #         lines = f.readlines()
@@ -663,8 +943,7 @@ def rsa(rve_info, fiber_collision_tolerance):
 #                 f.write(l)
 
 
-
-def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_name_for_coords):
+def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh, show_mesh, file_name_for_coords):
     rve_size = rve_info['MATRIX']['size']
     gmsh.model.setCurrent('final')
     final_box = gmsh.model.occ.addBox(0, 0, 0, rve_size[0], rve_size[1], rve_size[2])
@@ -684,40 +963,95 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
             coh_thickness = rve_info['COH-' + r]['thickness']
         for a in fiber_info.values():
             if 'SFR' in r:
-                direction = [np.sin(a[4]) * np.cos(a[3]), np.sin(a[4]) * np.sin(a[3]), np.cos(a[4])]
-                final_fiber = gmsh.model.occ.addCylinder(a[0][0] - a[2] / 2 * direction[0],
-                                                         a[0][1] - a[2] / 2 * direction[1],
-                                                         a[0][2] - a[2] / 2 * direction[2],
-                                                         a[2] * direction[0],
-                                                         a[2] * direction[1],
-                                                         a[2] * direction[2], a[1] / 2)
+                if a[1][0] == a[1][1]:
+                    direction = [np.sin(a[4]) * np.cos(a[3]), np.sin(a[4]) * np.sin(a[3]), np.cos(a[4])]
+                    final_fiber = gmsh.model.occ.addCylinder(a[0][0] - a[2] / 2 * direction[0],
+                                                             a[0][1] - a[2] / 2 * direction[1],
+                                                             a[0][2] - a[2] / 2 * direction[2],
+                                                             a[2] * direction[0],
+                                                             a[2] * direction[1],
+                                                             a[2] * direction[2], a[1][0] / 2)
+                else:
+                    direction = [np.sin(a[4]) * np.cos(a[3]), np.sin(a[4]) * np.sin(a[3]), np.cos(a[4])]
+
+                    r1 = a[1][0] / 2
+                    r2 = a[1][1] / 2
+                    theta = a[1][2]
+                    if r2 > r1:
+                        temp = r1
+                        r1 = r2
+                        r2 = temp
+                        theta = theta + np.pi / 2
+                    major_axis = [0, np.sin(theta), np.cos(theta)]
+
+                    cx = a[0][0] - a[2] / 2 * direction[0]
+                    cy = a[0][1] - a[2] / 2 * direction[1]
+                    cz = a[0][2] - a[2] / 2 * direction[2]
+
+                    ellipse_tag = gmsh.model.occ.addEllipse(cx, cy, cz, r1, r2, -1, zAxis=direction, xAxis=major_axis)
+
+                    loop_tag = gmsh.model.occ.addCurveLoop([ellipse_tag])
+                    surface_tag = gmsh.model.occ.addPlaneSurface([loop_tag])
+
+                    extrude_len = a[2]
+                    out_dim_tags = gmsh.model.occ.extrude([(2, surface_tag)],
+                                                          extrude_len * direction[0],
+                                                          extrude_len * direction[1],
+                                                          extrude_len * direction[2])
+
+                    final_fiber = [tag for (dim, tag) in out_dim_tags if dim == 3][0]
+
             elif 'UD' in r:
-                direction = [1,0,0]
-                if cohesives:
-                    final_cohesive = gmsh.model.occ.addCylinder(a[0][0] - rve_size[0] * direction[0],
-                                                             a[0][1] - rve_size[0]  * direction[1],
-                                                             a[0][2] - rve_size[0]  * direction[2],
-                                                             2*rve_size[0] * direction[0],
-                                                             2*rve_size[0] * direction[1],
-                                                             2*rve_size[0] * direction[2], a[1] / 2)
+                if a[1][0] == a[1][1]:
+                    direction = [1, 0, 0]
+                    if cohesives:
+                        final_cohesive = gmsh.model.occ.addCylinder(a[0][0] - rve_size[0] * direction[0],
+                                                                    a[0][1] - rve_size[0] * direction[1],
+                                                                    a[0][2] - rve_size[0] * direction[2],
+                                                                    2 * rve_size[0] * direction[0],
+                                                                    2 * rve_size[0] * direction[1],
+                                                                    2 * rve_size[0] * direction[2], a[1][0] / 2)
 
-                final_fiber = gmsh.model.occ.addCylinder(a[0][0] - rve_size[0] * direction[0],
-                                                         a[0][1] - rve_size[0]  * direction[1],
-                                                         a[0][2] - rve_size[0]  * direction[2],
-                                                         2*rve_size[0] * direction[0],
-                                                         2*rve_size[0] * direction[1],
-                                                         2*rve_size[0] * direction[2], -coh_thickness + a[1] / 2)
+                    final_fiber = gmsh.model.occ.addCylinder(a[0][0] - rve_size[0] * direction[0],
+                                                             a[0][1] - rve_size[0] * direction[1],
+                                                             a[0][2] - rve_size[0] * direction[2],
+                                                             2 * rve_size[0] * direction[0],
+                                                             2 * rve_size[0] * direction[1],
+                                                             2 * rve_size[0] * direction[2], -coh_thickness + a[1][0] / 2)
+                else:
+                    direction = [1, 0, 0]
 
+                    r1 = a[1][0] / 2
+                    r2 = a[1][1] / 2
+                    theta = a[1][2]
+                    if r2 > r1:
+                        temp = r1
+                        r1 = r2
+                        r2 = temp
+                        theta = theta + np.pi / 2
+                    major_axis = [0, np.sin(theta), np.cos(theta)]
 
+                    cx = a[0][0] - rve_size[0] * direction[0]
+                    cy = a[0][1] - rve_size[0] * direction[1]
+                    cz = a[0][2] - rve_size[0] * direction[2]
+                    ellipse_tag = gmsh.model.occ.addEllipse(cx, cy, cz, r1, r2, -1, zAxis=direction, xAxis=major_axis)
+                    loop_tag = gmsh.model.occ.addCurveLoop([ellipse_tag])
+                    surface_tag = gmsh.model.occ.addPlaneSurface([loop_tag])
+
+                    extrude_len = 2 * rve_size[0]
+                    out_dim_tags = gmsh.model.occ.extrude([(2, surface_tag)],
+                                                          extrude_len * direction[0],
+                                                          extrude_len * direction[1],
+                                                          extrude_len * direction[2])
+
+                    final_fiber = [tag for (dim, tag) in out_dim_tags if dim == 3][0]
 
 
             elif 'PR' in r:
-                final_fiber = gmsh.model.occ.addSphere(a[0][0], a[0][1], a[0][2], a[1] / 2)
+                final_fiber = gmsh.model.occ.addSphere(a[0][0], a[0][1], a[0][2], a[1][0] / 2)
 
             if cohesives:
                 dsa = gmsh.model.occ.intersect([(3, final_cohesive)], [(3, final_box)], -1, True, False)
-
-
 
             asd = gmsh.model.occ.intersect([(3, final_fiber)], [(3, final_box)], -1, True, False)
             fiber_tags.append(asd[0])
@@ -733,7 +1067,6 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
             else:
                 gmsh.model.occ.cut([(3, 1)], asd[0], -1, True, False)
 
-
         rve_info[r]['fiber_tags'] = fiber_tags
         if cohesives:
             rve_info['COH-' + r]['fiber_tags'] = cohesive_tags
@@ -742,8 +1075,7 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
     gmsh.option.setNumber("Mesh.CharacteristicLengthMin", mesh_size)
     gmsh.option.setNumber("Mesh.CharacteristicLengthMax", mesh_size)
 
-
-    #apply_periodic(rve_size[0], rve_size[1], rve_size[2])
+    # apply_periodic(rve_size[0], rve_size[1], rve_size[2])
     tol = 0.0001
     z0_face = gmsh.model.occ.getEntitiesInBoundingBox(-tol, -tol, -tol, rve_size[0] + tol, rve_size[1] + tol, tol,
                                                       2)
@@ -761,11 +1093,6 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
                                                       rve_size[1] + tol, rve_size[2] + tol, 2)
 
     gmsh.model.occ.synchronize()
-
-
-
-
-
 
     # Set cohesives to be transfinite
     # pf = 0
@@ -795,13 +1122,8 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
     #             if len(curves[1][0]) == 1 and len(curves[1][1]) == 1:
     #                 pc += 1
 
-
-        # print(surf[1])
-        # print(curves)
-
-
-
-
+    # print(surf[1])
+    # print(curves)
 
     gmsh.model.occ.synchronize()
     tol = 0.01
@@ -813,44 +1135,39 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
             facex0_center = gmsh.model.occ.getCenterOfMass(2, facex0[1])
             facex1_center = gmsh.model.occ.getCenterOfMass(2, facex1[1])
             gmsh.model.occ.synchronize()
-            if abs((facex0_center[1]) - (facex1_center[1]))<tol and abs((facex0_center[2]) - (facex1_center[2]))<tol:
+            if abs((facex0_center[1]) - (facex1_center[1])) < tol and abs((facex0_center[2]) - (facex1_center[2])) < tol:
                 gmsh.model.mesh.setPeriodic(2, [facex1[1]], [facex0[1]],
                                             [1, 0, 0, rve_size[0], 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
                 x1_face.remove(facex1)
                 found_periodic += 1
                 break
 
-
-
-
     for facey0 in y0_face:
         for facey1 in y1_face:
             facey0_center = gmsh.model.occ.getCenterOfMass(2, facey0[1])
             facey1_center = gmsh.model.occ.getCenterOfMass(2, facey1[1])
             gmsh.model.occ.synchronize()
-            if abs((facey0_center[0]) - (facey1_center[0]))<tol and abs((facey0_center[2]) - (facey1_center[2]))<tol:
+            if abs((facey0_center[0]) - (facey1_center[0])) < tol and abs((facey0_center[2]) - (facey1_center[2])) < tol:
                 gmsh.model.mesh.setPeriodic(2, [facey1[1]], [facey0[1]],
                                             [1, 0, 0, 0, 0, 1, 0, rve_size[1], 0, 0, 1, 0, 0, 0, 0, 1])
                 y1_face.remove(facey1)
                 found_periodic += 1
                 break
 
-
     for facez0 in z0_face:
         for facez1 in z1_face:
             facez0_center = gmsh.model.occ.getCenterOfMass(2, facez0[1])
             facez1_center = gmsh.model.occ.getCenterOfMass(2, facez1[1])
             gmsh.model.occ.synchronize()
-            if abs((facez0_center[1]) - (facez1_center[1]))<tol and abs((facez0_center[0]) - (facez1_center[0]))<tol:
+            if abs((facez0_center[1]) - (facez1_center[1])) < tol and abs((facez0_center[0]) - (facez1_center[0])) < tol:
                 gmsh.model.mesh.setPeriodic(2, [facez1[1]], [facez0[1]],
                                             [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, rve_size[2], 0, 0, 0, 1])
                 z1_face.remove(facez1)
                 found_periodic += 1
                 break
 
-
-    if found_periodic!=target_periodic:
-        raise('Could not find periodic mesh')
+    if found_periodic != target_periodic:
+        raise ('Could not find periodic mesh')
 
     gmsh.model.addPhysicalGroup(3, [final_box], name="MATRIX")
     for r in rve_info.keys():
@@ -859,11 +1176,7 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
         xxx = 0
         for aaa in rve_info[r]['fiber_tags']:
             gmsh.model.addPhysicalGroup(3, [aaa[0][1]], name=r + "_" + str(xxx))
-            xxx+=1
-
-
-
-
+            xxx += 1
 
     #################################################################################################
     gmsh.model.occ.removeAllDuplicates()
@@ -874,14 +1187,12 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
     gmsh.option.setNumber("Mesh.SaveGroupsOfElements", 1)  # Physical groups -> *ELSET
     gmsh.option.setNumber("Mesh.SaveAll", 0)
 
-
     if show_mesh:
         gmsh.fltk.run()
-    #gmsh.finalize()
+    # gmsh.finalize()
     gmsh.write(str(file_name_for_mesh))
-    #remove_volume_elsets(str(file_name_for_mesh), str(file_name_for_mesh))
+    # remove_volume_elsets(str(file_name_for_mesh), str(file_name_for_mesh))
     # write_coh_coords(file_name_for_coords, rve_info)
-
 
     with open(str(file_name_for_mesh), 'r') as f:
         lines = f.readlines()
@@ -894,15 +1205,13 @@ def create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_
         f.write('*END PART\n')
 
 
-
-#-------------------------------Write FEAP Files-----------------------------------#
+# -------------------------------Write FEAP Files-----------------------------------#
 def write_coh_coords(file_name_for_coords, rve_info):
-
     with open(file_name_for_coords, 'w') as f:
         for r in rve_info.keys():
             if 'COH-UD' in r:
                 k = r.split('-')[-1]
-                for a,b in zip(rve_info[k]['fiber_info'].keys(), rve_info[k]['fiber_info'].values()):
+                for a, b in zip(rve_info[k]['fiber_info'].keys(), rve_info[k]['fiber_info'].values()):
                     f.write(f'{a} {b[0][1]} {b[0][2]}\n')
 
 
@@ -915,12 +1224,12 @@ def convert_to_feap(in_file, out_file, material_identifiers):
         elements[m[1]] = []
 
     reading = 'none'
-    change=False
+    change = False
     for l in lines:
         for m in material_identifiers:
             if '*ELSET,ELSET=' + m[0] in l:
                 reading = m[1]
-                change=True
+                change = True
         if change:
             change = False
             continue
@@ -929,7 +1238,6 @@ def convert_to_feap(in_file, out_file, material_identifiers):
             elmts = elmts[:-1]
             elmts = [int(x) for x in elmts]
             elements[reading] = elements[reading] + elmts
-
 
     with open(out_file, "w") as outfile:
         reading_nodes = False
@@ -942,7 +1250,7 @@ def convert_to_feap(in_file, out_file, material_identifiers):
                 reading_nodes = True
                 continue
             elif '******* E L E M E N T S *************' in line:
-                #outfile.write('\n')
+                # outfile.write('\n')
                 reading_nodes = False
                 reading_elements = True
                 skip1 = True
@@ -953,7 +1261,7 @@ def convert_to_feap(in_file, out_file, material_identifiers):
 
             if reading_nodes == True:
                 x = line.split(',')
-                outfile.write(x[0] + ' 0 ' + str(round(float(x[1]),20)) + ' '+ str(round(float(x[2]),20)) + ' ' + str(round(float(x[3]),20))+ '\n')
+                outfile.write(x[0] + ' 0 ' + str(round(float(x[1]), 20)) + ' ' + str(round(float(x[2]), 20)) + ' ' + str(round(float(x[3]), 20)) + '\n')
 
             if reading_elements == True:
                 if '*ELEMENT' in line:
@@ -965,26 +1273,25 @@ def convert_to_feap(in_file, out_file, material_identifiers):
                         if int(x[0]) in elements[m[1]]:
                             mat = m[1]
                             break
-                    outfile.write(x[0] + ' 0' + mat + x[1]+ x[2]+ x[3]+ x[4])
+                    outfile.write(x[0] + ' 0' + mat + x[1] + x[2] + x[3] + x[4])
 
 
-def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,steps,test_mesh_size,IMN_material,stage,r,g_id):
+def write_feap_input(mesh_file, new_folder, imn_validation_folder, rve_size, strain, steps, test_mesh_size, IMN_material, stage, r, g_id):
     files = ['DNS', 'IMN']
     new_folder.mkdir(exist_ok=True)
     for f in files:
-        for x in range(1,7):
+        for x in range(1, 7):
             nn = f'I_val_{f}_stage_{stage}_' + str(x)
             input_file = new_folder / nn
             with open(input_file, "w") as infile:
                 infile.write('FEAP * * 4-Element Patch Test\n8,1,1,3,3,8\n \n')
                 infile.write(f'PARA\nx={rve_size[0]}\ny={rve_size[1]}\nz={rve_size[2]}\na={test_mesh_size[0]}\nb={test_mesh_size[1]}\nc={test_mesh_size[2]}\n\n')
 
-
                 material_num = 1
                 first = True
                 for m in IMN_material.values():
-                    if f=='DNS':
-                        infile.write(f'Material,{material_num}'  + '\n')
+                    if f == 'DNS':
+                        infile.write(f'Material,{material_num}' + '\n')
                         infile.write('Solid\n')
                         if m[0] == 1:
                             infile.write(f'Elas isot {m[1]} {m[2]}\n\n')
@@ -1027,7 +1334,6 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                     infile.write('SNOD\n1 0 0 0\n2 x 0 0\n3 x y 0\n4 0 y 0\n5 0 0 z\n6 x 0 z\n7 x y z\n8 0 y z\n\n')
                     infile.write('Blen\nSoli,a,b,c\nBric,8\nMATE,1\n1 2 3 4 5 6 7 8\n\n')
 
-
                 # if x == 1:
                 #     infile.write(f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n\nEdisp\n1 {rve_size[0]} {strain * rve_size[0]} 0 0\n\nEND\n\n')
                 # elif x == 2:
@@ -1041,22 +1347,25 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                 # elif x == 6:
                 #     infile.write(f'Eboun\n1 {rve_size[0]} 0 1 1\n1 0 1 1 1\n\nEdisp\n1 {rve_size[0]} 0 0 {strain * rve_size[0]}\n\nEND\n\n') # Check
 
-
                 # HILL BC
                 if x == 1:
-                    infile.write(f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n2 {rve_size[1]} 0 1 0\n2 0 0 1 0\n3 {rve_size[2]} 0 0 1\n3 0 0 0 1\n\nPeriodic Hill\nMech\n{strain} 0 0\n0 0 0\n0 0 0\n\nEND\n\n')
+                    infile.write(
+                        f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n2 {rve_size[1]} 0 1 0\n2 0 0 1 0\n3 {rve_size[2]} 0 0 1\n3 0 0 0 1\n\nPeriodic Hill\nMech\n{strain} 0 0\n0 0 0\n0 0 0\n\nEND\n\n')
                 elif x == 2:
-                    infile.write(f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n2 {rve_size[1]} 0 1 0\n2 0 0 1 0\n3 {rve_size[2]} 0 0 1\n3 0 0 0 1\n\nPeriodic Hill\nMech\n0 0 0\n0 {strain} 0\n0 0 0\n\nEND\n\n')
+                    infile.write(
+                        f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n2 {rve_size[1]} 0 1 0\n2 0 0 1 0\n3 {rve_size[2]} 0 0 1\n3 0 0 0 1\n\nPeriodic Hill\nMech\n0 0 0\n0 {strain} 0\n0 0 0\n\nEND\n\n')
                 elif x == 3:
-                    infile.write(f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n2 {rve_size[1]} 0 1 0\n2 0 0 1 0\n3 {rve_size[2]} 0 0 1\n3 0 0 0 1\n\nPeriodic Hill\nMech\n0 0 0\n0 0 0\n0 0 {strain}\n\nEND\n\n')
+                    infile.write(
+                        f'Eboun\n1 {rve_size[0]} 1 0 0\n1 0 1 0 0\n2 {rve_size[1]} 0 1 0\n2 0 0 1 0\n3 {rve_size[2]} 0 0 1\n3 0 0 0 1\n\nPeriodic Hill\nMech\n0 0 0\n0 0 0\n0 0 {strain}\n\nEND\n\n')
                 elif x == 4:
-                    infile.write(f'Eboun\n1 {rve_size[0]} 1 1 0\n1 0 1 1 0\n2 {rve_size[1]} 1 1 0\n2 0 1 1 0\n\nPeriodic Hill\nMech\n0 {strain/2} 0\n{strain/2} 0 0\n0 0 0\n\nEND\n\n')
+                    infile.write(
+                        f'Eboun\n1 {rve_size[0]} 1 1 0\n1 0 1 1 0\n2 {rve_size[1]} 1 1 0\n2 0 1 1 0\n\nPeriodic Hill\nMech\n0 {strain / 2} 0\n{strain / 2} 0 0\n0 0 0\n\nEND\n\n')
                 elif x == 6:
-                    infile.write(f'Eboun\n1 {rve_size[0]} 1 0 1\n1 0 1 0 1\n3 {rve_size[2]} 1 0 1\n3 0 1 0 1\n\nPeriodic Hill\nMech\n0 0 {strain/2}\n0 0 0\n{strain/2} 0 0\n\nEND\n\n')
+                    infile.write(
+                        f'Eboun\n1 {rve_size[0]} 1 0 1\n1 0 1 0 1\n3 {rve_size[2]} 1 0 1\n3 0 1 0 1\n\nPeriodic Hill\nMech\n0 0 {strain / 2}\n0 0 0\n{strain / 2} 0 0\n\nEND\n\n')
                 elif x == 5:
-                    infile.write(f'Eboun\n2 {rve_size[1]} 0 1 1\n2 0 0 1 1\n3 {rve_size[2]} 0 1 1\n3 0 0 1 1\n\nPeriodic Hill\nMech\n0 0 0\n0 0 {strain/2}\n0 {strain/2} 0\n\nEND\n\n')  # Check
-
-
+                    infile.write(
+                        f'Eboun\n2 {rve_size[1]} 0 1 1\n2 0 0 1 1\n3 {rve_size[2]} 0 1 1\n3 0 0 1 1\n\nPeriodic Hill\nMech\n0 0 0\n0 0 {strain / 2}\n0 {strain / 2} 0\n\nEND\n\n')  # Check
 
                 infile.write(f'PARA\ntt=100\ndt={int(100 / steps)}\nns=tt/dt\n\n')
 
@@ -1073,15 +1382,11 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                 #     infile.write(f'{ss*100/steps}, {ss/steps}\n')
                 # infile.write('\n\n')
 
-
                 infile.write('BATCh\nCHEC,mesh\nDT,,dt\nTOL,,1.d-18 1.d-10\nstre, aver\nLOOP,timestep,ns\nTIME\nTANGent,,1\nSOLVe\nStre, AVER\nNEXT,timestep\nEND\n\nStop')
 
 
-
 # ---------------------------------------- Functions called by MAIN -------------------------------- #
-def create_material_dict(rve_info, total_samples, training_dataset_folder,stage, mesh_per_config):
-
-
+def create_material_dict(rve_info, total_samples, training_dataset_folder, stage, mesh_per_config):
     training_dataset_folder.mkdir(exist_ok=True)
     # Create material data set
     ranges = {
@@ -1100,20 +1405,18 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
     material_dictionary = {}
     material_samples = sample_many_orthotropic_materials(ranges, n_samples=total_samples * 10, seed=42)
 
-
-    for i in range(0,len(material_samples),10):
-        material_dictionary[str(int(i/10))] = {}
-        material_dictionary[str(int(i/10))]['MATRIX'] = material_samples[i][1]
-        material_dictionary[str(int(i/10))]['UD1'] = material_samples[i+1][1]
-        material_dictionary[str(int(i/10))]['UD2'] = material_samples[i+2][1]
+    for i in range(0, len(material_samples), 10):
+        material_dictionary[str(int(i / 10))] = {}
+        material_dictionary[str(int(i / 10))]['MATRIX'] = material_samples[i][1]
+        material_dictionary[str(int(i / 10))]['UD1'] = material_samples[i + 1][1]
+        material_dictionary[str(int(i / 10))]['UD2'] = material_samples[i + 2][1]
         material_dictionary[str(int(i / 10))]['UD3'] = material_samples[i + 3][1]
-        material_dictionary[str(int(i/10))]['PR1'] = material_samples[i+4][1]
-        material_dictionary[str(int(i/10))]['PR2'] = material_samples[i+5][1]
+        material_dictionary[str(int(i / 10))]['PR1'] = material_samples[i + 4][1]
+        material_dictionary[str(int(i / 10))]['PR2'] = material_samples[i + 5][1]
         material_dictionary[str(int(i / 10))]['PR3'] = material_samples[i + 6][1]
-        material_dictionary[str(int(i/10))]['SFR1'] = material_samples[i+7][1]
-        material_dictionary[str(int(i/10))]['SFR2'] = material_samples[i+8][1]
+        material_dictionary[str(int(i / 10))]['SFR1'] = material_samples[i + 7][1]
+        material_dictionary[str(int(i / 10))]['SFR2'] = material_samples[i + 8][1]
         material_dictionary[str(int(i / 10))]['SFR3'] = material_samples[i + 9][1]
-
 
     new_name = training_dataset_folder / f'material_dictionary.npz'
     np.savez(new_name, **material_dictionary, allow_pickle=True)
@@ -1121,11 +1424,11 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
 
 # Use analytical equations to detect collisions/overlaps
 def new_rsa(rve_info, fiber_collision_tolerance):
-    rsa_attempts = 50
-    rsa_attempts_per_fiber =500000
+    rsa_attempts = 25
+    rsa_attempts_per_fiber = 400000
     # Calculate the number of fibers required to achieve FVF
     rve_size = rve_info['MATRIX']['size']
-    rve_volume = rve_size[0]*rve_size[1]*rve_size[2]
+    rve_volume = rve_size[0] * rve_size[1] * rve_size[2]
 
     # 3 types of inclusions implemented
     # UD: Unidirectional-fibers
@@ -1137,38 +1440,39 @@ def new_rsa(rve_info, fiber_collision_tolerance):
         if 'COH' in r:
             continue
         elif 'UD' in r:
-            volume = (rve_info[r]['dia'][0] ** 2) * np.pi * rve_size[0] / 4
+            volume = (rve_info[r]['dia'][0] * rve_info[r]['dia'][2]) * np.pi * rve_size[0] / 4
         elif 'SFR' in r:
-            volume = (rve_info[r]['dia'][0] ** 2) * np.pi * rve_info[r]['len'][0] / 4
+            volume = (rve_info[r]['dia'][0] * rve_info[r]['dia'][2]) * np.pi * rve_info[r]['len'][0] / 4
         elif 'PR' in r:
             volume = ((rve_info[r]['dia'][0] / 2) ** 3) * np.pi * 4 / 3
+        # elif 'ESR' in r:
+        #     volume = (rve_info[r]['dia'][0]*rve_info[r]['dia'][2]*np.pi)* rve_info[r]['len'][0]/4
+        # elif 'UED' in r:
+        #     volume = (rve_info[r]['dia'][0]*rve_info[r]['dia'][2]*np.pi)*rve_size[0]/4
         else:
             continue
 
         rve_info[r]['volume'] = volume
         rve_info[r]['numbers'] = int(rve_volume * rve_info[r]['FVC'] / volume)
-        print(f'For inclusion {r} required numbers are: ' , rve_info[r]['numbers'])
+        print(f'For inclusion {r} required numbers are: ', rve_info[r]['numbers'])
 
-
-
-        rve_info[r]['fiber_dia_list'] = np.random.normal(rve_info[r]['dia'][0], rve_info[r]['dia'][1], rve_info[r]['numbers'])
-        rve_info[r]['fiber_theta_list'] = np.random.normal(rve_info[r]['ori'][0], rve_info[r]['ori'][1],  rve_info[r]['numbers'])
+        rve_info[r]['fiber_dia_a_list'] = np.random.normal(rve_info[r]['dia'][0], rve_info[r]['dia'][1], rve_info[r]['numbers'])
+        rve_info[r]['fiber_theta_list'] = np.random.normal(rve_info[r]['ori'][0], rve_info[r]['ori'][1], rve_info[r]['numbers'])
         rve_info[r]['fiber_phi_list'] = np.random.normal(rve_info[r]['ori'][2], rve_info[r]['ori'][3], rve_info[r]['numbers'])
         rve_info[r]['fiber_length_list'] = np.random.normal(rve_info[r]['len'][0], rve_info[r]['len'][1], rve_info[r]['numbers'])
-
-
-
+        rve_info[r]['fiber_dia_b_list'] = np.random.normal(rve_info[r]['dia'][2], rve_info[r]['dia'][3], rve_info[r]['numbers'])
+        rve_info[r]['angle_list'] = np.random.normal(rve_info[r]['dia'][4], rve_info[r]['dia'][5], rve_info[r]['numbers'])
 
     # Total RSA Attempts
     RVE_achieved = False
-    for r_a in range(1,rsa_attempts):
+    for r_a in range(1, rsa_attempts):
 
         if RVE_achieved is True:
-            #print('RVE achieved')
+            # print('RVE achieved')
             break
 
         # print('RSA Attempt #{}'.format(r_a))
-        if r_a == rsa_attempts-1:
+        if r_a == rsa_attempts - 1:
             print('ERROR. CANT MAKE RVE')
             break
 
@@ -1187,53 +1491,78 @@ def new_rsa(rve_info, fiber_collision_tolerance):
                 coh_thickness = rve_info['COH-' + r]['thickness']
 
             for x in range(0, rve_info[r]['numbers']):
-                fiber_info[str(x)] = [[-1, -1, -1], rve_info[r]['fiber_dia_list'][x], rve_info[r]['fiber_length_list'][x], rve_info[r]['fiber_theta_list'][x],
-                                      rve_info[r]['fiber_phi_list'][x], r, [], 'no_periodicity']
-            #print('Attempt #', r_a)
+                fiber_info[str(x)] = [[-1, -1, -1], [rve_info[r]['fiber_dia_a_list'][x], rve_info[r]['fiber_dia_b_list'][x], rve_info[r]['angle_list'][x]],
+                                      rve_info[r]['fiber_length_list'][x], rve_info[r]['fiber_theta_list'][x],
+                                      rve_info[r]['fiber_phi_list'][x], 'fiber shape', [], 'no_periodicity']
+            # print('Attempt #', r_a)
             # Loop through each fiber
             fail = False
             for f in range(0, rve_info[r]['numbers']):
                 # print('Placing fiber #{}'.format(f))
 
-
                 if fail == True:
                     break
                 for r_a_p_f in range(1, rsa_attempts_per_fiber):
 
-                    if r_a_p_f == rsa_attempts_per_fiber-1:
+                    if r_a_p_f == rsa_attempts_per_fiber - 1:
                         fail = True
                         break
-                    new_diameter = fiber_info[str(f)][1] + coh_thickness*2
+                    new_diameter_a = fiber_info[str(f)][1][0] + coh_thickness * 2
+                    new_diameter_b = fiber_info[str(f)][1][1] + coh_thickness * 2
+                    new_angle = fiber_info[str(f)][1][2]
                     if 'SFR' in r:
-                        fiber_shape = 'cylinder'
-                        new_direction_vector = np.array(
-                            [np.sin(fiber_info[str(f)][4]) * np.cos(fiber_info[str(f)][3]), np.sin(fiber_info[str(f)][4]) *
-                             np.sin(fiber_info[str(f)][3]), np.cos(fiber_info[str(f)][4])])
-                        new_length = fiber_info[str(f)][2]
-                        mapping_array_x = [-new_length / 3, rve_size[0] + new_length / 3]
-                        mapping_array_y = [-new_diameter / 3, rve_size[1] + new_diameter / 3]
-                        mapping_array_z = [-new_diameter / 3, rve_size[2] + new_diameter / 3]
+                        if new_diameter_a == new_diameter_b:
+                            fiber_shape = 'cylinder'
+                            fiber_info[str(f)][5] = fiber_shape
+                            new_direction_vector = np.array(
+                                [np.sin(fiber_info[str(f)][4]) * np.cos(fiber_info[str(f)][3]), np.sin(fiber_info[str(f)][4]) *
+                                 np.sin(fiber_info[str(f)][3]), np.cos(fiber_info[str(f)][4])])  # question: this became [1,0,0] for our example
+                            new_length = fiber_info[str(f)][2]
+                            mapping_array_z = [-new_diameter_a / 3, rve_size[2] + new_diameter_a / 3]
+                            mapping_array_y = [-new_diameter_b / 3, rve_size[1] + new_diameter_b / 3]
+                            mapping_array_x = [-new_length / 3, rve_size[0] + new_length / 3]
+                        else:
+                            fiber_shape = 'ellcyl'
+                            fiber_info[str(f)][5] = fiber_shape
+                            new_direction_vector = np.array(
+                                [np.sin(fiber_info[str(f)][4]) * np.cos(fiber_info[str(f)][3]), np.sin(fiber_info[str(f)][4]) *
+                                 np.sin(fiber_info[str(f)][3]), np.cos(fiber_info[str(f)][4])])
+                            new_length = fiber_info[str(f)][2]
+                            z_max = np.sqrt(((0.5 * new_diameter_a * np.cos(new_angle)) ** 2) + ((0.5 * new_diameter_b * np.sin(new_angle)) ** 2))
+                            y_max = np.sqrt(((0.5 * new_diameter_b * np.cos(new_angle)) ** 2) + ((0.5 * new_diameter_a * np.sin(new_angle)) ** 2))
+                            mapping_array_z = [-2 * z_max / 3, rve_size[2] + 2 * z_max / 3]
+                            mapping_array_y = [-2 * y_max / 3, rve_size[1] + 2 * y_max / 3]
+                            mapping_array_x = [-new_length / 3, rve_size[0] + new_length / 3]
 
-                        ## FIX ----------------------------------------------------
 
                     elif 'UD' in r:
-                        fiber_shape = 'UD'
-                        new_direction_vector = np.array([1,0,0])
-                        new_length = rve_size[0]*2
-
-
-                        mapping_array_x = [rve_size[0]/2, rve_size[0]/2 ]
-                        mapping_array_y = [-new_diameter / 3, (rve_size[1] + new_diameter / 3)]
-                        mapping_array_z = [-new_diameter / 3, (rve_size[2] + new_diameter / 3)]
-
+                        if new_diameter_a == new_diameter_b:
+                            fiber_shape = 'UCD'
+                            fiber_info[str(f)][5] = fiber_shape
+                            new_direction_vector = np.array([1, 0, 0])
+                            new_length = rve_size[0] * 2
+                            mapping_array_x = [rve_size[0] / 2, rve_size[0] / 2]
+                            mapping_array_y = [-new_diameter_b / 3, (rve_size[1] + new_diameter_b / 3)]
+                            mapping_array_z = [-new_diameter_a / 3, (rve_size[2] + new_diameter_a / 3)]
+                        else:
+                            fiber_shape = 'UED'
+                            fiber_info[str(f)][5] = fiber_shape
+                            new_direction_vector = np.array([1, 0, 0])
+                            new_length = rve_size[0] * 2
+                            z_max = np.sqrt(((0.5 * new_diameter_a * np.cos(new_angle)) ** 2) + ((0.5 * new_diameter_b * np.sin(new_angle)) ** 2))
+                            y_max = np.sqrt(((0.5 * new_diameter_b * np.cos(new_angle)) ** 2) + ((0.5 * new_diameter_a * np.sin(new_angle)) ** 2))
+                            mapping_array_x = [rve_size[0] / 2, rve_size[0] / 2]
+                            mapping_array_y = [-2 * y_max / 3, rve_size[1] + 2 * y_max / 3]
+                            mapping_array_z = [-2 * z_max / 3, rve_size[2] + 2 * z_max / 3]
 
                     elif 'PR' in r:
                         fiber_shape = 'sphere'
-                        new_direction_vector = np.array([1,0,0]) # Not needed
-                        new_length = rve_size[0]*1.1 # Not needed
-                        mapping_array_x = [-new_diameter / 3, rve_size[0] + new_diameter / 3]
-                        mapping_array_y = [-new_diameter / 3, rve_size[1] + new_diameter / 3]
-                        mapping_array_z = [-new_diameter / 3, rve_size[1] + new_diameter / 3]
+                        fiber_info[str(f)][5] = fiber_shape
+                        new_direction_vector = np.array([1, 0, 0])  # Not needed
+                        new_length = rve_size[0] * 1.1  # Not needed
+                        mapping_array_x = [-new_diameter_a / 3, rve_size[0] + new_diameter_a / 3]
+                        mapping_array_y = [-new_diameter_b / 3, rve_size[1] + new_diameter_b / 3]
+                        mapping_array_z = [-new_diameter_a / 3, rve_size[1] + new_diameter_a / 3]
 
                     # Generate random coordinates
                     mapping_array = [0, 1]
@@ -1241,14 +1570,13 @@ def new_rsa(rve_info, fiber_collision_tolerance):
                                   np.interp(rnd.random(), mapping_array, mapping_array_y),
                                   np.interp(rnd.random(), mapping_array, mapping_array_z)]
 
-
-
-                    if check_collision_gmsh_new(new_origin, new_direction_vector, new_length, new_diameter+fiber_collision_tolerance,fiber_shape,all_fiber_info,fiber_info,rve_info) == True:
+                    if check_collision_gmsh_new(new_origin, new_direction_vector, new_length, new_diameter_a, fiber_collision_tolerance, fiber_shape, all_fiber_info, fiber_info,
+                                                rve_info, new_diameter_b, new_angle) == True:
                         continue
                     else:
-                        p = check_periodicity_new(new_origin, new_direction_vector, new_length, new_diameter, rve_size, fiber_shape)
+                        p = check_periodicity_new(new_origin, new_direction_vector, new_length, new_diameter_a, rve_size, fiber_shape, new_diameter_b, new_angle)
 
-                        if p==False:
+                        if p == False:
                             continue
                         elif p == []:
                             pass
@@ -1256,7 +1584,8 @@ def new_rsa(rve_info, fiber_collision_tolerance):
                             checked_periodics = 0
                             periodic_clash = False
                             for pp in p:
-                                if check_collision_gmsh_new(pp[0:3], new_direction_vector, new_length, new_diameter+fiber_collision_tolerance,fiber_shape,all_fiber_info, fiber_info,rve_info) == True:
+                                if check_collision_gmsh_new(pp[0:3], new_direction_vector, new_length, new_diameter_a, fiber_collision_tolerance, fiber_shape, all_fiber_info,
+                                                            fiber_info, rve_info, new_diameter_b, new_angle) == True:
                                     periodic_clash = True
                                     break
                                 else:
@@ -1267,14 +1596,17 @@ def new_rsa(rve_info, fiber_collision_tolerance):
                                 continue
 
                         fiber_info[str(f)][0] = new_origin
+                        print(f'Fiber no.{f + 1} placed')
                         if p == []:
-                            break # Change
+                            break  # Change
                         else:
                             fiber_info[str(f)][-1] = 'yes_periodicity'
                             for pp in p:
                                 fiber_info[str(f)][6].append(pp)
-                                fiber_info['p'+str(f) +','+ str(pp[3])+','+ str(pp[4])+','+ str(pp[5])] = [pp[0:3], fiber_info[str(f)][1], fiber_info[str(f)][2], fiber_info[str(f)][3], fiber_info[str(f)][4],r,
-                                                                                            [], 'periodic_counter_part_of' + str(f)]
+                                fiber_info['p' + str(f) + ',' + str(pp[3]) + ',' + str(pp[4]) + ',' + str(pp[5])] = [pp[0:3], [fiber_info[str(f)][1][0], fiber_info[str(f)][1][1],
+                                                                                                                               fiber_info[str(f)][1][2]], fiber_info[str(f)][2],
+                                                                                                                     fiber_info[str(f)][3], fiber_info[str(f)][4], r,
+                                                                                                                     [], 'periodic_counter_part_of' + str(f)]
                             break
 
             if fail:
@@ -1296,7 +1628,7 @@ def cleanup(base_dir):
             shutil.rmtree(full_path)
 
 
-def create_mesh(rve_info, mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh,stage,r, graph_id):
+def create_mesh(rve_info, mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r, graph_id):
     gmsh.finalize()
     gmsh.initialize()
     gmsh.model.add("collision_check")
@@ -1309,13 +1641,10 @@ def create_mesh(rve_info, mesh_size, fiber_collision_tolerance, mesh_folder, sho
 
     # rsa(rve_info, fiber_collision_tolerance)
     new_rsa(rve_info, fiber_collision_tolerance)
-    create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_name_for_coords)
+    create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh, show_mesh, file_name_for_coords)
 
 
-
-def create_abaqus_main_file(mesh_folder,stage,r, graph_id):
-
-
+def create_abaqus_main_file(mesh_folder, stage, r, graph_id):
     import subprocess
     os.chdir(mesh_folder)
     # log_folder = Path(mesh_folder) / 'logs'
@@ -1343,403 +1672,76 @@ def create_abaqus_main_file(mesh_folder,stage,r, graph_id):
     os.chdir('..')
     os.chdir('..')
 
-# def create_abaqus_main_file(mesh_folder, stage, r, graph_id):
-#     import subprocess
-#     from pathlib import Path
-#     import os
-#     mesh_folder = Path(mesh_folder).resolve()
-#     old_cwd = Path.cwd()
-#
-#     log_folder = mesh_folder / 'logs'
-#     log_folder.mkdir(exist_ok=True)
-#
-#     log = log_folder / f"create_main_abaqus_file_stage_{stage}_rve_{r}_mesh_{graph_id}.log"
-#
-#     try:
-#         with open(log, "w") as f:
-#             result = subprocess.run(
-#                 f"abaqus cae noGUI=temp_abaqus.py -- 0 {stage} {r} {graph_id}",
-#                 cwd=str(mesh_folder),
-#                 shell=True,
-#                 stdout=f,
-#                 stderr=f
-#             )
-#
-#         if result.returncode != 0:
-#             raise RuntimeError(f"Abaqus main-file generation failed. Check log: {log}")
-#
-#         job_inp = mesh_folder / f"Job_stage_{stage}_rve_{r}_mesh_{graph_id}.inp"
-#
-#         if not job_inp.exists():
-#             raise RuntimeError(f"Expected Job inp was not created: {job_inp}")
-#
-#         txt = job_inp.read_text(errors="ignore")
-#
-#         if "*Step" not in txt and "*STEP" not in txt:
-#             raise RuntimeError(f"Generated Job inp has no *Step block: {job_inp}")
-#
-#         if "*End Step" not in txt and "*END STEP" not in txt:
-#             raise RuntimeError(f"Generated Job inp has no *End Step block: {job_inp}")
-#
-#     finally:
-#         os.chdir(str(old_cwd))
-
-# def create_mesh_graph(mesh_folder,stage, r, graph_id):
-#
-#     import subprocess
-#     os.chdir(mesh_folder)
-#     # log_folder = Path(mesh_folder) / 'logs'
-#     log_folder = Path('logs')
-#     log_folder.mkdir(exist_ok=True)
-#     log = log_folder / f"create_mesh_graph_stage_{stage}_rve_{r}_mesh_{graph_id}.log"
-#     # os.system(f'abaqus cae noGUI=newGNN_graph.py -- {stage} {r} {graph_id}')
-#     with open(log, "w") as f:
-#         subprocess.run(
-#             f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
-#             shell=True,
-#             stdout=f,
-#             stderr=f
-#         )
-#
-#     os.chdir('..')
-#     os.chdir('..')
-#     os.chdir('..')
 
 def create_mesh_graph(mesh_folder, stage, r, graph_id):
     import subprocess
-    from pathlib import Path
-    import os
-
-    mesh_folder = Path(mesh_folder).resolve()
-    old_cwd = Path.cwd()
-
-    log_folder = mesh_folder / 'logs'
+    os.chdir(mesh_folder)
+    # log_folder = Path(mesh_folder) / 'logs'
+    log_folder = Path('logs')
     log_folder.mkdir(exist_ok=True)
-
     log = log_folder / f"create_mesh_graph_stage_{stage}_rve_{r}_mesh_{graph_id}.log"
+    # os.system(f'abaqus cae noGUI=newGNN_graph.py -- {stage} {r} {graph_id}')
+    with open(log, "w") as f:
+        subprocess.run(
+            f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
+            shell=True,
+            stdout=f,
+            stderr=f
+        )
 
-    try:
-        with open(log, "w") as f:
-            result = subprocess.run(
-                f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
-                cwd=str(mesh_folder),
-                shell=True,
-                stdout=f,
-                stderr=f
-            )
-
-        if result.returncode != 0:
-            raise RuntimeError(f"Mesh graph generation failed. Check log: {log}")
-
-    finally:
-        os.chdir(str(old_cwd))
+    os.chdir('..')
+    os.chdir('..')
+    os.chdir('..')
 
 
-
-def create_abaqus_input_files(
-    rve_info, sample_num, samples,
-    training_dataset_folder, mesh_folder,
-    stage, r, graph_id, key_map
-):
-    import numpy as np
-
+def create_abaqus_input_files(rve_info, sample_num, samples, training_dataset_folder, mesh_folder, stage, r, graph_id, key_map):
+    # base_dir = Path(F_Training_data_generation + training_data_folder_id)
+    # base_dir.mkdir(exist_ok=True)
     material_dictionary = {}
-    x = np.load(training_dataset_folder / 'material_dictionary.npz', allow_pickle=True)
+    x = np.load(training_dataset_folder / f'material_dictionary.npz', allow_pickle=True)
     for k in x.keys():
         material_dictionary[k] = x[k].item()
 
-    template_path = mesh_folder / f'Job_stage_{stage}_rve_{r}_mesh_{graph_id}.inp'
+    with open(mesh_folder / f'Job_stage_{stage}_rve_{r}_mesh_{graph_id}.inp', 'r') as file:
+        data = file.readlines()
 
-    with open(template_path, 'r') as f:
-        data = f.readlines()
-
-    template_txt = ''.join(data)
-    if '*Step' not in template_txt and '*STEP' not in template_txt:
-        raise RuntimeError(f'Template has no *Step block: {template_path}')
-
-    phase_names = set(rve_info.keys())
-
-    def parse_material_name(line):
-        # Handles: *Material, name=MATRIX
-        parts = line.strip().split(',')
-        for p in parts:
-            if p.strip().lower().startswith('name='):
-                return p.split('=', 1)[1].strip()
-        return None
-
-    def anisotropic_elastic_block(C):
-        vals = [
-            C[0,0],
-            C[0,1], C[1,1],
-            C[0,2], C[1,2], C[2,2],
-            C[0,3], C[1,3], C[2,3], C[3,3],
-            C[0,4], C[1,4], C[2,4], C[3,4], C[4,4],
-            C[0,5], C[1,5], C[2,5], C[3,5], C[4,5], C[5,5],
-        ]
-
-        out = ['*Elastic, type=ANISOTROPIC\n']
-        for a in range(0, len(vals), 8):
-            out.append(', '.join('%.16g' % float(v) for v in vals[a:a+8]) + '\n')
-        return out
-
-    def orthotropic_elastic_block(C):
-        vals = [
-            C[0, 0],
-            C[0, 1], C[1, 1],
-            C[0, 2], C[1, 2], C[2, 2],
-            C[5, 5], C[4, 4],
-            C[3, 3],
-        ]
-
-        out = ['*Elastic, type=ORTHOTROPIC\n']
-        out.append(', '.join('%.16g' % float(v) for v in vals[:8]) + '\n')
-        out.append('%.16g\n' % float(vals[8]))
-        return out
-
-    for i in range(sample_num, sample_num + samples):
+    # Copy the generated input files to separate folders and write the material data
+    for i in range(sample_num, samples + sample_num):
         new_dir = training_dataset_folder / f'folder_{i}'
         new_dir.mkdir(exist_ok=True)
-
+        key_map[str(i)] = {}
         new_name = new_dir / f'I_{i}_stage_{stage}_rve_{r}_mesh_{graph_id}.inp'
 
-        key_map[str(i)] = {
-            'ids': [stage, r, graph_id],
-            'feilename': f'graph_stage_{stage}_rve_{r}_mesh_{graph_id}.npz',
-            'phases': []
-        }
+        key_map[str(i)]['ids'] = [stage, r, graph_id]
+        key_map[str(i)]['feilename'] = f'graph_stage_{stage}_rve_{r}_mesh_{graph_id}.npz'
+        key_map[str(i)]['phases'] = []
+        with open(new_name, 'w') as file:
+            skip = 0
+            for l in data:
+                if skip == 0:
+                    if '*Material, name=' in l:
+                        k = l.split('=')[-1][:-1]
+                        for kk in rve_info.keys():
+                            skip = 3
+                            if k in kk:
+                                key_map[str(i)]['phases'].append(k)
+                                file.write(l)
+                                file.write('*Elastic, type=ORTHOTROPIC\n')
+                                file.write(
+                                    f'{float(material_dictionary[str(i)][k][0, 0])}, {float(material_dictionary[str(i)][k][0, 1])}, {float(material_dictionary[str(i)][k][1, 1])},'
+                                    f'{float(material_dictionary[str(i)][k][0, 2])}, {float(material_dictionary[str(i)][k][1, 2])}, {float(material_dictionary[str(i)][k][2, 2])},'
+                                    f'{float(material_dictionary[str(i)][k][3, 3])},{float(material_dictionary[str(i)][k][4, 4])},\n{float(material_dictionary[str(i)][k][5, 5])}\n')
+                                break
+                                # file.write(f'{float(material_dictionary[k + '_stiff_mat'][i][0,0])}, {float(material_dictionary[k + '_stiff_mat'][i][0,1])}, {float(material_dictionary[k + '_stiff_mat'][i][1,1])},'
+                                #            f'{float(material_dictionary[k + '_stiff_mat'][i][0,2])}, {float(material_dictionary[k + '_stiff_mat'][i][1,2])}, {float(material_dictionary[k + '_stiff_mat'][i][2,2])},'
+                                #            f'{float(material_dictionary[k + '_stiff_mat'][i][3,3])},{float(material_dictionary[k + '_stiff_mat'][i][4,4])},\n{float(material_dictionary[k + '_stiff_mat'][i][5,5])}\n')
+                                # break
 
-        out_lines = []
-        j = 0
-
-        while j < len(data):
-            line = data[j]
-            stripped = line.strip()
-            lower = stripped.lower()
-
-            if lower.startswith('*material'):
-                mat_name = parse_material_name(line)
-
-                out_lines.append(line)
-                j += 1
-
-                # Collect everything inside this material block until next *Material
-                material_subblock = []
-                while j < len(data):
-                    next_line = data[j]
-                    next_lower = next_line.strip().lower()
-
-                    if next_lower.startswith('*material'):
-                        break
-
-                    material_subblock.append(next_line)
-                    j += 1
-
-                if mat_name in phase_names:
-                    if str(i) not in material_dictionary:
-                        raise RuntimeError(f'Missing material dictionary entry for sample {i}')
-
-                    if mat_name not in material_dictionary[str(i)]:
-                        raise RuntimeError(f'Missing material {mat_name} for sample {i}')
-
-                    key_map[str(i)]['phases'].append(mat_name)
-
-                    C = material_dictionary[str(i)][mat_name]
-                    # out_lines.extend(anisotropic_elastic_block(C))
-                    out_lines.extend(orthotropic_elastic_block(C))
-
-                    # Do not copy old elastic data
-                    # But preserve non-elastic keywords inside material if any
-                    k = 0
-                    while k < len(material_subblock):
-                        ml = material_subblock[k]
-                        mlower = ml.strip().lower()
-
-                        if mlower.startswith('*elastic'):
-                            k += 1
-                            while k < len(material_subblock):
-                                if material_subblock[k].strip().startswith('*'):
-                                    break
-                                k += 1
-                            continue
-
-                        out_lines.append(ml)
-                        k += 1
-
+                    else:
+                        file.write(l)
                 else:
-                    out_lines.extend(material_subblock)
+                    skip -= 1
 
-                continue
-
-            out_lines.append(line)
-            j += 1
-
-        with open(new_name, 'w') as f:
-            f.writelines(out_lines)
-
-        txt = ''.join(out_lines)
-
-        if '*Step' not in txt and '*STEP' not in txt:
-            raise RuntimeError(f'Generated file has no *Step block: {new_name}')
-
-        if '*End Step' not in txt and '*END STEP' not in txt:
-            raise RuntimeError(f'Generated file has no *End Step block: {new_name}')
-
-# def create_abaqus_input_files(rve_info, sample_num, samples, training_dataset_folder,mesh_folder, stage, r, graph_id, key_map):
-#
-#
-#     # base_dir = Path(F_Training_data_generation + training_data_folder_id)
-#     # base_dir.mkdir(exist_ok=True)
-#     material_dictionary = {}
-#     x = np.load(training_dataset_folder / f'material_dictionary.npz', allow_pickle=True)
-#     for k in x.keys():
-#         material_dictionary[k] = x[k].item()
-#
-#
-#     with open(mesh_folder / f'Job_stage_{stage}_rve_{r}_mesh_{graph_id}.inp', 'r') as file:
-#         data = file.readlines()
-#
-#     # Copy the generated input files to separate folders and write the material data
-#     for i in range(sample_num, samples+sample_num):
-#         new_dir = training_dataset_folder / f'folder_{i}'
-#         new_dir.mkdir(exist_ok=True)
-#         key_map[str(i)] = {}
-#         new_name = new_dir / f'I_{i}_stage_{stage}_rve_{r}_mesh_{graph_id}.inp'
-#
-#         key_map[str(i)]['ids'] = [stage,r,graph_id]
-#         key_map[str(i)]['feilename'] = f'graph_stage_{stage}_rve_{r}_mesh_{graph_id}.npz'
-#         key_map[str(i)]['phases'] = []
-#         with open(new_name, 'w') as file:
-#             skip = 0
-#             for l in data:
-#                 if skip==0:
-#                     if '*Material, name=' in l:
-#                         k = l.split('=')[-1][:-1]
-#                         for kk in rve_info.keys():
-#                             skip = 3
-#                             if k in kk:
-#                                 key_map[str(i)]['phases'].append(k)
-#                                 file.write(l)
-#                                 file.write('*Elastic, type=ORTHOTROPIC\n')
-#                                 file.write(
-#                                     f'{float(material_dictionary[str(i)][k][0, 0])}, {float(material_dictionary[str(i)][k][0, 1])}, {float(material_dictionary[str(i)][k][1, 1])},'
-#                                     f'{float(material_dictionary[str(i)][k][0, 2])}, {float(material_dictionary[str(i)][k][1, 2])}, {float(material_dictionary[str(i)][k][2, 2])},'
-#                                     f'{float(material_dictionary[str(i)][k][3, 3])},{float(material_dictionary[str(i)][k][4, 4])},\n{float(material_dictionary[str(i)][k][5, 5])}\n')
-#                                 break
-#                                 # file.write(f'{float(material_dictionary[k + '_stiff_mat'][i][0,0])}, {float(material_dictionary[k + '_stiff_mat'][i][0,1])}, {float(material_dictionary[k + '_stiff_mat'][i][1,1])},'
-#                                 #            f'{float(material_dictionary[k + '_stiff_mat'][i][0,2])}, {float(material_dictionary[k + '_stiff_mat'][i][1,2])}, {float(material_dictionary[k + '_stiff_mat'][i][2,2])},'
-#                                 #            f'{float(material_dictionary[k + '_stiff_mat'][i][3,3])},{float(material_dictionary[k + '_stiff_mat'][i][4,4])},\n{float(material_dictionary[k + '_stiff_mat'][i][5,5])}\n')
-#                                 # break
-#
-#                     else:
-#                         file.write(l)
-#                 else:
-#                     skip-=1
-
-
-# def create_abaqus_input_files(
-#     rve_info, sample_num, samples,
-#     training_dataset_folder, mesh_folder,
-#     stage, r, graph_id, key_map
-# ):
-#     material_dictionary = {}
-#     x = np.load(training_dataset_folder / 'material_dictionary.npz', allow_pickle=True)
-#     for k in x.keys():
-#         material_dictionary[k] = x[k].item()
-#
-#     template_path = mesh_folder / f'Job_stage_{stage}_rve_{r}_mesh_{graph_id}.inp'
-#
-#     with open(template_path, 'r') as file:
-#         data = file.readlines()
-#
-#     for i in range(sample_num, samples + sample_num):
-#         new_dir = training_dataset_folder / f'folder_{i}'
-#         new_dir.mkdir(exist_ok=True)
-#
-#         new_name = new_dir / f'I_{i}_stage_{stage}_rve_{r}_mesh_{graph_id}.inp'
-#
-#         key_map[str(i)] = {
-#             'ids': [stage, r, graph_id],
-#             'feilename': f'graph_stage_{stage}_rve_{r}_mesh_{graph_id}.npz',
-#             'phases': []
-#         }
-#
-#         with open(new_name, 'w') as file:
-#             j = 0
-#
-#             while j < len(data):
-#                 line = data[j]
-#                 line_clean = line.strip()
-#                 line_lower = line_clean.lower()
-#
-#                 if line_lower.startswith('*material') and 'name=' in line_lower:
-#                     mat_name = line.split('=')[-1].strip()
-#
-#                     should_replace = False
-#                     for kk in rve_info.keys():
-#                         if mat_name in kk:
-#                             should_replace = True
-#                             break
-#
-#                     if should_replace:
-#                         key_map[str(i)]['phases'].append(mat_name)
-#
-#                         file.write(line)
-#
-#                         C = material_dictionary[str(i)][mat_name]
-#
-#                         # IMPORTANT:
-#                         # If C is a 6x6 stiffness matrix, use ANISOTROPIC, not ORTHOTROPIC.
-#                         file.write('*Elastic, type=ANISOTROPIC\n')
-#
-#                         vals = [
-#                             C[0,0],
-#                             C[0,1], C[1,1],
-#                             C[0,2], C[1,2], C[2,2],
-#                             C[0,3], C[1,3], C[2,3], C[3,3],
-#                             C[0,4], C[1,4], C[2,4], C[3,4], C[4,4],
-#                             C[0,5], C[1,5], C[2,5], C[3,5], C[4,5], C[5,5],
-#                         ]
-#
-#                         for a in range(0, len(vals), 8):
-#                             file.write(', '.join('%.16g' % float(v) for v in vals[a:a+8]) + '\n')
-#
-#                         # Skip old material data until next keyword
-#                         j += 1
-#                         while j < len(data):
-#                             s = data[j].strip()
-#                             if s.startswith('*'):
-#                                 break
-#                             j += 1
-#
-#                         # If old next line is *Elastic, skip that block too
-#                         if j < len(data) and data[j].strip().lower().startswith('*elastic'):
-#                             j += 1
-#                             while j < len(data):
-#                                 s = data[j].strip()
-#                                 if s.startswith('*'):
-#                                     break
-#                                 j += 1
-#
-#                         continue
-#
-#                     else:
-#                         # Preserve material untouched
-#                         file.write(line)
-#                         j += 1
-#                         continue
-#
-#                 file.write(line)
-#                 j += 1
-#
-#         # Safety check
-#         with open(new_name, 'r') as check_file:
-#             txt = check_file.read()
-#
-#         if '*Step' not in txt and '*STEP' not in txt:
-#             raise RuntimeError(f'Generated file has no *Step block: {new_name}')
-#
-#         if '*End Step' not in txt and '*END STEP' not in txt:
-#             raise RuntimeError(f'Generated file has no *End Step block: {new_name}')
 
 def solve_abaqus_input_files(samples, training_dataset_folder):
     # base_dir = Path(F_Training_data_generation + training_data_folder_id)
@@ -1757,11 +1759,11 @@ def solve_abaqus_input_files(samples, training_dataset_folder):
             if file.startswith('I_'):
                 job = os.path.splitext(file)[0]
                 running += 1
-                print(f"\rRunning job: {job}     |    Completed={int(100*running/(samples))} %...", end ="")
+                print(f"\rRunning job: {job}     |    Completed={int(100 * running / (samples))} %...", end="")
 
                 log_path = os.path.join(root_dir, f"{job}_run.log")
                 with open(log_path, "w") as log:
-                # with open(os.path.join(root_dir, f"{job}_run.log"), "w") as log:
+                    # with open(os.path.join(root_dir, f"{job}_run.log"), "w") as log:
                     result = subprocess.run(
                         f'abaqus job={job} input="{file}" interactive',
                         cwd=root_dir,
@@ -1795,62 +1797,6 @@ def solve_abaqus_input_files(samples, training_dataset_folder):
 
     print('')
 
-
-
-
-def solve_abaqus_main_files(samples, training_dataset_folder):
-    # base_dir = Path(F_Training_data_generation + training_data_folder_id)
-    # base_dir.mkdir(exist_ok=True)
-    print('')
-    extensions_to_delete = [
-        ".com", ".prt", ".msg", ".sta", ".sim", ".res"
-    ]
-    import subprocess
-    root = training_dataset_folder / 'Meshes'
-    running = -1
-    for root_dir, _, files in os.walk(root):
-        for file in files:
-            # if file.startswith('I_') and file.endswith(f'_{graph_id}.inp') and f'stage_{stage}' in file:
-            if file.startswith('Job_'):
-                job = os.path.splitext(file)[0]
-                running += 1
-                print(f"\rRunning Main job: {job}     |    Completed={int(100*running/(samples))} %...", end ="")
-
-                log_path = os.path.join(root_dir, f"{job}_run.log")
-                with open(log_path, "w") as log:
-                # with open(os.path.join(root_dir, f"{job}_run.log"), "w") as log:
-                    result = subprocess.run(
-                        f'abaqus job={job} input="{file}" interactive',
-                        cwd=root_dir,
-                        shell=True,
-                        stdout=log,
-                        stderr=log,
-                        check=True
-                    )
-                    # ---- Delete unwanted files AFTER job finishes ----
-
-                if result.returncode != 0:
-                    raise RuntimeError(
-                        f"\nAbaqus system-level failure in job {job}. "
-                        f"Return code: {result.returncode}. Log: {log_path}"
-                    )
-
-                if abaqus_job_failed(root_dir, job):
-                    raise RuntimeError(
-                        f"\nAbaqus analysis failed in job {job}. "
-                        f"Check: {log_path}, {job}.dat, {job}.msg, {job}.sta"
-                    )
-
-                for ext in extensions_to_delete:
-                    path = os.path.join(root_dir, job + ext)
-                    if os.path.exists(path):
-                        os.remove(path)
-                for ext in extensions_to_delete:
-                    path = os.path.join(root_dir, job + ext)
-                    if os.path.exists(path):
-                        os.remove(path)
-
-    print('')
 
 def abaqus_job_failed(root_dir, job):
     files_to_check = [
@@ -1896,15 +1842,13 @@ def abaqus_job_failed(root_dir, job):
     return False
 
 
-def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material,stage, r,g_id):
-
-
+def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder, imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id):
     file_name_for_mesh = mesh_folder / f'gmsh_stage_{stage}_rve_{r}_mesh_{g_id}.inp'  # From gmsh in abaqus format
     file_name_for_FEAP_mesh = mesh_folder / f'val_IMN_stage_{stage}_rve_{r}_mesh_{g_id}'  # From abaqus to FEAP format
     material_identifiers = [[y[:-3], y[-3:]] for y in list(IMN_material.keys())]
-    convert_to_feap(file_name_for_mesh, file_name_for_FEAP_mesh,material_identifiers)
+    convert_to_feap(file_name_for_mesh, file_name_for_FEAP_mesh, material_identifiers)
 
-    write_feap_input(file_name_for_FEAP_mesh,new_folder,imn_validation_folder,rve_info['MATRIX']['size'],strain,steps,test_mesh_size,IMN_material,stage, r,g_id)
+    write_feap_input(file_name_for_FEAP_mesh, new_folder, imn_validation_folder, rve_info['MATRIX']['size'], strain, steps, test_mesh_size, IMN_material, stage, r, g_id)
 
 
 
