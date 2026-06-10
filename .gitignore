@@ -1,11 +1,12 @@
 .idea/
 Training_data_generation/Training_data*/
+IMN_training/*/
 # Python bytecode/cache
 __pycache__/
 *.pyc
 *.py[cod]
 *$py.class
 *.zip
-IMN_validation/*
+IMN_validation/*/
 echo Training_data_generation/Training_data0725.zip >> .gitignore
 echo *.zip >> .gitignore

@@ -58,7 +58,7 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 31
+main_id = 6666
 data_gen_folder_id = main_id # Change here if needed
 train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
@@ -89,7 +89,7 @@ show_mesh = False
 imn_training = False
 cost_live_plot = False
 
-imn_validation = False
+imn_validation = True
 val_solve = True
 val_plot = True
 
@@ -293,7 +293,7 @@ if imn_validation:
     steps = 50
     create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
-    nodes_per_mech_per_phase = 1
+    nodes_per_mech_per_phase = 2
 
     '''
     --- MATERIAL SPECIFICATION ---
@@ -305,12 +305,12 @@ if imn_validation:
     
     -------------------------------   
     '''
-    mat1 = [2, 50, 0.3, 5, 10, 0, 0]
+    mat1 = [2, 50, 0.3, 0.3, 1.0, 0, 0]
     mat2 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat3 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat4 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat = [mat1, mat2, mat3, mat4]
-    mesh_size = 0.35
+    mesh_size = 0.3
     fiber_collision_tolerance = mesh_size / 2
     smallest_volume_tolerance = mesh_size / 2
     stage = 2 # DO NOT CHANGE
@@ -324,7 +324,7 @@ if imn_validation:
 
         rve_info_validation_data = [
             {'MATRIX': {'size': [0.5, 4.5, 4.5]},
-             'UD1': {'FVC': 0.05, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
+             'UD1': {'FVC': 0.25, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
         ]
 
 
@@ -421,7 +421,7 @@ if imn_validation_2:
 # -------------------------------------
 # SECONDARY FUNCTIONS
 # -------------------------------------
-if True:
+if False:
     # Create a randomized subset from training data
     from Training_data_generation.dataset_subset import dataset_subset
     source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(724):04d}")  # Define here
