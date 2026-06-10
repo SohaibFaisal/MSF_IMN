@@ -31,7 +31,7 @@ optimizing_variables = [TNN_hidden_dim, GNN_hidden_dim, X_feat, GNN_structure]
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'  # question: what is this?
-main_id = 720
+main_id = 4444
 data_gen_folder_id = main_id  # Change here if needed
 train_folder_id = main_id  # Change here if needed
 validation_folder_id = main_id  # Change here if needed
@@ -56,10 +56,10 @@ training_mode = 'IMN'  # GNN_IMN, IMN,
 training_data_generation = True
 show_mesh = True
 
-imn_training = True
+imn_training = False
 cost_live_plot = True
 
-imn_validation = True
+imn_validation = False
 val_solve = True
 val_plot = True
 
@@ -72,7 +72,7 @@ imn_validation_2 = False  # For elastic constants error
 # -------------------------------------
 if training_data_generation:
     stage = 1
-    mesh_size = 0.25
+    mesh_size = 0.1
     fiber_collision_tolerance = mesh_size / 2
     smallest_volume_tolerance = mesh_size / 2
     strain = 0.02
@@ -121,10 +121,11 @@ if training_data_generation:
 
     rve_info_training_data = [
         {'MATRIX': {'size': [3.0, 3.0, 3.0]},
-         'SFR1': {'FVC': 0.07, 'dia': [0.3, 0, 0.5, 0, np.pi / 4, np.pi / 8], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
-         'UD1': {'FVC': 0.05, 'dia': [0.3, 0, 0.3, 0, np.pi / 4, np.pi / 8], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
-         'UD1': {'FVC': 0.05, 'dia': [0.25, 0, 0.4, 0, np.pi / 4, np.pi / 8], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
-         'PR1': {'FVC': 0.05, 'dia': [0.3, 0, 0.3, 0, 0, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}}
+         'SFR1': {'FVC': 0.17, 'dia': [0.3, 0, 0.5, 0, np.pi / 4, np.pi / 8], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
+         # 'UD1': {'FVC': 0.05, 'dia': [0.3, 0, 0.3, 0, np.pi / 4, np.pi / 8], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
+         # 'UD1': {'FVC': 0.05, 'dia': [0.25, 0, 0.4, 0, np.pi / 4, np.pi / 8], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
+         # 'PR1': {'FVC': 0.05, 'dia': [0.3, 0, 0.3, 0, 0, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}
+         }
         # {'MATRIX': {'size': [3.0, 3.0, 3.0]},
         #  'SFR1': {'FVC': 0.1, 'dia': [0.3, 0,0.3,0,np.pi/4,np.pi/8], 'ori': [0, 0, np.pi/2, 0], 'len': [2, 0]}}
 
