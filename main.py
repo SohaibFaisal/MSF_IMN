@@ -10,9 +10,9 @@ start = dt.now()
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--layers", type=int, default=3)
+parser.add_argument("--layers", type=int, default=5)
 parser.add_argument("--nodes", type=int, default=2)
-parser.add_argument("--epochs", type=int, default=50)
+parser.add_argument("--epochs", type=int, default=250)
 args = parser.parse_args()
 
 print('Running study for : ')
@@ -58,7 +58,7 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 6666
+main_id = 724
 data_gen_folder_id = main_id # Change here if needed
 train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
@@ -86,10 +86,10 @@ show_mesh = False
 
 
 
-imn_training = False
+imn_training = True
 cost_live_plot = False
 
-imn_validation = True
+imn_validation = False
 val_solve = True
 val_plot = True
 
@@ -248,18 +248,18 @@ if training_data_generation:
 if imn_training:
     # N_layers = 4
     # num_epochs = 11
-    lr = 5.07e-3
+    lr = 4.5e-3
     weight_decay = 5.05e-8
     # nodes_per_mech_per_phase = 2
     use_GPU = True
 
-    tnn_hidden_dim = 64
+    tnn_hidden_dim = 128
     gnn_hidden_dim = 64
-    gnn_heads = 4
-    x_feat = 128
-    gnn_structure = 1
+    gnn_heads = 8
+    x_feat = 32
+    gnn_structure = 2
     nodes_per_mech_per_phase = 2
-    tnn_layers = 1
+    tnn_layers = 3
     gnn_layers = 1
 
     optimizing_variables = [
@@ -273,7 +273,7 @@ if imn_training:
         gnn_layers,
     ]
 
-    total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 4500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     if training_mode == 'GNN_IMN':
         GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
     elif training_mode == 'IMN':
