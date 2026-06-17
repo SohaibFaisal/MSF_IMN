@@ -219,7 +219,7 @@ class HybridGNNDMN(nn.Module):
         x_feat = self.gnn(main_graph).squeeze(0)
         base_params = self.dmn.get_flat_params()  # [P]
         combined = torch.cat([x_feat, base_params], dim=0)
-        p_hat = self.T_DMN(combined)
+        p_hat = self.tnn(combined)
 
 
         self.dmn.assign_node_stiffness(sample)
@@ -701,13 +701,13 @@ def generate_dmn_params_for_new_graph_validation(
     ).to(device).eval()
 
     new_model.gnn.load_state_dict(ckpt["gnn"])
-    new_model.T_DMN.load_state_dict(ckpt["T_nodes"])
+    new_model.tnn.load_state_dict(ckpt["T_nodes"])
 
     if "dmn" in ckpt:
         new_model.dmn.load_state_dict(ckpt["dmn"])
 
     new_model.gnn.eval()
-    new_model.T_DMN.eval()
+    new_model.tnn.eval()
     new_model.dmn.eval()
 
     if mode == 1:
@@ -719,7 +719,7 @@ def generate_dmn_params_for_new_graph_validation(
         base_params = new_model.dmn.get_flat_params()
         combined = torch.cat([x_feat, base_params], dim=0)
 
-        p_flat = new_model.T_DMN(combined)
+        p_flat = new_model.tnn(combined)
 
         dmn = DMNCalculator3D(N_layers, phases).to(device)
         dmn.output_params_from_p_flat(p_flat, imn_validation_folder)
@@ -743,7 +743,7 @@ def generate_dmn_params_for_new_graph_validation(
             base_params = new_model.dmn.get_flat_params()
             combined = torch.cat([x_feat, base_params], dim=0)
 
-            p_flat = new_model.T_DMN(combined)
+            p_flat = new_model.tnn(combined)
 
             dmn = DMNCalculator3D(N_layers, sample_phases).to(device)
             dmn.assign_node_stiffness(training_data_set[sid])
