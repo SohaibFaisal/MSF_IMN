@@ -426,7 +426,7 @@ def export_graphs_from_inp(stage: str, rve_id: str, mesh_id: str, out_dir: str =
 
     # Save full graph
     os.makedirs(out_dir, exist_ok=True)
-    out_full = os.path.join(out_dir, f"graph_stage_{stage}_rve_{rve_id}_mesh_{mesh_id}.npz")
+    out_full = os.path.join(out_dir, f"graph_stage_{stage}_rve_{rve_id}_mesh_{mesh_id}_DMN.npz")
     np.savez_compressed(
         out_full,
         x=x_full,
@@ -449,7 +449,7 @@ def export_graphs_from_inp(stage: str, rve_id: str, mesh_id: str, out_dir: str =
         safe_target = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(target_pkey))
         out_target = os.path.join(
             out_dir,
-            f"graph_stage_{stage}_rve_{rve_id}_mesh_{mesh_id}_target_{safe_target}.npz",
+            f"graph_stage_{stage}_rve_{rve_id}_mesh_{mesh_id}_target_{safe_target}_DMN.npz",
         )
 
         np.savez_compressed(

@@ -59,7 +59,7 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 726
+main_id = 725
 data_gen_folder_id = main_id # Change here if needed
 train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
@@ -79,15 +79,15 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'DMN' # GNN_IMN, IMN, GNN_DMN, DMN
+training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
-training_data_generation = False
+training_data_generation = True
 show_mesh = False
 
 
 
 
-imn_training = True
+imn_training = False
 cost_live_plot = True
 
 imn_validation = True
@@ -109,8 +109,8 @@ if training_data_generation:
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.02
-    materials_per_mesh = 300
-    mesh_per_config = 1
+    materials_per_mesh = 3
+    mesh_per_config = 100
 
 
     '''

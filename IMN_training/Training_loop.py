@@ -139,12 +139,16 @@ def _sample_graphs_to_device(
     sample: dict[str, Any],
     mesh_folder: str | Path,
     graph_cache: GraphCPUCache,
+    mode: str,
     device: torch.device,
 ) -> tuple[Data, list[Data]]:
     ss, rr, mm = sample["ids"]
     folder = Path(mesh_folder)
 
-    main_graph = _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz"), device)
+    if mode == 'imn':
+        main_graph = _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz"), device)
+    elif mode == 'dmn':
+        main_graph = _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}_DMN.npz"), device)
     phase_graphs = [
         _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}_target_{ph}.npz"), device)
         for ph in sample["Phases"]
@@ -242,7 +246,8 @@ def _loss_gnn_imn(
     imn_cache: IMNPhaseCountCache | None,
 ) -> torch.Tensor:
     phases = sample["Phases"]
-    main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, device)
+    mode = 'imn'
+    main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, mode, device)
 
     flat_p = model.forward(phases, main_graph, phase_graphs)
     imn = imn_cache.get(phases) if imn_cache is not None else _make_imn(
@@ -274,12 +279,13 @@ def _loss_gnn_dmn(
       2. model.forward(main_graph, sample) returns C_pred, then this function computes the loss.
       3. model.forward(main_graph, phase_graphs, sample) if your implementation needs phase graphs.
     """
-    main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, device)
-
-    try:
-        out = model.forward(main_graph, sample)
-    except TypeError:
-        out = model.forward(main_graph, phase_graphs, sample)
+    mode = 'dmn'
+    main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache,mode, device)
+    out = model.forward(main_graph, sample)
+    # try:
+    #     out = model.forward(main_graph, sample)
+    # except TypeError:
+    #     out = model.forward(main_graph, phase_graphs, sample)
 
     if torch.is_tensor(out) and out.ndim == 0:
         loss = out

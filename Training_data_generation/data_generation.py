@@ -1423,22 +1423,22 @@ def create_mesh_graph(mesh_folder, stage, r, graph_id, mode):
 
     try:
         with open(log, "w") as f:
-            if mode == 'GNN_IMN':
-                result = subprocess.run(
-                    f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
-                    cwd=str(mesh_folder),
-                    shell=True,
-                    stdout=f,
-                    stderr=f
-                )
-            elif mode == 'GNN_DMN':
-                result = subprocess.run(
-                    f"abaqus cae noGUI=Extracting_graph_from_mesh_DMN.py -- {stage} {r} {graph_id}",
-                    cwd=str(mesh_folder),
-                    shell=True,
-                    stdout=f,
-                    stderr=f
-                )
+            # if mode == 'GNN_IMN':
+            result = subprocess.run(
+                f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
+                cwd=str(mesh_folder),
+                shell=True,
+                stdout=f,
+                stderr=f
+            )
+            # elif mode == 'GNN_DMN':
+            result = subprocess.run(
+                f"abaqus cae noGUI=Extracting_graph_from_mesh_DMN.py -- {stage} {r} {graph_id}",
+                cwd=str(mesh_folder),
+                shell=True,
+                stdout=f,
+                stderr=f
+            )
         if result.returncode != 0:
             raise RuntimeError(f"Mesh graph generation failed. Check log: {log}")
 
