@@ -892,8 +892,9 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
     device = get_device(use_GPU)
     mesh_folder = training_dataset_folder / 'Meshes'
     training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+    node_feat_dim = 8 if 'DMN' in mode else 10
     cfg = dict(
-        node_feat_dim=10,  # derived
+        node_feat_dim=node_feat_dim,  # derived
         tnn_hidden_dim=int(optimizing_variables[0]),
         gnn_hidden_dim=int(optimizing_variables[1]),
         gnn_heads=int(optimizing_variables[2]),
