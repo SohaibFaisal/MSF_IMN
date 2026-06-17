@@ -5,7 +5,7 @@ from pathlib import Path
 import csv
 from optuna.trial import TrialState
 
-from IMN_training.GNN_IMN import train_hybrid_one_graph
+from IMN_training.GNN_IMN import train_GNN_IMN
 
 viz_dir = Path(r"IMN_training/optuna")
 viz_dir.mkdir(parents=True, exist_ok=True)
@@ -79,7 +79,7 @@ def objective(trial):
         # Training
         # ----------------------------
 
-        best_val = train_hybrid_one_graph(
+        best_val = train_GNN_IMN(
             N_layers=N_layers,
             num_samples=num_samples,
             num_epochs=num_epochs,

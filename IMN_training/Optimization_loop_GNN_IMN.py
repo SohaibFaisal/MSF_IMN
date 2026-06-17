@@ -13,6 +13,7 @@ import torch
 from torch_geometric.data import Data
 
 from .IMN_calculator import IMNCalculator
+from .DMN_calculator_3D import DMNCalculator3D
 
 
 lock = threading.Lock()
@@ -111,6 +112,12 @@ def _make_imn(phases, N_layers: int, nodes_per_mech_per_phase: int, device: torc
     except TypeError:
         return IMNCalculator(N_layers, list(phases), nodes_per_mech_per_phase, device)
 
+def _make_dmn(phases, N_layers: int, nodes_per_mech_per_phase: int, device: torch.device, dtype: torch.dtype) -> DMNCalculator3D:
+    try:
+        return DMNCalculator3D(N_layers, list(phases), device, dtype=dtype )
+    except TypeError:
+        return DMNCalculator3D(N_layers, list(phases), device, dtype=dtype )
+
 
 def _sample_graphs_to_device(sample: dict, mesh_folder: str | Path, graph_cache: GraphCPUCache, device: torch.device):
     ss, rr, mm = sample["ids"]
@@ -171,6 +178,46 @@ def _compute_loss_for_sample(
     del main_graph, phase_graphs, flat_p, flat_p_imn, C_pred, C_tgt
     return loss
 
+
+def _compute_loss_for_sample_DMN(
+    sid: str,
+    training_data_set: dict,
+    mesh_folder: str | Path,
+    graph_cache: GraphCPUCache,
+    model: torch.nn.Module,
+    N_layers: int,
+    nodes_per_mech_per_phase: int,
+    device: torch.device,
+    dmn_dtype: torch.dtype,
+
+):
+    sample = training_data_set[sid]
+    phases = sample["Phases"]
+    main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, device)
+    return model.forward( main_graph, sample,)
+
+
+    # Keep IMN homogenization in float32/float64.
+    # torch.linalg.solve does not support Half on CUDA.
+    with torch.amp.autocast(device_type=device.type, enabled=False):
+        flat_p_imn = flat_p.float()
+        C_pred = dmn.homogenize_from_flat_params(flat_p_imn)
+
+        C_tgt = sample["C_Target"].to(
+            device=device,
+            dtype=C_pred.dtype,
+            non_blocking=True,
+        )
+
+        # Correct paper loss:
+        # ||C_pred - C_tgt||_F / ||C_tgt||_F
+        denom = torch.linalg.norm(C_tgt, ord="fro").clamp_min(torch.finfo(C_tgt.dtype).eps)
+        loss = torch.linalg.norm(C_pred - C_tgt, ord="fro") / denom
+
+    del main_graph, phase_graphs, flat_p, flat_p_imn, C_pred, C_tgt
+    return loss
+
+
 def _average_validation_loss(
     val_idx: torch.Tensor,
     training_data_set: dict,
@@ -203,6 +250,45 @@ def _average_validation_loss(
                     device,
                     imn_dtype,
                     imn_cache,
+                )
+            loss_sum += float(loss.detach().cpu())
+            del loss
+
+    n_val = max(1, len(val_idx))
+    return loss_sum / n_val
+
+def _average_validation_loss_DMN(
+    val_idx: torch.Tensor,
+    training_data_set: dict,
+    mesh_folder: str | Path,
+    graph_cache: GraphCPUCache,
+    model: torch.nn.Module,
+    N_layers: int,
+    nodes_per_mech_per_phase: int,
+    device: torch.device,
+    use_amp: bool,
+    imn_dtype: torch.dtype,
+
+):
+    model.eval()
+    loss_sum = 0.0
+    amp_enabled = bool(use_amp and device.type == "cuda")
+
+    with torch.inference_mode():
+        for idx in val_idx:
+            sid = str(idx.item())
+            with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
+                loss = _compute_loss_for_sample_DMN(
+                    sid,
+                    training_data_set,
+                    mesh_folder,
+                    graph_cache,
+                    model,
+                    N_layers,
+                    nodes_per_mech_per_phase,
+                    device,
+                    imn_dtype,
+
                 )
             loss_sum += float(loss.detach().cpu())
             del loss
@@ -391,6 +477,178 @@ def run_optimization(
     return best_val
 
 
+
+def run_optimization_DMN(
+    num_epochs,
+    training_data_set,
+    mesh_folder,
+    inner_steps,
+    optimizer,
+    model,
+    plot_data,
+    cost_live_plot,
+    imn_trained_data_folder,
+    stage,
+    N_layers,
+    device,
+    nodes_per_mech_per_phase=2,
+    trial=None,
+    accumulation_steps=5,
+    val_every=2,
+    graph_cache_size=2000,
+    use_amp=True,
+    force_float32=True,
+    cache_imn_by_phase_count=True,
+    imn_dtype="float32",
+        samples_per_epoch =None
+):
+    global finish_optim
+    finish_optim = False
+    mem("start")
+
+    device = torch.device(device)
+    mesh_folder = Path(mesh_folder)
+    imn_trained_data_folder = Path(imn_trained_data_folder)
+    dmn_torch_dtype = torch.float32 if str(imn_dtype).lower() in {"float32", "fp32", "torch.float32"} else torch.float64
+
+    if force_float32:
+        model.float()
+
+    num_samples = len(training_data_set)
+    val_ratio = 1 / 5
+    generator = torch.Generator().manual_seed(123)
+    all_idx = torch.randperm(num_samples, generator=generator)
+    num_val = int(round(val_ratio * num_samples))
+    val_idx = all_idx[:num_val]
+    train_idx = all_idx[num_val:]
+    accumulation_steps = max(1, int(accumulation_steps))
+    val_every = max(1, int(val_every))
+
+    for key in plot_data:
+        plot_data[key].clear()
+    with lock:
+        for key in global_plot_data:
+            global_plot_data[key].clear()
+
+    print("CUDA available:", torch.cuda.is_available())
+    print("Selected device:", device)
+    if device.type == "cuda":
+        print("GPU name:", torch.cuda.get_device_name(device))
+        print("AMP enabled:", bool(use_amp))
+    print("Graph cache size:", graph_cache_size)
+    print("IMN phase-count cache:", bool(cache_imn_by_phase_count))
+    print("DMN dtype:", dmn_torch_dtype)
+
+    best_val = float("inf")
+    best_epoch = -1
+    last_val = float("nan")
+
+    graph_cache = GraphCPUCache(max_graphs=graph_cache_size)
+    # imn_cache = IMNPhaseCountCache(N_layers, nodes_per_mech_per_phase, device, imn_torch_dtype) if cache_imn_by_phase_count else None
+    scaler = torch.amp.GradScaler("cuda", enabled=bool(use_amp and device.type == "cuda"))
+    amp_enabled = bool(use_amp and device.type == "cuda")
+
+    for epoch in range(num_epochs):
+        model.train()
+        optimizer.zero_grad(set_to_none=True)
+
+        if samples_per_epoch is None:
+            epoch_train_idx = train_idx
+        else:
+            n_epoch_samples = min(int(samples_per_epoch), len(train_idx))
+            epoch_train_idx = train_idx[torch.randperm(len(train_idx))[:n_epoch_samples]]
+
+        perm = epoch_train_idx[torch.randperm(len(epoch_train_idx))]
+        train_loss_sum = 0.0
+        accumulated = 0
+
+        for it, idx in enumerate(perm):
+            sid = str(idx.item())
+            with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
+                loss = _compute_loss_for_sample_DMN(
+                    sid,
+                    training_data_set,
+                    mesh_folder,
+                graph_cache,
+                model,
+                N_layers,
+                nodes_per_mech_per_phase,
+                device,
+                dmn_torch_dtype,
+                )
+                scaled_loss = loss / accumulation_steps
+
+            scaler.scale(scaled_loss).backward()
+            accumulated += 1
+            train_loss_sum += float(loss.detach().cpu())
+
+            is_boundary = accumulated == accumulation_steps
+            is_last = it == len(perm) - 1
+            if is_boundary or is_last:
+                if is_last and accumulated < accumulation_steps:
+                    correction = accumulation_steps / accumulated
+                    for parameter in model.parameters():
+                        if parameter.grad is not None:
+                            parameter.grad.mul_(correction)
+
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+                accumulated = 0
+
+            del loss, scaled_loss
+
+        n_train = max(1, len(perm))
+        avg_train = train_loss_sum / n_train
+        run_validation = ((epoch + 1) % val_every == 0) or (epoch == num_epochs - 1)
+
+        if run_validation:
+            last_val = _average_validation_loss_DMN(
+                val_idx,
+                training_data_set,
+                mesh_folder,
+                graph_cache,
+                model,
+                N_layers,
+                nodes_per_mech_per_phase,
+                device,
+                use_amp,
+                dmn_torch_dtype,
+            )
+            if last_val < best_val:
+                best_val = last_val
+                best_epoch = epoch
+            if trial is not None:
+                trial.report(last_val, step=epoch)
+                if trial.should_prune():
+                    raise optuna.TrialPruned()
+
+        if trial is not None:
+            trial.set_user_attr("epochs_ran", epoch + 1)
+            trial.set_user_attr("best_epoch", best_epoch + 1 if best_epoch >= 0 else None)
+
+        _append_plot_values(epoch, avg_train, last_val, plot_data)
+
+        val_text = f"{last_val:.6f}" if np.isfinite(last_val) else "skipped"
+
+        print(
+            f"Epoch {epoch + 1:03d}/{num_epochs} "
+            f"train={avg_train:.6f} val={val_text} "
+            f"graph_cache={len(graph_cache)} "
+        )
+
+    imn_trained_data_folder.mkdir(exist_ok=True)
+    np.savez(
+        str(imn_trained_data_folder / f"epoch_costs_{stage}.npz"),
+        train=np.array(plot_data["Train"], dtype=np.float32),
+        val=np.array(plot_data["Val"], dtype=np.float32),
+    )
+
+    finish_optim = True
+    return best_val
+
+
+
 def run_live_optimization_GNN_IMN(
     num_epochs,
     num_samples,
@@ -413,35 +671,62 @@ def run_live_optimization_GNN_IMN(
     force_float32=True,
     cache_imn_by_phase_count=True,
     imn_dtype="float32",
-        samples_per_epoch=None
+        samples_per_epoch=None,
+        IMN='IMN'
 ):
     plot_data = {"Train": [], "Val": []}
 
     if not cost_live_plot:
-        return run_optimization(
-            num_epochs,
-            training_data_set,
-            mesh_folder,
-            inner_steps,
-            optimizer,
-            model,
-            plot_data,
-            cost_live_plot,
-            imn_trained_data_folder,
-            stage,
-            N_layers,
-            device,
-            nodes_per_mech_per_phase,
-            trial,
-            accumulation_steps,
-            val_every,
-            graph_cache_size,
-            use_amp,
-            force_float32,
-            cache_imn_by_phase_count,
-            imn_dtype,
-            samples_per_epoch,
-        )
+        if IMN == 'IMN':
+            return run_optimization(
+                num_epochs,
+                training_data_set,
+                mesh_folder,
+                inner_steps,
+                optimizer,
+                model,
+                plot_data,
+                cost_live_plot,
+                imn_trained_data_folder,
+                stage,
+                N_layers,
+                device,
+                nodes_per_mech_per_phase,
+                trial,
+                accumulation_steps,
+                val_every,
+                graph_cache_size,
+                use_amp,
+                force_float32,
+                cache_imn_by_phase_count,
+                imn_dtype,
+                samples_per_epoch,
+            )
+        else:
+            return run_optimization_DMN(
+                num_epochs,
+                training_data_set,
+                mesh_folder,
+                inner_steps,
+                optimizer,
+                model,
+                plot_data,
+                cost_live_plot,
+                imn_trained_data_folder,
+                stage,
+                N_layers,
+                device,
+                nodes_per_mech_per_phase,
+                trial,
+                accumulation_steps,
+                val_every,
+                graph_cache_size,
+                use_amp,
+                force_float32,
+                cache_imn_by_phase_count,
+                imn_dtype,
+                samples_per_epoch,
+            )
 
     import pyqtgraph as pg
     import pyqtgraph.exporters as exporters
@@ -529,34 +814,64 @@ def run_live_optimization_GNN_IMN(
             "</div>"
         )
 
-    worker = threading.Thread(
-        target=run_optimization,
-        args=(
-            num_epochs,
-            training_data_set,
-            mesh_folder,
-            inner_steps,
-            optimizer,
-            model,
-            plot_data,
-            cost_live_plot,
-            imn_trained_data_folder,
-            stage,
-            N_layers,
-            device,
-            nodes_per_mech_per_phase,
-            trial,
-            accumulation_steps,
-            val_every,
-            graph_cache_size,
-            use_amp,
-            force_float32,
-            cache_imn_by_phase_count,
-            imn_dtype,
-            samples_per_epoch,
-        ),
-        daemon=False,
-    )
+    if IMN == 'IMN':
+        worker = threading.Thread(
+            target=run_optimization,
+            args=(
+                num_epochs,
+                training_data_set,
+                mesh_folder,
+                inner_steps,
+                optimizer,
+                model,
+                plot_data,
+                cost_live_plot,
+                imn_trained_data_folder,
+                stage,
+                N_layers,
+                device,
+                nodes_per_mech_per_phase,
+                trial,
+                accumulation_steps,
+                val_every,
+                graph_cache_size,
+                use_amp,
+                force_float32,
+                cache_imn_by_phase_count,
+                imn_dtype,
+                samples_per_epoch,
+            ),
+            daemon=False,
+        )
+    else:
+        worker = threading.Thread(
+            target=run_optimization_DMN,
+            args=(
+                num_epochs,
+                training_data_set,
+                mesh_folder,
+                inner_steps,
+                optimizer,
+                model,
+                plot_data,
+                cost_live_plot,
+                imn_trained_data_folder,
+                stage,
+                N_layers,
+                device,
+                nodes_per_mech_per_phase,
+                trial,
+                accumulation_steps,
+                val_every,
+                graph_cache_size,
+                use_amp,
+                force_float32,
+                cache_imn_by_phase_count,
+                imn_dtype,
+                samples_per_epoch,
+            ),
+            daemon=False,
+        )
 
     def on_close() -> None:
         global running, finish_optim

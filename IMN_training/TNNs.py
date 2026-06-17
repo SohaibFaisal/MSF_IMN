@@ -26,7 +26,28 @@ class TransformToIMN_Interaction_Params(nn.Module):
         return F.softplus(self.fc3(z))
 
 
+class TNN_DMN(nn.Module):
+    """
+    p_hat = T([X_feats, p_bar])
 
+    Input:  (32 + P)
+    Output: (P)
+    Softplus to keep IMN weights positive-friendly (your IMN uses softplus on z anyway).
+    """
+    def __init__(self, in_dim: int, out_dim: int, hidden_dim:int):
+        super().__init__()
+        # in_dim = x_dim + p_dim chg1
+        in_dim = in_dim
+        self.fc1 = nn.Linear(in_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc3 = nn.Linear(hidden_dim, out_dim)
+
+    def forward(self, combined: torch.Tensor) -> torch.Tensor:
+        # z = torch.cat([x_feats, p_bar], dim=-1) chg1
+        z = combined
+        z = F.relu(self.fc1(z))
+        z = F.relu(self.fc2(z))
+        return F.softplus(self.fc3(z))
 
 
 class graph_checking(nn.Module):

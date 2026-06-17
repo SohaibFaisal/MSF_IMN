@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import numpy as np
 mpl.rcParams["svg.fonttype"] = "path"
 
 
@@ -280,6 +281,24 @@ def plot(new_folder, stress_normal, strain_normal, stress_IMN, strain_IMN):
     out_dir = new_folder / 'plots'
     # out_dir = Path(new_folder + '\\plots')
     out_dir.mkdir(exist_ok=True)
+    datasets = {
+        "stress_DNS": stress_normal,
+        "strain_DNS": strain_normal,
+        "stress_IMN": stress_IMN,
+        "strain_IMN": strain_IMN,
+    }
+
+    for lc in range(6):
+        for name, data in datasets.items():
+            np.savez_compressed(
+                out_dir / f"LC{lc + 1}_{name}.npz",
+                data=np.asarray(data[lc])
+            )
+
+
+
+
+
     stress_dns_lc, strain_dns_lc = split_by_loadcase(
             stress_normal, strain_normal, n_loadcases=6
         )
@@ -335,6 +354,7 @@ def plot(new_folder, stress_normal, strain_normal, stress_IMN, strain_IMN):
         stress_dns_lc=stress_dns_lc,
         strain_dns_lc=strain_dns_lc
     )
+
 
     # NEW: mixed error plot
     # plot_mixed_error_summary(

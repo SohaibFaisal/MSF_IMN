@@ -4,6 +4,7 @@ from IMN_training.GNN_IMN import *
 from IMN_validation.Test_IMN import *
 from datetime import datetime as dt
 from Training_data_generation.data_generation import *
+from output_DMN_params_from_pt import export_dmn_params_from_checkpoint
 start = dt.now()
 
 
@@ -12,7 +13,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--layers", type=int, default=5)
 parser.add_argument("--nodes", type=int, default=2)
-parser.add_argument("--epochs", type=int, default=250)
+parser.add_argument("--epochs", type=int, default=5000)
 args = parser.parse_args()
 
 print('Running study for : ')
@@ -58,7 +59,7 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 724
+main_id = 726
 data_gen_folder_id = main_id # Change here if needed
 train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
@@ -78,7 +79,7 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'GNN_IMN' # GNN_IMN, IMN,
+training_mode = 'DMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
 training_data_generation = False
 show_mesh = False
@@ -87,9 +88,9 @@ show_mesh = False
 
 
 imn_training = True
-cost_live_plot = False
+cost_live_plot = True
 
-imn_validation = False
+imn_validation = True
 val_solve = True
 val_plot = True
 
@@ -108,8 +109,8 @@ if training_data_generation:
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.02
-    materials_per_mesh = 50
-    mesh_per_config = 2
+    materials_per_mesh = 300
+    mesh_per_config = 1
 
 
     '''
@@ -148,13 +149,13 @@ if training_data_generation:
     rve_info_training_data = [
         {'MATRIX': {'size': [0.2, 3.0, 3.0]},
          'UD1': {'FVC': 0.22, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-         'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [0.2, 4.0, 4.0]},
-         'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 4.0, 4.0]},
+        #  'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
         #  'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [4.5, 3.0, 3.0]},
@@ -199,7 +200,9 @@ if training_data_generation:
         # os.system(f'copy Extracting_graph_from_mesh.py ' + str(mesh_folder))
 
         shutil.copy("temp_abaqus.py", mesh_folder)
+        shutil.copy("Extracting_graph_from_mesh_DMN.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh.py", mesh_folder)
+
         for r in range(len(rve_info_training_data)):
             for g_id in range(mesh_per_config):
                 print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')
@@ -216,7 +219,9 @@ if training_data_generation:
     for r in range(len(rve_info_training_data)):
         for g_id in range(mesh_per_config):
             print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
-            create_mesh_graph(mesh_folder, stage, r, g_id)
+            if 'GNN' in training_mode:
+                create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
+
 
 
     create_material_dict(rve_info_training_data, total_samples, training_dataset_folder,stage, mesh_per_config)
@@ -251,7 +256,7 @@ if imn_training:
     lr = 4.5e-3
     weight_decay = 5.05e-8
     # nodes_per_mech_per_phase = 2
-    use_GPU = True
+    use_GPU = False
 
     tnn_hidden_dim = 128
     gnn_hidden_dim = 64
@@ -273,11 +278,16 @@ if imn_training:
         gnn_layers,
     ]
 
-    total_samples = 4500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
-    if training_mode == 'GNN_IMN':
-        GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
-    elif training_mode == 'IMN':
-        IMN(5, total_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder)
+    total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
+    # if training_mode == 'GNN_IMN':
+    #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
+    # elif training_mode == 'IMN':
+    #     IMN(5, total_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder)
+    # elif training_mode == 'GNN_DMN':
+    #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
+    # elif training_mode == 'DMN':
+    #     DMN(5, total_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder)
 # -------------------------------------
 
 
@@ -305,7 +315,7 @@ if imn_validation:
     
     -------------------------------   
     '''
-    mat1 = [2, 50, 0.3, 0.3, 1.0, 0, 0]
+    mat1 = [2, 150, 0.33, 0.3, 1.0, 0, 0]
     mat2 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat3 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat4 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
@@ -317,6 +327,8 @@ if imn_validation:
     mesh_per_config = 1
     strain = 0.02
 
+    # DMN
+
 
 
     # Create new mesh or
@@ -324,7 +336,7 @@ if imn_validation:
 
         rve_info_validation_data = [
             {'MATRIX': {'size': [0.5, 4.5, 4.5]},
-             'UD1': {'FVC': 0.25, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
+             'UD1': {'FVC': 0.22, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
         ]
 
 
@@ -349,26 +361,32 @@ if imn_validation:
                         break
                     except:
                         pass
-                print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
-                create_mesh_graph(mesh_folder, stage, r, g_id)
+                if 'GNN' in training_mode:
+                    create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
+                    print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
 
 
                 new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
-                create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id)
+                create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, 'DMN')
+
 
                 if training_mode == 'GNN_IMN':
                     generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, r, g_id, 0,0,1, nodes_per_mech_per_phase)
                 elif training_mode == 'IMN':
                     generate_imn_params(imn_trained_data_folder, imn_validation_folder)
+                elif training_mode == 'DMN':
+                    generate_dmn_params(imn_trained_data_folder, imn_validation_folder)
+                elif training_mode == 'GNN_DMN':
+                    generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, val_solve,val_plot, stage, r, g_id, [1,2,4,5])
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,4,5,6], )
 
 
     else:
         os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
         rve_info_validation_data = [
             {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-             'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}
+             'UD1': {'FVC': 0.23, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}
         ]
         # Has to be same as the one used to create the existing mesh
 
@@ -441,6 +459,16 @@ if False:
                'Layers: 5 - Nodes: 2': 52,
                'Layers: 5 - Nodes: 3': 53 }
     compare_trainings(folders, False) # Set True to show the plot, False to save it in the main Directory
+
+if False:
+    # Compare validation results
+    from IMN_validation.compare_validations import compare_validations
+
+    load_case = [1,2,3]
+    folders = {'Layers: 5 - DMN': 726,
+               'Layers: 5 - IMN': 725,
+               }
+    compare_validations(load_case, folders, True)
 
 
 if False:

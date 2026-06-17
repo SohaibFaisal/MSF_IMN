@@ -325,6 +325,7 @@ class GraphFeatureExtractor_original(nn.Module):
         self.fc3 = nn.Linear(hidden_dim, hidden_dim)
         self.fc4 = nn.Linear(hidden_dim, x_dim)
 
+
     def forward(self, graph: Data) -> torch.Tensor:
         x, edge_index, batch = graph.x, graph.edge_index, graph.batch
 
@@ -337,6 +338,97 @@ class GraphFeatureExtractor_original(nn.Module):
         y = torch.tanh(self.fc3(y))
         y = self.fc4(y)
 
+        return y
+
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from torch_geometric.data import Data
+from torch_geometric.nn import GATv2Conv, global_mean_pool
+
+
+class GraphFeatureExtractor_DMN(nn.Module):
+    """
+    Network matching the table:
+
+    Node feature transformation:
+      H1 = MP1(H0)                  (8, 64)
+      H2 = ReLU(W1 H1 + b1)         (64, 64)
+      H3 = MP2(H2)                  (64, 64)
+      H4 = ReLU(W2 H3 + b2)         (64, 64)
+
+    Global pooled feature transformation:
+      y1      = tanh(W3 y0 + b3)    (64, 64)
+      X_feats = softmax(W4 y1+b4)   (64, 32)
+    """
+
+    def __init__(
+        self,
+        in_dim: int = 8,
+        hidden_dim: int = 64,
+        x_dim: int = 32,
+        heads: int = 4,
+        dropout: float = 0.0,
+        use_softmax: bool = True,
+    ):
+        super().__init__()
+
+        assert hidden_dim % heads == 0
+
+        self.dropout = dropout
+        self.use_softmax = use_softmax
+
+        self.mp1 = GATv2Conv(
+            in_channels=in_dim,
+            out_channels=hidden_dim // heads,
+            heads=heads,
+            concat=True,
+        )
+
+        self.fc1 = nn.Linear(hidden_dim, hidden_dim)
+
+        self.mp2 = GATv2Conv(
+            in_channels=hidden_dim,
+            out_channels=hidden_dim // heads,
+            heads=heads,
+            concat=True,
+        )
+
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+
+        self.fc3 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc4 = nn.Linear(hidden_dim, x_dim)
+
+    def forward(self, graph: Data) -> torch.Tensor:
+        x, edge_index, batch = graph.x, graph.edge_index, graph.batch
+
+        # H1 = MP1(H0)
+        x = self.mp1(x, edge_index)
+
+        # H2 = ReLU(W1 H1 + b1)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, p=self.dropout, training=self.training)
+
+        # H3 = MP2(H2)
+        x = self.mp2(x, edge_index)
+
+        # H4 = ReLU(W2 H3 + b2)
+        x = F.relu(self.fc2(x))
+        x = F.dropout(x, p=self.dropout, training=self.training)
+
+        # y0 = global mean pooling of node features
+        y = global_mean_pool(x, batch)
+
+        # y1 = tanh(W3 y0 + b3)
+        y = torch.tanh(self.fc3(y))
+
+        # X_feats = softmax(W4 y1 + b4)
+        y = self.fc4(y)
+
+        if self.use_softmax:
+            y = F.softmax(y, dim=-1)
         return y
 
 

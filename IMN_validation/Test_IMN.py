@@ -337,6 +337,7 @@ def validation(new_folder,val_solve,val_plot, stage,r,g_id, loads_cases):
 
         # print(len(stress_normal))
         # print(len(strain_normal))
+
         plot(new_folder, stress_normal, strain_normal, stress_IMN, strain_IMN,  )
 
 

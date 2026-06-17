@@ -10,6 +10,7 @@ from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_poo
 from .IMN_Network import *
 from .IMN_calculator import *
 from .Optimization_loop import *
+from .Training_loop import *
 
 # from GNNs import GraphFeatureExtractor_nodes
 
@@ -56,9 +57,7 @@ class HybridGNNIMN(nn.Module):
         self.nodes_per_mech_per_phase = nodes_per_mech_per_phase
 
 
-        # if GNN_structure == 1:
-        #     from .GNNs import GraphFeatureExtractor_original
-        #     self.gnn = GraphFeatureExtractor_original(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads) #ok
+
         if GNN_structure == 1:
             from .GNNs import GraphFeatureExtractor_phase_aware
             self.gnn = GraphFeatureExtractor_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads) #ok
@@ -68,6 +67,11 @@ class HybridGNNIMN(nn.Module):
         elif GNN_structure == 3:
             from .GNNs import GraphFeatureExtractor_JK_Set2Set_phase_aware
             self.gnn = GraphFeatureExtractor_JK_Set2Set_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)
+
+        # GNN_DMN
+        elif GNN_structure == 4:
+            from .GNNs import GraphFeatureExtractor_DMN
+            self.gnn = GraphFeatureExtractor_DMN(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)
 
         # elif GNN_structure == 4:
         #     from .GNNs import GraphFeatureExtractor_MultiPoolResidual
@@ -126,6 +130,104 @@ class HybridGNNIMN(nn.Module):
 
 
         return flat_p
+
+
+# =============================================================================
+# Hybrid GNN + DMN model
+# =============================================================================
+
+class HybridGNNDMN(nn.Module):
+    """
+    Workflow:
+      graph -> GNN -> x_feat
+      trainable base DMN params -> get_flat_params()
+      concat([x_feat, base_params]) -> T_DMN -> sample-specific p_hat
+      p_hat can be passed to DMN.homogenize_from_flat_params(p_hat[b]) for loss.
+
+    forward(..., material_data_batch=None, C_target_batch=None) can optionally
+    compute C_pred and normalized Frobenius losses inside the model.
+    """
+
+    def __init__(
+        self,
+        node_feat_dim: int,
+        N_layers: int,
+        phases: Sequence[str],
+        gnn_hidden_dim: int,
+        tnn_hidden_dim: int,
+        heads: int,
+        x_dim: int,
+        GNN_structure: int = 0,
+        weight_activation: str = "softplus",
+        residual_params: bool = True,
+        delta_scale: float = 0.1,
+    ):
+        super().__init__()
+        self.gnn_hidden_dim = gnn_hidden_dim
+        self.tnn_hidden_dim = tnn_hidden_dim
+        self.gnn_structure = GNN_structure
+        self.node_feat_dim = node_feat_dim
+        self.heads = heads
+        self.x_dim = x_dim
+        self.N_layers = N_layers
+        self.phases = list(phases)
+        self.M = 2 ** N_layers - 1
+
+
+        from .GNNs import GraphFeatureExtractor_DMN
+        self.gnn = GraphFeatureExtractor_DMN(
+            in_dim=node_feat_dim,
+            hidden_dim=gnn_hidden_dim,
+            x_dim=x_dim,
+            heads=heads,
+        )
+
+
+        self.dmn = DMNCalculator3D(
+            N_layers=N_layers,
+            phases=phases,
+            weight_activation=weight_activation,
+        )
+        self.p_dim = self.dmn.param_dim()
+
+        num_params = 7 * 2 ** (N_layers - 1) - 3
+        from .TNNs import TNN_DMN
+        self.T_DMN = TNN_DMN(
+            in_dim=num_params+x_dim,
+            out_dim=num_params,
+            hidden_dim=tnn_hidden_dim,
+        )
+
+    def forward(
+        self,
+        main_graph: Data,
+        sample
+    ) :
+        """
+        Returns a dictionary containing at least:
+          p_hat_batch: [B, P]
+          x_feat:      [B, x_dim]
+          base_params: [P]
+
+        If material_data_batch is supplied, also returns:
+          C_pred_batch: [B, 6, 6]
+
+        If C_target_batch is supplied too, also returns:
+          loss_per_sample: [B]
+          loss: scalar mean loss
+        """
+        x_feat = self.gnn(main_graph).squeeze(0)
+        base_params = self.dmn.get_flat_params()  # [P]
+        combined = torch.cat([x_feat, base_params], dim=0)
+        p_hat = self.T_DMN(combined)
+
+
+        self.dmn.assign_node_stiffness(sample)
+        C_pred = self.dmn.homogenize_from_flat_params(
+            p_hat
+        )
+        return self.dmn.normalized_frobenius_mse(C_pred, sample['C_Target'])
+
 
 
 class Graph_Model(nn.Module):
@@ -257,116 +359,208 @@ class HybridGNNIMN_with_4_TNNs(nn.Module):
 
 
 
-def train_hybrid_one_graph(
-    N_layers: int,
-    num_samples: int,
-    num_epochs: int,
-    lr_rest: float,
-    live_plot,
-    training_dataset_folder: Path,
-    imn_trained_data_folder: Path,
-    optimizing_variables,
-    mode:str = 'Train',
-    weight_decay:float = 0.0,
-    nodes_per_mech_per_phase=2,
-    trial=None,
-        use_GPU=False
-
-):
-
-
-
-    if mode == 'Train':
-
-
-        device = get_device(use_GPU)
-        mesh_folder = training_dataset_folder / 'Meshes'
-        training_data_set = get_dataset_main(num_samples, training_dataset_folder)
-        cfg = dict(
-            node_feat_dim=10,  # derived
-            tnn_hidden_dim=int(optimizing_variables[0]),
-            gnn_hidden_dim=int(optimizing_variables[1]),
-            gnn_heads=int(optimizing_variables[2]),
-            x_dim=int(optimizing_variables[3]),
-            gnn_structure=int(optimizing_variables[4]),
-            nodes_per_mech_per_phase=int(optimizing_variables[5]),
-            tnn_layers=int(optimizing_variables[6]),
-            gnn_layers=int(optimizing_variables[7]),
-        )
-
-
-
-        model = HybridGNNIMN(node_feat_dim=cfg['node_feat_dim'],N_layers=N_layers, gnn_hidden_dim=cfg['gnn_hidden_dim'], tnn_hidden_dim=cfg['tnn_hidden_dim'],
-                             heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure = cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase).float().to(device)
-
-        opt = optim.Adam(
-            [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr_rest}],
-            weight_decay=weight_decay
-        )
-
-        best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial,accumulation_steps=100, samples_per_epoch=2500)
-        imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
-        GNN_FILE_PATH = imn_trained_data_folder / f"gnn_imn_generator.pt"
-
-        ckpt = {
-            "gnn": model.gnn.state_dict(),
-            "T_interaction": model.T_interaction.state_dict(),
-            "T_nodes": model.T_nodes.state_dict(),
-            "N_layers": N_layers,
-            "node_feat_dim": model.node_feat_dim,
-            "x_dim": model.x_dim,
-            "gnn_hidden_dim": model.gnn_hidden_dim, "tnn_hidden_dim": model.tnn_hidden_dim, "heads": model.heads,
-            "imn_N_layers": model.N_layers,
-            "gnn_structure": model.gnn_structure,
-
-        }
-        torch.save(ckpt, GNN_FILE_PATH)
-
-
-        # return model
-        return best_val
-
-
-
-
-
-def train_imn(
-    N_layers: int,
-    num_samples: int,
-    num_epochs: int,
-    lr: float,
-    live_plot,
-    training_dataset_folder: Path,
-    imn_trained_data_folder: Path,
-    mode:str = 'Train',
-        trial=None
-
-):
-
-
-    if mode == 'Train':
-        mesh_folder = training_dataset_folder / 'Meshes'
-        training_data_set = get_dataset_main(num_samples, training_dataset_folder)
-        model = IMNModel(5, ['MATRIX', 'UD1']).double()
-        opt = torch.optim.Adam(model.parameters(), lr=lr)
-        best_val = run_live_optimization_IMN(num_epochs, num_samples, training_data_set, 1, opt, model,[],[], live_plot, imn_trained_data_folder, 1)
-        imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
-
-
-        GNN_FILE_PATH = imn_trained_data_folder / f"trained_imn.pt"
-
-        ckpt = {
-            "imn": model.state_dict(),
-            "N_layers": model.N_layers,
-            "phases": model.phases,}
-
-
-        torch.save(ckpt, GNN_FILE_PATH)
-
-
-
-        return best_val
-
+# def train_GNN_IMN(
+#     N_layers: int,
+#     num_samples: int,
+#     num_epochs: int,
+#     lr_rest: float,
+#     live_plot,
+#     training_dataset_folder: Path,
+#     imn_trained_data_folder: Path,
+#     optimizing_variables,
+#     mode:str = 'Train',
+#     weight_decay:float = 0.0,
+#     nodes_per_mech_per_phase=2,
+#     trial=None,
+#         use_GPU=False
+#
+# ):
+#
+#
+#
+#     if mode == 'Train':
+#
+#
+#         device = get_device(use_GPU)
+#         mesh_folder = training_dataset_folder / 'Meshes'
+#         training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+#         cfg = dict(
+#             node_feat_dim=10,  # derived
+#             tnn_hidden_dim=int(optimizing_variables[0]),
+#             gnn_hidden_dim=int(optimizing_variables[1]),
+#             gnn_heads=int(optimizing_variables[2]),
+#             x_dim=int(optimizing_variables[3]),
+#             gnn_structure=int(optimizing_variables[4]),
+#             nodes_per_mech_per_phase=int(optimizing_variables[5]),
+#             tnn_layers=int(optimizing_variables[6]),
+#             gnn_layers=int(optimizing_variables[7]),
+#         )
+#
+#
+#
+#         model = HybridGNNIMN(node_feat_dim=cfg['node_feat_dim'],N_layers=N_layers, gnn_hidden_dim=cfg['gnn_hidden_dim'], tnn_hidden_dim=cfg['tnn_hidden_dim'],
+#                              heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure = cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase).float().to(device)
+#
+#
+#         opt = optim.Adam(
+#             [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr_rest}],
+#             weight_decay=weight_decay
+#         )
+#
+#         best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial,accumulation_steps=100, samples_per_epoch=200, IMN='DMN')
+#         imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
+#         GNN_FILE_PATH = imn_trained_data_folder / f"gnn_imn_generator.pt"
+#
+#         ckpt = {
+#             "gnn": model.gnn.state_dict(),
+#             "T_interaction": model.T_interaction.state_dict(),
+#             "T_nodes": model.T_nodes.state_dict(),
+#             # "imn": model.imn.state_dict(),
+#             "N_layers": N_layers,
+#             "node_feat_dim": model.node_feat_dim,
+#             "x_dim": model.x_dim,
+#             "gnn_hidden_dim": model.gnn_hidden_dim, "tnn_hidden_dim": model.tnn_hidden_dim, "heads": model.heads,
+#             "imn_N_layers": model.N_layers,
+#             "gnn_structure": model.gnn_structure,
+#
+#         }
+#         torch.save(ckpt, GNN_FILE_PATH)
+#
+#         return best_val
+#
+#
+# def train_GNN_DMN(
+#     N_layers: int,
+#     num_samples: int,
+#     num_epochs: int,
+#     lr_rest: float,
+#     live_plot,
+#     training_dataset_folder: Path,
+#     imn_trained_data_folder: Path,
+#     optimizing_variables,
+#     mode:str = 'Train',
+#     weight_decay:float = 0.0,
+#     nodes_per_mech_per_phase=2,
+#     trial=None,
+#         use_GPU=False
+#
+# ):
+#
+#
+#
+#     if mode == 'Train':
+#
+#
+#         device = get_device(use_GPU)
+#         mesh_folder = training_dataset_folder / 'Meshes'
+#         training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+#         cfg = dict(
+#             node_feat_dim=10,  # derived
+#             tnn_hidden_dim=int(optimizing_variables[0]),
+#             gnn_hidden_dim=int(optimizing_variables[1]),
+#             gnn_heads=int(optimizing_variables[2]),
+#             x_dim=int(optimizing_variables[3]),
+#             gnn_structure=int(optimizing_variables[4]),
+#             nodes_per_mech_per_phase=int(optimizing_variables[5]),
+#             tnn_layers=int(optimizing_variables[6]),
+#             gnn_layers=int(optimizing_variables[7]),
+#         )
+#
+#         model = HybridGNNDMN(node_feat_dim=cfg['node_feat_dim'], N_layers=N_layers,phases=['MATRIX', 'UD1'],gnn_hidden_dim=cfg['gnn_hidden_dim'],tnn_hidden_dim=cfg['tnn_hidden_dim'],
+#                              heads=cfg['gnn_heads'],x_dim=cfg['x_dim'],)
+#         opt = optim.Adam(
+#             [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr_rest}],
+#             weight_decay=weight_decay
+#         )
+#
+#         best_val = run_live_optimization_GNN_IMN(num_epochs, num_samples, training_data_set,mesh_folder, 1, opt, model, live_plot, imn_trained_data_folder, 1, N_layers,device, nodes_per_mech_per_phase,trial,accumulation_steps=100, samples_per_epoch=200, IMN='DMN')
+#         imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
+#         GNN_FILE_PATH = imn_trained_data_folder / f"gnn_imn_generator.pt"
+#
+#         ckpt = {
+#             "gnn": model.gnn.state_dict(),
+#
+#             "T_nodes": model.T_DMN.state_dict(),
+#             "dmn": model.dmn.state_dict(),
+#             "N_layers": N_layers,
+#             "node_feat_dim": model.node_feat_dim,
+#             "x_dim": model.x_dim,
+#             "gnn_hidden_dim": model.gnn_hidden_dim, "tnn_hidden_dim": model.tnn_hidden_dim, "heads": model.heads,
+#             "imn_N_layers": model.N_layers,
+#             "gnn_structure": model.gnn_structure,
+#
+#         }
+#         torch.save(ckpt, GNN_FILE_PATH)
+#         return best_val
+#
+#
+#
+# def train_imn(
+#     N_layers: int,
+#     num_samples: int,
+#     num_epochs: int,
+#     lr: float,
+#     live_plot,
+#     training_dataset_folder: Path,
+#     imn_trained_data_folder: Path,
+#     mode:str = 'Train',
+#         trial=None
+#
+# ):
+#
+#
+#     if mode == 'Train':
+#         mesh_folder = training_dataset_folder / 'Meshes'
+#         training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+#
+#         model = IMNModel(5, ['MATRIX', 'UD1']).double()
+#         opt = torch.optim.Adam(model.parameters(), lr=lr)
+#         best_val = run_live_optimization_IMN(num_epochs, num_samples, training_data_set, 1, opt, model,[],[], live_plot, imn_trained_data_folder, 1)
+#         imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
+#
+#
+#         GNN_FILE_PATH = imn_trained_data_folder / f"trained_imn.pt"
+#
+#         ckpt = {
+#             "imn": model.state_dict(),
+#             "N_layers": model.N_layers,
+#             "phases": model.phases,}
+#         torch.save(ckpt, GNN_FILE_PATH)
+#         return best_val
+#
+#
+#
+# def train_dmn(
+#     N_layers: int,
+#     num_samples: int,
+#     num_epochs: int,
+#     lr: float,
+#     live_plot,
+#     training_dataset_folder: Path,
+#     imn_trained_data_folder: Path,
+#     mode:str = 'Train',
+#         trial=None
+#
+# ):
+#
+#
+#     if mode == 'Train':
+#         mesh_folder = training_dataset_folder / 'Meshes'
+#         training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+#         from .DMN_calculator_3D import DMNCalculator3D
+#         model = DMNCalculator3D(N_layers, ['MATRIX', 'UD1']).double()
+#         opt = torch.optim.Adam(model.parameters(), lr=lr)
+#         from .Optimization_loop_DMN import run_live_optimization_DMN
+#
+#         best_val = run_live_optimization_DMN(num_epochs, num_samples, training_data_set, 1, opt, model,[],[], live_plot, imn_trained_data_folder, 1)
+#         imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
+#         GNN_FILE_PATH = imn_trained_data_folder / f"trained_imn.pt"
+#         ckpt = {
+#             "dmn": model.state_dict(),
+#             "N_layers": model.N_layers,
+#             "phases": model.phases,}
+#         torch.save(ckpt, GNN_FILE_PATH)
+#         return best_val
 
 
 def fix_homogenized_C(a):
@@ -469,9 +663,115 @@ def get_dataset_main(num_samples,training_dataset_folder):
     return main_data_set   #, graphs_data_set
 
 
+@torch.inference_mode()
+def generate_dmn_params_for_new_graph_validation(
+    mesh_folder,
+    phases,
+    imn_trained_data_folder,
+    imn_validation_folder,
+    stage,
+    rve,
+    mesh,
+    training_dataset_folder,
+    num_sam,
+    mode,
+):
+    GNN_FILE_PATH = imn_trained_data_folder / "gnn_dmn_generator.pt"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
+
+    N_layers = ckpt["N_layers"]
+    node_feat_dim = ckpt["node_feat_dim"]
+    x_dim = ckpt["x_dim"]
+    gnn_hidden_dim = ckpt["gnn_hidden_dim"]
+    tnn_hidden_dim = ckpt["tnn_hidden_dim"]
+    gnn_structure = ckpt["gnn_structure"]
+    heads = ckpt["heads"]
+
+    new_model = HybridGNNDMN(
+        node_feat_dim=node_feat_dim,
+        N_layers=N_layers,
+        phases=phases,
+        gnn_hidden_dim=gnn_hidden_dim,
+        tnn_hidden_dim=tnn_hidden_dim,
+        heads=heads,
+        x_dim=x_dim,
+        GNN_structure=gnn_structure,
+    ).to(device).eval()
+
+    new_model.gnn.load_state_dict(ckpt["gnn"])
+    new_model.T_DMN.load_state_dict(ckpt["T_nodes"])
+
+    if "dmn" in ckpt:
+        new_model.dmn.load_state_dict(ckpt["dmn"])
+
+    new_model.gnn.eval()
+    new_model.T_DMN.eval()
+    new_model.dmn.eval()
+
+    if mode == 1:
+        main_g = load_graph_npz_2(
+            str(mesh_folder / f"graph_stage_{stage}_rve_{rve}_mesh_{mesh}.npz")
+        ).to(device)
+
+        x_feat = new_model.gnn(main_g).squeeze(0)
+        base_params = new_model.dmn.get_flat_params()
+        combined = torch.cat([x_feat, base_params], dim=0)
+
+        p_flat = new_model.T_DMN(combined)
+
+        dmn = DMNCalculator3D(N_layers, phases).to(device)
+        dmn.output_params_from_p_flat(p_flat, imn_validation_folder)
+
+    else:
+        training_data_set = get_dataset_main(num_sam, training_dataset_folder)
+
+        target_constants = []
+        prediction_constants = []
+
+        for id in range(num_sam):
+            sid = str(id)
+            ss, rr, mm = training_data_set[sid]["ids"]
+            sample_phases = training_data_set[sid]["Phases"]
+
+            main_g = load_graph_npz_2(
+                str(mesh_folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz")
+            ).to(device)
+
+            x_feat = new_model.gnn(main_g).squeeze(0)
+            base_params = new_model.dmn.get_flat_params()
+            combined = torch.cat([x_feat, base_params], dim=0)
+
+            p_flat = new_model.T_DMN(combined)
+
+            dmn = DMNCalculator3D(N_layers, sample_phases).to(device)
+            dmn.assign_node_stiffness(training_data_set[sid])
+
+            C_pred = dmn.homogenize_from_flat_params(p_flat)
+            C_tgt = training_data_set[sid]["C_Target"].to(device)
+
+            print("Solving for:", id)
+
+            target_constants.append(extract_engineering_constants(C_tgt))
+            prediction_constants.append(extract_engineering_constants(C_pred))
+
+        return target_constants, prediction_constants
+
 
 @torch.inference_mode()
-def generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, rve, mesh, training_dataset_folder, num_sam, mode, nodes_per_mech_per_phase):
+def generate_imn_params_for_new_graph_validation(mesh_folder,
+                                                 phases,
+                                                 imn_trained_data_folder,
+                                                 imn_validation_folder,
+                                                 stage,
+                                                 rve,
+                                                 mesh,
+                                                 training_dataset_folder,
+                                                 num_sam,
+                                                 mode,
+                                                 nodes_per_mech_per_phase):
+
     GNN_FILE_PATH = imn_trained_data_folder / 'gnn_imn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
@@ -526,15 +826,30 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_
 
 @torch.inference_mode()
 def generate_imn_params(imn_trained_data_folder,imn_validation_folder):
-    GNN_FILE_PATH = imn_trained_data_folder / 'trained_imn.pt'
+    GNN_FILE_PATH = imn_trained_data_folder / 'imn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
     N_layers = ckpt["N_layers"]
     phases = ckpt["phases"]
-    new_model = IMNModel(N_layers,phases)
+    new_model = IMNModel(N_layers, phases)
     new_model.load_state_dict(ckpt["imn"])
     new_model.eval()
     new_model.output_params(imn_validation_folder)
+
+
+@torch.inference_mode()
+def generate_dmn_params(imn_trained_data_folder,imn_validation_folder):
+    GNN_FILE_PATH = imn_trained_data_folder / 'dmn_generator.pt'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
+    N_layers = ckpt["N_layers"]
+    # phases = ckpt["phases"]
+    phases = ['MATRIX', 'UD1']
+    new_model = DMNCalculator3D(N_layers, phases)
+    new_model.load_state_dict(ckpt["dmn"])
+    new_model.eval()
+    p_hat = new_model.get_flat_params()
+    new_model.output_params_from_p_flat(p_hat, imn_validation_folder)
 
 def get_device(use_gpu=True):
     if use_gpu:
@@ -543,41 +858,177 @@ def get_device(use_gpu=True):
         return torch.device("cuda:0")
     return torch.device("cpu")
 
-def GNNIMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
-            , training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU):
+# def GNNIMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
+#             , training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU):
+#
+#
+#
+#     path = Path(training_dataset_folder)
+#     path.mkdir(parents=True, exist_ok=True)
+#     train_GNN_IMN(
+#         N_layers=N_layers,
+#         num_samples=num_samples,
+#         num_epochs=num_epochs,
+#         lr_rest=lr,
+#         live_plot=cost_live_plot,
+#         training_dataset_folder=training_dataset_folder,
+#         imn_trained_data_folder=imn_trained_data_folder,
+#         optimizing_variables=optimizing_variables,
+#         weight_decay=weight_decay,
+#         nodes_per_mech_per_phase=nodes_per_mech_per_phase,
+#         use_GPU=use_GPU
+#
+#     )
 
 
 
+
+
+def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
+            , training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, mode, trial=None):
     path = Path(training_dataset_folder)
     path.mkdir(parents=True, exist_ok=True)
-    train_hybrid_one_graph(
-        N_layers=N_layers,
-        num_samples=num_samples,
-        num_epochs=num_epochs,
-        lr_rest=lr,
-        live_plot=cost_live_plot,
-        training_dataset_folder=training_dataset_folder,
-        imn_trained_data_folder=imn_trained_data_folder,
-        optimizing_variables=optimizing_variables,
-        weight_decay=weight_decay,
-        nodes_per_mech_per_phase=nodes_per_mech_per_phase,
-        use_GPU=use_GPU
 
+    device = get_device(use_GPU)
+    mesh_folder = training_dataset_folder / 'Meshes'
+    training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+    cfg = dict(
+        node_feat_dim=10,  # derived
+        tnn_hidden_dim=int(optimizing_variables[0]),
+        gnn_hidden_dim=int(optimizing_variables[1]),
+        gnn_heads=int(optimizing_variables[2]),
+        x_dim=int(optimizing_variables[3]),
+        gnn_structure=int(optimizing_variables[4]),
+        nodes_per_mech_per_phase=int(optimizing_variables[5]),
+        tnn_layers=int(optimizing_variables[6]),
+        gnn_layers=int(optimizing_variables[7]),
     )
 
 
-def IMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
-            , training_dataset_folder):
+    if mode == 'GNN_IMN':
+        model = HybridGNNIMN(node_feat_dim=cfg['node_feat_dim'], N_layers=N_layers, gnn_hidden_dim=cfg['gnn_hidden_dim'], tnn_hidden_dim=cfg['tnn_hidden_dim'],
+                             heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure=cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase).float().to(device)
 
-    train_imn(
-        N_layers=N_layers,
-        num_samples=num_samples,
-        num_epochs=num_epochs,
-        lr=lr,
-        live_plot=cost_live_plot,
-        training_dataset_folder=training_dataset_folder,
-        imn_trained_data_folder=imn_trained_data_folder
+    elif mode == 'IMN':
+        model = IMNModel(5, ['MATRIX', 'UD1']).double()
+
+    elif mode == 'GNN_DMN':
+        model = HybridGNNDMN(node_feat_dim=cfg['node_feat_dim'], N_layers=N_layers,phases=['MATRIX', 'UD1'],gnn_hidden_dim=cfg['gnn_hidden_dim'],tnn_hidden_dim=cfg['tnn_hidden_dim'],
+                             heads=cfg['gnn_heads'],x_dim=cfg['x_dim'],)
+
+    elif mode == 'DMN':
+        model = DMNCalculator3D(N_layers, ['MATRIX', 'UD1']).double()
+
+
+
+    opt = optim.Adam(
+        [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr}],
+        weight_decay=weight_decay
     )
+
+    best_val = run_live_optimization(num_epochs, num_samples, training_data_set, mesh_folder, 1, opt, model, cost_live_plot, imn_trained_data_folder, 1, N_layers, device,
+                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=200, mode=mode )
+
+
+
+
+    # Save trained model
+    imn_trained_data_folder.mkdir(parents=True, exist_ok=True)
+    if mode == 'GNN_IMN':
+        GNN_FILE_PATH = imn_trained_data_folder / f"gnn_imn_generator.pt"
+        ckpt = {
+            "gnn": model.gnn.state_dict(),
+            "T_interaction": model.T_interaction.state_dict(),
+            "T_nodes": model.T_nodes.state_dict(),
+            "N_layers": model.N_layers,
+            "node_feat_dim": model.node_feat_dim,
+            "x_dim": model.x_dim,
+            "gnn_hidden_dim": model.gnn_hidden_dim, "tnn_hidden_dim": model.tnn_hidden_dim, "heads": model.heads,
+            "imn_N_layers": model.N_layers,
+            "gnn_structure": model.gnn_structure,
+        }
+    elif mode == 'IMN':
+        GNN_FILE_PATH = imn_trained_data_folder / f"imn_generator.pt"
+        ckpt = {
+            "imn": model.state_dict(),
+            "N_layers": N_layers,
+        }
+
+    elif mode == 'GNN_DMN':
+        GNN_FILE_PATH = imn_trained_data_folder / f"gnn_dmn_generator.pt"
+        ckpt = {
+            "gnn": model.gnn.state_dict(),
+            "tnn": model.tnn.state_dict(),
+            "dmn": model.dmn.state_dict(),
+            "N_layers": model.N_layers,
+            "node_feat_dim": model.node_feat_dim,
+            "x_dim": model.x_dim,
+            "gnn_hidden_dim": model.gnn_hidden_dim, "tnn_hidden_dim": model.tnn_hidden_dim, "heads": model.heads,
+            "gnn_structure": model.gnn_structure,
+        }
+
+    elif mode == 'DMN':
+        GNN_FILE_PATH = imn_trained_data_folder / f"dmn_generator.pt"
+        ckpt = {
+            "dmn": model.state_dict(),
+            "N_layers": model.N_layers,
+        }
+
+
+    torch.save(ckpt, GNN_FILE_PATH)
+
+    return best_val
+
+
+
+
+# def GNNDMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
+#             , training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU):
+#
+#
+#
+#     path = Path(training_dataset_folder)
+#     path.mkdir(parents=True, exist_ok=True)
+#     train_GNN_DMN(
+#         N_layers=N_layers,
+#         num_samples=num_samples,
+#         num_epochs=num_epochs,
+#         lr_rest=lr,
+#         live_plot=cost_live_plot,
+#         training_dataset_folder=training_dataset_folder,
+#         imn_trained_data_folder=imn_trained_data_folder,
+#         optimizing_variables=optimizing_variables,
+#         weight_decay=weight_decay,
+#         nodes_per_mech_per_phase=nodes_per_mech_per_phase,
+#         use_GPU=use_GPU
+#
+#     )
+#
+# def IMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
+#             , training_dataset_folder):
+#
+#     train_imn(
+#         N_layers=N_layers,
+#         num_samples=num_samples,
+#         num_epochs=num_epochs,
+#         lr=lr,
+#         live_plot=cost_live_plot,
+#         training_dataset_folder=training_dataset_folder,
+#         imn_trained_data_folder=imn_trained_data_folder
+#     )
+#
+# def DMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
+#             , training_dataset_folder):
+#
+#     train_dmn(
+#         N_layers=N_layers,
+#         num_samples=num_samples,
+#         num_epochs=num_epochs,
+#         lr=lr,
+#         live_plot=cost_live_plot,
+#         training_dataset_folder=training_dataset_folder,
+#         imn_trained_data_folder=imn_trained_data_folder
+#     )
 
 
 def extract_engineering_constants(C):

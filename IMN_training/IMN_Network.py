@@ -329,9 +329,10 @@ class IMNModel(nn.Module):
         C_avg = torch.zeros((6, 6), dtype=self.dtype, device=device)
 
         for i in range(self.N):
-            Di = D_list[i, :, :]
-            Ci = self.C_nodes[i]
-            Wi = W[i]
+            Di = D_list[i, :, :].to(self.dtype)
+            Ci = self.C_nodes[i].to(self.dtype)
+            Wi = W[i].to(self.dtype)
+
 
             K += Wi * (Di.T @ (Ci @ Di))
             Mmat += Wi * (Di.T @ Ci)

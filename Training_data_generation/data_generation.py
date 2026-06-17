@@ -968,7 +968,7 @@ def convert_to_feap(in_file, out_file, material_identifiers):
                     outfile.write(x[0] + ' 0' + mat + x[1]+ x[2]+ x[3]+ x[4])
 
 
-def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,steps,test_mesh_size,IMN_material,stage,r,g_id):
+def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,steps,test_mesh_size,IMN_material,stage,r,g_id, IMN):
     files = ['DNS', 'IMN']
     new_folder.mkdir(exist_ok=True)
     for f in files:
@@ -1000,7 +1000,10 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
 
                     else:
                         if first:
-                            infile.write(f'Mate,1\nSoli\nucon imn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
+                            if IMN == 'IMN':
+                                infile.write(f'Mate,1\nSoli\nucon imn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
+                            else:
+                                infile.write(f'Mate,1\nSoli\nucon dmn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
                             if m[0] == 3:
                                 infile.write('FINITE\n')
                             first = False
@@ -1405,7 +1408,7 @@ def create_abaqus_main_file(mesh_folder,stage,r, graph_id):
 #     os.chdir('..')
 #     os.chdir('..')
 
-def create_mesh_graph(mesh_folder, stage, r, graph_id):
+def create_mesh_graph(mesh_folder, stage, r, graph_id, mode):
     import subprocess
     from pathlib import Path
     import os
@@ -1420,14 +1423,22 @@ def create_mesh_graph(mesh_folder, stage, r, graph_id):
 
     try:
         with open(log, "w") as f:
-            result = subprocess.run(
-                f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
-                cwd=str(mesh_folder),
-                shell=True,
-                stdout=f,
-                stderr=f
-            )
-
+            if mode == 'GNN_IMN':
+                result = subprocess.run(
+                    f"abaqus cae noGUI=Extracting_graph_from_mesh.py -- {stage} {r} {graph_id}",
+                    cwd=str(mesh_folder),
+                    shell=True,
+                    stdout=f,
+                    stderr=f
+                )
+            elif mode == 'GNN_DMN':
+                result = subprocess.run(
+                    f"abaqus cae noGUI=Extracting_graph_from_mesh_DMN.py -- {stage} {r} {graph_id}",
+                    cwd=str(mesh_folder),
+                    shell=True,
+                    stdout=f,
+                    stderr=f
+                )
         if result.returncode != 0:
             raise RuntimeError(f"Mesh graph generation failed. Check log: {log}")
 
@@ -1896,7 +1907,7 @@ def abaqus_job_failed(root_dir, job):
     return False
 
 
-def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material,stage, r,g_id):
+def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material,stage, r,g_id, IMN):
 
 
     file_name_for_mesh = mesh_folder / f'gmsh_stage_{stage}_rve_{r}_mesh_{g_id}.inp'  # From gmsh in abaqus format
@@ -1904,7 +1915,7 @@ def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder,imn_v
     material_identifiers = [[y[:-3], y[-3:]] for y in list(IMN_material.keys())]
     convert_to_feap(file_name_for_mesh, file_name_for_FEAP_mesh,material_identifiers)
 
-    write_feap_input(file_name_for_FEAP_mesh,new_folder,imn_validation_folder,rve_info['MATRIX']['size'],strain,steps,test_mesh_size,IMN_material,stage, r,g_id)
+    write_feap_input(file_name_for_FEAP_mesh,new_folder,imn_validation_folder,rve_info['MATRIX']['size'],strain,steps,test_mesh_size,IMN_material,stage, r,g_id, IMN)
 
 
 
