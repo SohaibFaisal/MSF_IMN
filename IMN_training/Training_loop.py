@@ -231,7 +231,10 @@ def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: t
 
     C_pred = model()
     C_tgt = sample["C_Target"].to(device=device, dtype=C_pred.dtype, non_blocking=True)
-    return _normalized_frobenius_loss(C_pred, C_tgt)
+    loss_C = _normalized_frobenius_loss(C_pred, C_tgt)
+    lambda_reg = 1e-5  # tune
+    loss_reg = model.regularization_loss()
+    return loss_C + lambda_reg * loss_reg
 
 
 def _loss_gnn_imn(
@@ -288,12 +291,15 @@ def _loss_gnn_dmn(
     #     out = model.forward(main_graph, phase_graphs, sample)
 
     if torch.is_tensor(out) and out.ndim == 0:
-        loss = out
+        loss_C = out
     else:
-        loss = _normalized_frobenius_loss(out, sample["C_Target"])
+        loss_C = _normalized_frobenius_loss(out, sample["C_Target"])
 
+    lambda_reg = 1e-5  # tune
+    loss_reg = model.regularization_loss()
     del main_graph, phase_graphs, out
-    return loss
+
+    return loss_C + lambda_reg * loss_reg
 
 
 def _make_loss_fn(
