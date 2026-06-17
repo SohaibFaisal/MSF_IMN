@@ -296,7 +296,7 @@ def _loss_gnn_dmn(
         loss_C = _normalized_frobenius_loss(out, sample["C_Target"])
 
     lambda_reg = 1e-5  # tune
-    loss_reg = model.regularization_loss()
+    loss_reg = model.dmn.regularization_loss()
     del main_graph, phase_graphs, out
 
     return loss_C + lambda_reg * loss_reg
