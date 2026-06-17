@@ -300,7 +300,7 @@ if imn_training:
 # -------------------------------------
 if imn_validation:
 
-    steps = 50
+    steps = 100
     create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
     nodes_per_mech_per_phase = 2
@@ -367,7 +367,7 @@ if imn_validation:
 
 
                 new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
-                create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, 'DMN')
+                create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, training_mode)
 
 
                 if training_mode == 'GNN_IMN':

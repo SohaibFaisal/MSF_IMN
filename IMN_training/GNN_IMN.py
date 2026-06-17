@@ -192,7 +192,7 @@ class HybridGNNDMN(nn.Module):
 
         num_params = 7 * 2 ** (N_layers - 1) - 3
         from .TNNs import TNN_DMN
-        self.T_DMN = TNN_DMN(
+        self.tnn = TNN_DMN(
             in_dim=num_params+x_dim,
             out_dim=num_params,
             hidden_dim=tnn_hidden_dim,

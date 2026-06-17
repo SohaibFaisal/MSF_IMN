@@ -1000,7 +1000,7 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
 
                     else:
                         if first:
-                            if IMN == 'IMN':
+                            if 'IMN' in IMN:
                                 infile.write(f'Mate,1\nSoli\nucon imn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
                             else:
                                 infile.write(f'Mate,1\nSoli\nucon dmn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
