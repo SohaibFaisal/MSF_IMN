@@ -13,7 +13,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--layers", type=int, default=5)
 parser.add_argument("--nodes", type=int, default=2)
-parser.add_argument("--epochs", type=int, default=5000)
+parser.add_argument("--epochs", type=int, default=300)
 args = parser.parse_args()
 
 print('Running study for : ')
@@ -81,16 +81,16 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
-training_data_generation = True
+training_data_generation = False
 show_mesh = False
 
 
 
 
-imn_training = False
+imn_training = True
 cost_live_plot = True
 
-imn_validation = True
+imn_validation = False
 val_solve = True
 val_plot = True
 
