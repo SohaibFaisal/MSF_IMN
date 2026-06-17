@@ -588,6 +588,8 @@ def run_live_optimization(
     samples_per_epoch=None,
     mode: Mode = "GNN_IMN",
 ):
+    if mode == 'GNN_DMN':
+        use_amp = False
     plot_data = {"Train": [], "Val": []}
     args = (
         num_epochs,
