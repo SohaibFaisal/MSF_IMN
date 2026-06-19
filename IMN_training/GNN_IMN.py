@@ -701,7 +701,7 @@ def generate_dmn_params_for_new_graph_validation(
     ).to(device).eval()
 
     new_model.gnn.load_state_dict(ckpt["gnn"])
-    new_model.tnn.load_state_dict(ckpt["T_nodes"])
+    new_model.tnn.load_state_dict(ckpt["tnn"])
 
     if "dmn" in ckpt:
         new_model.dmn.load_state_dict(ckpt["dmn"])
@@ -712,7 +712,7 @@ def generate_dmn_params_for_new_graph_validation(
 
     if mode == 1:
         main_g = load_graph_npz_2(
-            str(mesh_folder / f"graph_stage_{stage}_rve_{rve}_mesh_{mesh}.npz")
+            str(mesh_folder / f"graph_stage_{stage}_rve_{rve}_mesh_{mesh}_DMN.npz")
         ).to(device)
 
         x_feat = new_model.gnn(main_g).squeeze(0)
@@ -736,7 +736,7 @@ def generate_dmn_params_for_new_graph_validation(
             sample_phases = training_data_set[sid]["Phases"]
 
             main_g = load_graph_npz_2(
-                str(mesh_folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz")
+                str(mesh_folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}_DMN.npz")
             ).to(device)
 
             x_feat = new_model.gnn(main_g).squeeze(0)

@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def compare_trainings(trained_folder_ids, show):
+def compare_trainings(trained_folder_ids, show, epochs):
 
     for name, id in trained_folder_ids.items():
         F_IMN_training = 'IMN_training' # DO NOT CHANGE
@@ -11,9 +11,9 @@ def compare_trainings(trained_folder_ids, show):
         x = np.load(imn_trained_data_folder / f'epoch_costs_1.npz')
         # print(x['train'])
 
-        plt.plot(x['train'], label=name)
+        plt.plot(x['train'][0:epochs], label=name)
 
-
+    # plt.xscale('log')
     plt.legend()
     if show:
         plt.show()

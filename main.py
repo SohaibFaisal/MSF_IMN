@@ -24,7 +24,7 @@ print('Start at : ', dt.now())
 N_layers = args.layers
 nodes_per_mech_per_phase = args.nodes
 num_epochs = args.epochs
-# train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
+train_folder_id = f'072{N_layers}'
 
 
 
@@ -61,7 +61,7 @@ F_Training_data_generation = 'Training_data_generation'
 SIM_NAME = 'OLA'
 main_id = 725
 data_gen_folder_id = main_id # Change here if needed
-train_folder_id = main_id # Change here if needed
+# train_folder_id = main_id # Change here if needed
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -300,8 +300,8 @@ if imn_training:
 # -------------------------------------
 if imn_validation:
 
-    steps = 100
-    create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
+    steps = 50
+    create_new_mesh = False # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
     nodes_per_mech_per_phase = 2
 
@@ -315,7 +315,7 @@ if imn_validation:
     
     -------------------------------   
     '''
-    mat1 = [2, 150, 0.33, 0.3, 1.0, 0, 0]
+    mat1 = [2, 125, 0.33, 0.6, 1.5, 1, 1]
     mat2 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat3 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
     mat4 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
@@ -337,6 +337,12 @@ if imn_validation:
         rve_info_validation_data = [
             {'MATRIX': {'size': [0.5, 4.5, 4.5]},
              'UD1': {'FVC': 0.22, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
+            # {'MATRIX': {'size': [0.5, 4.5, 4.5]},
+            #  'UD1': {'FVC': 0.32, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
+            # {'MATRIX': {'size': [4.5, 4, 4]},
+            #  'UD1': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]},
+            # 'SFR1': {'FVC': 0.08, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]},
+            # 'PR1': {'FVC': 0.08, 'dia': [0.8, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
         ]
 
 
@@ -379,7 +385,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,4,5,6], )
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,3,4,5,6], )
 
 
     else:
@@ -403,14 +409,22 @@ if imn_validation:
 
         create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder,
                                      new_folder, imn_validation_folder, steps, test_mesh_size,
-                                     IMN_material, stage, r, g_id)
+                                     IMN_material, stage, r, g_id, 'DMN')
 
+        # if training_mode == 'GNN_IMN':
+        #     generate_imn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
+        # elif training_mode == 'IMN':
+        #     generate_imn_params(imn_trained_data_folder, imn_validation_folder)
         if training_mode == 'GNN_IMN':
-            generate_imn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
+            generate_imn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1, nodes_per_mech_per_phase)
         elif training_mode == 'IMN':
             generate_imn_params(imn_trained_data_folder, imn_validation_folder)
+        elif training_mode == 'DMN':
+            generate_dmn_params(imn_trained_data_folder, imn_validation_folder)
+        elif training_mode == 'GNN_DMN':
+            generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-        validation(new_folder, val_solve, val_plot, stage, r, g_id, [1, 2, 3, 4, 5, 6])
+        validation(new_folder, val_solve, val_plot, stage, r, g_id, [1,2,3,4, 5,6])
 
 
 
@@ -449,16 +463,17 @@ if False:
 if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
-    folders = {'Layers: 3 - Nodes: 1': 31,
-               'Layers: 3 - Nodes: 2': 32,
-               'Layers: 3 - Nodes: 3': 33,
-               'Layers: 4 - Nodes: 1': 41,
-               'Layers: 4 - Nodes: 2': 42,
-               'Layers: 4 - Nodes: 3': 43,
-               'Layers: 5 - Nodes: 1': 51,
-               'Layers: 5 - Nodes: 2': 52,
-               'Layers: 5 - Nodes: 3': 53 }
-    compare_trainings(folders, False) # Set True to show the plot, False to save it in the main Directory
+    folders = {'GNN DMN': 725,
+               'GNN IMN': 825,
+               # 'Layers: 3 - Nodes: 3': 33,
+               # 'Layers: 4 - Nodes: 1': 41,
+               # 'Layers: 4 - Nodes: 2': 42,
+               # 'Layers: 4 - Nodes: 3': 43,
+               # 'Layers: 5 - Nodes: 1': 51,
+               # 'Layers: 5 - Nodes: 2': 52,
+               # 'Layers: 5 - Nodes: 3': 53
+               }
+    compare_trainings(folders, True, 250) # Set True to show the plot, False to save it in the main Directory
 
 if False:
     # Compare validation results
