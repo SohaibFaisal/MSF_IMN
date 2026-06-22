@@ -303,7 +303,7 @@ if imn_validation:
 
     steps = 100
     create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
-    test_mesh_size = [2,2,2]
+    test_mesh_size = [1,1,1]
     nodes_per_mech_per_phase = 2
 
     '''
@@ -316,8 +316,8 @@ if imn_validation:
     
     -------------------------------   
     '''
-    mat1 = [2, 100, 0.33, 0.6, 1.5, 1, 1]
-    mat2 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
+    mat1 = [2, 1500, 0.35, 25.0, 45.0, 20, 100]
+    mat2 = [1, 230000, 0.2, 0.2, 0.2, 0, 0]
     mat3 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat4 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat = [mat1, mat2, mat3, mat4]
@@ -348,6 +348,7 @@ if imn_validation:
 
 
         os.system(f'copy Extracting_graph_from_mesh.py ' + str(mesh_folder))
+        shutil.copy("Extracting_graph_from_mesh_DMN.py", mesh_folder)
         os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
         for r in range(len(rve_info_validation_data)):
             for g_id in range(mesh_per_config):
@@ -374,7 +375,7 @@ if imn_validation:
 
 
                 new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
-                create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, training_mode)
+                # create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, training_mode)
 
 
                 if training_mode == 'GNN_IMN':
@@ -386,7 +387,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,3,4,5,6], )
+                validation(new_folder, False,val_plot, stage, r, g_id, [2], )
 
 
     else:
@@ -464,8 +465,9 @@ if False:
 if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
-    folders = {'GNN DMN': 725,
-               'GNN IMN': 825,
+    folders = {'GNN DMN - 5 Layers': 725,
+               'GNN DMN - 6 Layers': 726,
+               'GNN IMN - 5 Layers': 825,
                # 'Layers: 3 - Nodes: 3': 33,
                # 'Layers: 4 - Nodes: 1': 41,
                # 'Layers: 4 - Nodes: 2': 42,

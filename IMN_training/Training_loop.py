@@ -23,7 +23,7 @@ lock = threading.Lock()
 running = True
 finish_optim = False
 process = psutil.Process(os.getpid())
-global_plot_data = {"X": [], "Train": [], "Val": []}
+global_plot_data = {"X": [], "Train": [], "Val": [], "Weight": []}
 
 
 # -----------------------------------------------------------------------------
@@ -61,6 +61,60 @@ def _normalized_frobenius_loss(C_pred: torch.Tensor, C_tgt: torch.Tensor) -> tor
     )
 
 
+
+def _normalized_weight_fraction_loss(
+    flat_p: torch.Tensor,
+    target_weights: torch.Tensor,
+    weight_index: int,
+) -> torch.Tensor:
+
+    pred_weights = flat_p[:weight_index]
+
+    target_weights = target_weights.to(
+        device=flat_p.device,
+        dtype=flat_p.dtype,
+        non_blocking=True,
+    )
+
+    n_phases = target_weights.numel()
+
+    # Sum weights belonging to each phase
+    pred_phase_weights = torch.stack([
+        pred_weights[i::n_phases].sum()
+        for i in range(n_phases)
+    ])
+
+    diff_norm_sq = torch.linalg.norm(
+        pred_phase_weights - target_weights
+    ) ** 2
+
+    tgt_norm_sq = torch.linalg.norm(
+        target_weights
+    ) ** 2
+
+    return diff_norm_sq / tgt_norm_sq.clamp_min(
+        torch.finfo(target_weights.dtype).eps
+    )
+
+# def _phase_fraction_error(self, p_hat_1d: torch.Tensor, W_phases: torch.Sequence[float] | torch.Tensor) -> torch.Tensor:
+#     if p_hat_1d.ndim != 1:
+#         p_hat_1d = p_hat_1d.view(-1)
+#
+#     W = p_hat_1d[: self.N].to(device=self.device, dtype=self.dtype)
+#     W_target = torch.as_tensor(W_phases, dtype=W.dtype, device=W.device)
+#
+#     if W_target.numel() != self.n_phases:
+#         raise ValueError(
+#             f"W_phases has {W_target.numel()} values, but this IMN has "
+#             f"{self.n_phases} phases."
+#         )
+#
+#     # Node order is [phase0, phase1, ..., phaseP-1, phase0, phase1, ...]
+#     phase_sums = W.view(-1, self.n_phases).sum(dim=0)
+#     diff = phase_sums - W_target
+#     return (diff * diff).sum() / ((W_target * W_target).sum() + 1e-12)
+
+
 def _clear_plot_data(plot_data: dict[str, list]) -> None:
     for key in plot_data:
         plot_data[key].clear()
@@ -69,13 +123,22 @@ def _clear_plot_data(plot_data: dict[str, list]) -> None:
             global_plot_data[key].clear()
 
 
-def _append_plot_values(epoch: int, avg_train: float, avg_val: float, plot_data: dict[str, list]) -> None:
+def _append_plot_values(
+    epoch: int,
+    avg_train: float,
+    avg_val: float,
+    avg_weight: float,
+    plot_data: dict[str, list],
+) -> None:
     with lock:
         plot_data["Train"].append(avg_train)
         plot_data["Val"].append(avg_val)
+        plot_data["Weight"].append(avg_weight)
+
         global_plot_data["X"].append(epoch + 1)
         global_plot_data["Train"].append(avg_train)
         global_plot_data["Val"].append(avg_val)
+        global_plot_data["Weight"].append(avg_weight)
 
 
 def _split_indices(num_samples: int, val_ratio: float = 0.2, seed: int = 123) -> tuple[torch.Tensor, torch.Tensor]:
@@ -263,8 +326,17 @@ def _loss_gnn_imn(
         C_pred = imn.homogenize_from_flat_params(flat_p.float())
         loss = _normalized_frobenius_loss(C_pred, sample["C_Target"])
 
+        FVC = [f.FVC for f in phase_graphs][0]
+
+        weight_loss = _normalized_weight_fraction_loss(
+            flat_p.float(),
+            FVC,
+            nodes_per_mech_per_phase * (2 ** (N_layers - 1)),
+        )
+        loss = loss + weight_loss
+
     del main_graph, phase_graphs, flat_p, C_pred
-    return loss
+    return loss, weight_loss
 
 
 def _loss_gnn_dmn(
@@ -354,17 +426,28 @@ def _average_validation_loss(
 ) -> float:
     model.eval()
     loss_sum = 0.0
+    weight_loss_sum = 0.0
     amp_enabled = bool(use_amp and device.type == "cuda")
 
     with torch.inference_mode():
         for idx in val_idx:
             sample = training_data_set[str(idx.item())]
             with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
-                loss = loss_fn(model, sample)
-            loss_sum += float(loss.detach().cpu())
-            del loss
+                out = loss_fn(model, sample)
 
-    return loss_sum / max(1, len(val_idx))
+            if isinstance(out, tuple):
+                loss, weight_loss = out
+            else:
+                loss = out
+                weight_loss = None
+
+            loss_sum += float(loss.detach().cpu())
+            if weight_loss is not None:
+                weight_loss_sum += float(weight_loss.detach().cpu())
+            del loss, weight_loss, out
+
+    n_val = max(1, len(val_idx))
+    return loss_sum / n_val, weight_loss_sum / n_val
 
 
 def run_optimization(
@@ -451,6 +534,7 @@ def run_optimization(
     best_val = float("inf")
     best_epoch = -1
     last_val = float("nan")
+    last_val_weight = float("nan")
     scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
 
     for epoch in range(num_epochs):
@@ -469,18 +553,28 @@ def run_optimization(
 
         perm = epoch_train_idx[torch.randperm(len(epoch_train_idx))]
         train_loss_sum = 0.0
+        train_weight_loss_sum = 0.0
         accumulated = 0
 
         for it, idx in enumerate(perm):
             sample = training_data_set[str(idx.item())]
 
             with torch.amp.autocast(device_type=device.type, enabled=amp_enabled):
-                loss = loss_fn(model, sample)
+                out = loss_fn(model, sample)
+
+                if isinstance(out, tuple):
+                    loss, weight_loss = out
+                else:
+                    loss = out
+                    weight_loss = None
+
                 scaled_loss = loss / accumulation_steps
 
             scaler.scale(scaled_loss).backward()
             accumulated += 1
             train_loss_sum += float(loss.detach().cpu())
+            if weight_loss is not None:
+                train_weight_loss_sum += float(weight_loss.detach().cpu())
 
             is_boundary = accumulated == accumulation_steps
             is_last = it == len(perm) - 1
@@ -496,13 +590,14 @@ def run_optimization(
                 optimizer.zero_grad(set_to_none=True)
                 accumulated = 0
 
-            del loss, scaled_loss
+            del loss, weight_loss, out, scaled_loss
 
         avg_train = train_loss_sum / max(1, len(perm))
+        avg_weight = train_weight_loss_sum / max(1, len(perm))
         run_validation = ((epoch + 1) % val_every == 0) or (epoch == num_epochs - 1)
 
         if run_validation:
-            last_val = _average_validation_loss(
+            last_val, last_val_weight = _average_validation_loss(
                 val_idx,
                 training_data_set,
                 model,
@@ -522,14 +617,16 @@ def run_optimization(
             trial.set_user_attr("epochs_ran", epoch + 1)
             trial.set_user_attr("best_epoch", best_epoch + 1 if best_epoch >= 0 else None)
 
-        _append_plot_values(epoch, avg_train, last_val, plot_data)
+        _append_plot_values(epoch, avg_train, last_val, avg_weight, plot_data)
 
         val_text = f"{last_val:.6f}" if np.isfinite(last_val) else "skipped"
+        val_weight_text = f"{last_val_weight:.6f}" if np.isfinite(last_val_weight) else "skipped"
         graph_cache_count = len(graph_cache) if graph_cache is not None else 0
         imn_cache_count = len(imn_cache) if imn_cache is not None else 0
         print(
             f"Epoch {epoch + 1:03d}/{num_epochs} "
             f"train={avg_train:.6f} val={val_text} "
+            f"weight={avg_weight:.6f} val_weight={val_weight_text} "
             f"graph_cache={graph_cache_count} imn_cache={imn_cache_count}"
         )
 
@@ -538,6 +635,7 @@ def run_optimization(
         str(imn_trained_data_folder / f"epoch_costs_{stage}.npz"),
         train=np.array(plot_data["Train"], dtype=np.float32),
         val=np.array(plot_data["Val"], dtype=np.float32),
+        weight=np.array(plot_data["Weight"], dtype=np.float32),
     )
 
     finish_optim = True
@@ -596,7 +694,7 @@ def run_live_optimization(
 ):
     if mode == 'GNN_DMN':
         use_amp = False
-    plot_data = {"Train": [], "Val": []}
+    plot_data = {"Train": [], "Val": [], "Weight": []}
     args = (
         num_epochs,
         training_data_set,
@@ -663,6 +761,7 @@ def run_live_optimization(
 
     train_curve = plot.plot(pen=pg.mkPen(color=(0, 0, 255), width=2), name="Train")
     val_curve = plot.plot(pen=pg.mkPen(color=(0, 160, 0), width=2, style=QtCore.Qt.PenStyle.DashLine), name="Val")
+    weight_curve = plot.plot(pen=pg.mkPen(color=(200, 80, 0), width=2), name="Weight loss")
     start = dt.now()
 
     def export_plot() -> None:
@@ -685,15 +784,22 @@ def run_live_optimization(
             return
 
         with lock:
-            n = min(len(global_plot_data["X"]), len(global_plot_data["Train"]), len(global_plot_data["Val"]))
+            n = min(
+                len(global_plot_data["X"]),
+                len(global_plot_data["Train"]),
+                len(global_plot_data["Val"]),
+                len(global_plot_data["Weight"]),
+            )
             if n == 0:
                 return
             x_values = np.asarray(global_plot_data["X"][-5000:], dtype=float)
             train_values = np.asarray(global_plot_data["Train"][-5000:], dtype=float)
+            weight_values = np.asarray(global_plot_data["Weight"][-5000:], dtype=float)
             val_values = np.asarray(global_plot_data["Val"][-5000:], dtype=float)
 
         train_curve.setData(x_values, train_values)
         val_curve.setData(x_values, val_values)
+        weight_curve.setData(x_values, weight_values)
         plot.setXRange(1, max(10, n), padding=0.02)
 
         elapsed = (dt.now() - start).total_seconds()
@@ -708,6 +814,7 @@ def run_live_optimization(
             f"<b>Mode</b>: {mode} | "
             f"<b>Progress</b>: {n}/{num_epochs} ({100.0 * n / max(1, num_epochs):.1f}%) | "
             f"<b>Train</b>: {train_values[-1]:.6f} | <b>Val</b>: {val_text} | "
+            f"<b>Weight</b>: {weight_values[-1]:.6f} | "
             f"<b>Time/epoch</b>: {sec_per_epoch:.1f}s | "
             f"<b>ETA</b>: {int(eta_sec // 3600):02d}:{int((eta_sec // 60) % 60):02d}:{int(eta_sec % 60):02d}"
             "</div>"

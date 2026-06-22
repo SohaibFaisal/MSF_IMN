@@ -11,7 +11,7 @@ MARK_EVERY = 2  # increase if you have many points, decrease if you have few
 
 METHOD_STYLE = {
     "IMN": dict(linestyle="-",  linewidth=1.5, color='black'),
-    "DNS": dict(linestyle="None",linewidth=1.0, color='red', marker="o", markersize=4.8, markevery=MARK_EVERY, markerfacecolor='None', markeredgecolor='red'),
+    "DNS": dict(linestyle="--",linewidth=1.0, color='red', marker="o", markersize=4.8, markevery=MARK_EVERY, markerfacecolor='None', markeredgecolor='red'),
 }
 
 # ---------------------------

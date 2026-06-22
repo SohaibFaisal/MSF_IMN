@@ -342,36 +342,36 @@ class TransformToIMN_Node_Params_W_and_Beta(nn.Module):
         weights = z[..., :self.weight_index]
         betas   = z[..., self.weight_index:]
         # weights sum to 1 along last dimension
-        weights = F.softmax(weights, dim=-1)
+        # weights = F.softmax(weights, dim=-1)
 
         # print(weights)
         # Put FVC on same device/dtype
-        if not torch.is_tensor(FVC):
-            FVC = torch.tensor(FVC, dtype=weights.dtype, device=weights.device)
-        else:
-            FVC = FVC.to(dtype=weights.dtype, device=weights.device)
+        # if not torch.is_tensor(FVC):
+        #     FVC = torch.tensor(FVC, dtype=weights.dtype, device=weights.device)
+        # else:
+        #     FVC = FVC.to(dtype=weights.dtype, device=weights.device)
+        #
+        # # Case 1: single vector weights -> shape (weight_index,)
+        # if weights.ndim == 1:
+        #     if FVC.ndim > 0:
+        #         FVC = FVC.reshape(-1)[0]
+        #     weights = weights * FVC
+        #
+        # # Case 2: batched weights -> shape (B, weight_index)
+        # elif weights.ndim == 2:
+        #     if FVC.ndim == 0:
+        #         FVC = FVC.view(1, 1).expand(weights.shape[0], 1)
+        #     elif FVC.ndim == 1:
+        #         FVC = FVC.view(-1, 1)
+        #     elif FVC.ndim == 2 and FVC.shape[1] == 1:
+        #         pass
+        #     else:
+        #         raise ValueError(f"Invalid FVC shape: {FVC.shape}")
+        #     weights = weights * FVC
+        # else:
+        #     raise ValueError(f"Invalid weights shape: {weights.shape}")
 
-        # Case 1: single vector weights -> shape (weight_index,)
-        if weights.ndim == 1:
-            if FVC.ndim > 0:
-                FVC = FVC.reshape(-1)[0]
-            weights = weights * FVC
-
-        # Case 2: batched weights -> shape (B, weight_index)
-        elif weights.ndim == 2:
-            if FVC.ndim == 0:
-                FVC = FVC.view(1, 1).expand(weights.shape[0], 1)
-            elif FVC.ndim == 1:
-                FVC = FVC.view(-1, 1)
-            elif FVC.ndim == 2 and FVC.shape[1] == 1:
-                pass
-            else:
-                raise ValueError(f"Invalid FVC shape: {FVC.shape}")
-            weights = weights * FVC
-        else:
-            raise ValueError(f"Invalid weights shape: {weights.shape}")
-
-
+        weights = F.softmax(weights)
         betas = F.softplus(betas)
         return torch.cat([weights, betas], dim=-1)
 
