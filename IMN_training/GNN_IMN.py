@@ -782,6 +782,12 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     tnn_hidden_dim = ckpt["tnn_hidden_dim"]
     gnn_structure = ckpt["gnn_structure"]
     heads = ckpt["heads"]
+
+
+    # nodes_per_mech_per_phase = ckpt["nodes_per_mech_per_phase"]
+    nodes_per_mech_per_phase =2
+
+
     new_model = HybridGNNIMN(node_feat_dim,N_layers,gnn_hidden_dim=gnn_hidden_dim,tnn_hidden_dim=tnn_hidden_dim, heads=heads, x_dim=x_dim, GNN_structure=gnn_structure, nodes_per_mech_per_phase=nodes_per_mech_per_phase).to(device).eval()
 
     new_model.gnn.load_state_dict(ckpt["gnn"])
@@ -797,6 +803,7 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
         phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}_target_{ph}.npz')) for ph in phases]
         phase_g = [g.to(device) for g in phase_g]
         p_flat = new_model.forward(phases, main_g, phase_g)
+        print(p_flat)
         imn = IMNCalculator(N_layers, phases, nodes_per_mech_per_phase)
         imn.output_params_from_p_flat(p_flat, imn_validation_folder)
 
@@ -947,6 +954,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
             "gnn_hidden_dim": model.gnn_hidden_dim, "tnn_hidden_dim": model.tnn_hidden_dim, "heads": model.heads,
             "imn_N_layers": model.N_layers,
             "gnn_structure": model.gnn_structure,
+            "nodes_per_mech_per_phase": model.nodes_per_mech_per_phase,
         }
     elif mode == 'IMN':
         GNN_FILE_PATH = imn_trained_data_folder / f"imn_generator.pt"

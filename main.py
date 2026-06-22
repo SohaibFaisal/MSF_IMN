@@ -24,7 +24,7 @@ print('Start at : ', dt.now())
 N_layers = args.layers
 nodes_per_mech_per_phase = args.nodes
 num_epochs = args.epochs
-train_folder_id = f'072{N_layers}'
+# train_folder_id = f'072{N_layers}'
 
 
 
@@ -62,6 +62,7 @@ SIM_NAME = 'OLA'
 main_id = 725
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
+train_folder_id = 825
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -79,7 +80,7 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
+training_mode = 'GNN_IMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
 training_data_generation = False
 show_mesh = False
@@ -278,7 +279,7 @@ if imn_training:
         gnn_layers,
     ]
 
-    total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
@@ -300,8 +301,8 @@ if imn_training:
 # -------------------------------------
 if imn_validation:
 
-    steps = 50
-    create_new_mesh = False # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
+    steps = 100
+    create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
     nodes_per_mech_per_phase = 2
 
@@ -315,12 +316,12 @@ if imn_validation:
     
     -------------------------------   
     '''
-    mat1 = [2, 125, 0.33, 0.6, 1.5, 1, 1]
-    mat2 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
-    mat3 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
-    mat4 = [1, 200, 0.3, 0.2, 0.2, 0, 0]
+    mat1 = [2, 100, 0.33, 0.6, 1.5, 1, 1]
+    mat2 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
+    mat3 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
+    mat4 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat = [mat1, mat2, mat3, mat4]
-    mesh_size = 0.3
+    mesh_size = 0.25
     fiber_collision_tolerance = mesh_size / 2
     smallest_volume_tolerance = mesh_size / 2
     stage = 2 # DO NOT CHANGE
