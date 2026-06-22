@@ -803,7 +803,6 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
         phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}_target_{ph}.npz')) for ph in phases]
         phase_g = [g.to(device) for g in phase_g]
         p_flat = new_model.forward(phases, main_g, phase_g)
-        print(p_flat)
         imn = IMNCalculator(N_layers, phases, nodes_per_mech_per_phase)
         imn.output_params_from_p_flat(p_flat, imn_validation_folder)
 

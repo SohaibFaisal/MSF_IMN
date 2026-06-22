@@ -336,17 +336,14 @@ class TransformToIMN_Node_Params_W_and_Beta(nn.Module):
         z = F.relu(self.fc1(x_feats))
         z = F.relu(self.fc2(z))
         z = self.fc3(z)
-        print('cdsadscdscdscds')
         # Works for both:
         # z shape (p_dim,)
         # z shape (B, p_dim)
         weights = z[..., :self.weight_index]
-        print(weights)
         betas   = z[..., self.weight_index:]
-
         # weights sum to 1 along last dimension
         weights = F.softmax(weights, dim=-1)
-        print(weights)
+
         # print(weights)
         # Put FVC on same device/dtype
         if not torch.is_tensor(FVC):
@@ -374,7 +371,7 @@ class TransformToIMN_Node_Params_W_and_Beta(nn.Module):
         else:
             raise ValueError(f"Invalid weights shape: {weights.shape}")
 
-        print(weights)
+
         betas = F.softplus(betas)
         return torch.cat([weights, betas], dim=-1)
 

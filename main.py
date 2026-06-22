@@ -257,7 +257,7 @@ if imn_training:
     lr = 4.5e-3
     weight_decay = 5.05e-8
     # nodes_per_mech_per_phase = 2
-    use_GPU = False
+    use_GPU = True
 
     tnn_hidden_dim = 128
     gnn_hidden_dim = 64
@@ -279,7 +279,7 @@ if imn_training:
         gnn_layers,
     ]
 
-    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
