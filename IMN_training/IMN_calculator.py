@@ -400,14 +400,11 @@ class IMNCalculator:
             raise ValueError(f"flat_p has size {p.numel()}, expected {expected}.")
 
         W = p[: self.N]
-        print('sacdscsdcdscds')
-        print(W)
         idx = self.N
         betas_mat = p[idx : idx + self.M * self.N].view(self.N, self.M)
-        print(betas_mat)
         idx += self.M * self.N
         theta_phi = p[idx : idx + 2 * self.M].view(self.M, 2)
-        print(theta_phi)
+
 
         H_list = self._build_H_list(theta_phi[:, 0], theta_phi[:, 1])
         alpha = self.compute_alpha_matrix(W, betas_mat)

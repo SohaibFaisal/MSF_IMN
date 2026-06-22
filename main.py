@@ -257,7 +257,7 @@ if imn_training:
     lr = 4.5e-3
     weight_decay = 5.05e-8
     # nodes_per_mech_per_phase = 2
-    use_GPU = True
+    use_GPU = False
 
     tnn_hidden_dim = 128
     gnn_hidden_dim = 64
@@ -303,7 +303,7 @@ if imn_validation:
 
     steps = 100
     create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
-    test_mesh_size = [1,1,1]
+    test_mesh_size = [2,2,2]
     nodes_per_mech_per_phase = 2
 
     '''
@@ -316,8 +316,8 @@ if imn_validation:
     
     -------------------------------   
     '''
-    mat1 = [2, 1500, 0.35, 25.0, 45.0, 20, 100]
-    mat2 = [1, 230000, 0.2, 0.2, 0.2, 0, 0]
+    mat1 = [2, 1500, 0.35, 10.0, 15.0, 20, 15]
+    mat2 = [1, 1500*5, 0.2, 0.2, 0.2, 0, 0]
     mat3 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat4 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat = [mat1, mat2, mat3, mat4]
@@ -375,7 +375,7 @@ if imn_validation:
 
 
                 new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
-                # create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, training_mode)
+                create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder, new_folder,imn_validation_folder, steps, test_mesh_size, IMN_material, stage, r, g_id, training_mode)
 
 
                 if training_mode == 'GNN_IMN':
@@ -387,7 +387,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, False,val_plot, stage, r, g_id, [2], )
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,3], )
 
 
     else:

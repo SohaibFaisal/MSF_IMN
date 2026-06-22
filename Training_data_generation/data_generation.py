@@ -1066,8 +1066,8 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                 # Cyclic
                 infile.write('BATCH\n  prop,,1\nEND\n2 1\n')
                 infile.write('0, 0\n')
-                infile.write('30, 0.6\n')
-                infile.write('60, 0\n')
+                # infile.write('30, 0.6\n')
+                # infile.write('60, 0\n')
                 infile.write('100, 1\n')
                 infile.write('\n')
 
