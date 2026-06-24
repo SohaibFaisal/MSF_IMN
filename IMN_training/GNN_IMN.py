@@ -930,12 +930,12 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
     elif mode == 'DMN':
         model = DMNCalculator3D(N_layers, ['MATRIX', 'UD1']).float().to(device)
 
-
-
-    opt = optim.Adam(
+    opt = optim.AdamW(
         [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr}],
         weight_decay=weight_decay
     )
+
+
 
     best_val = run_live_optimization(num_epochs, num_samples, training_data_set, mesh_folder, 1, opt, model, cost_live_plot, imn_trained_data_folder, 1, N_layers, device,
                                              nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=200, mode=mode )

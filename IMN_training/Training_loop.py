@@ -539,7 +539,13 @@ def run_optimization(
     last_val = float("nan")
     last_val_weight = float("nan")
     scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
-
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",
+        factor=0.5,
+        patience=20,
+        min_lr=1e-7,
+    )
     for epoch in range(num_epochs):
         if cost_live_plot and not running:
             print("Optimization interrupted by user. Saving partial cost history...")
@@ -588,6 +594,12 @@ def run_optimization(
                         if parameter.grad is not None:
                             parameter.grad.mul_(correction)
 
+                scaler.unscale_(optimizer)
+
+                torch.nn.utils.clip_grad_norm_(
+                    model.parameters(),
+                    max_norm=1.0
+                )
                 scaler.step(optimizer)
                 scaler.update()
                 optimizer.zero_grad(set_to_none=True)
@@ -608,6 +620,7 @@ def run_optimization(
                 device,
                 use_amp,
             )
+            scheduler.step(last_val)
             if last_val < best_val:
                 best_val = last_val
                 best_epoch = epoch
@@ -626,10 +639,12 @@ def run_optimization(
         val_weight_text = f"{last_val_weight:.6f}" if np.isfinite(last_val_weight) else "skipped"
         graph_cache_count = len(graph_cache) if graph_cache is not None else 0
         imn_cache_count = len(imn_cache) if imn_cache is not None else 0
+        current_lr = optimizer.param_groups[0]["lr"]
         print(
             f"Epoch {epoch + 1:03d}/{num_epochs} "
             f"train={avg_train:.6f} val={val_text} "
             f"weight={avg_weight:.6f} val_weight={val_weight_text} "
+            f"lr={current_lr:.2e} "
             f"graph_cache={graph_cache_count} imn_cache={imn_cache_count}"
         )
 
