@@ -257,12 +257,12 @@ if imn_training:
     lr = 4.5e-3
     weight_decay = 5.05e-8
     # nodes_per_mech_per_phase = 2
-    use_GPU = False
+    use_GPU = True
 
     tnn_hidden_dim = 128
     gnn_hidden_dim = 64
     gnn_heads = 8
-    x_feat = 32
+    x_feat = 128
     gnn_structure = 2
     nodes_per_mech_per_phase = 2
     tnn_layers = 3

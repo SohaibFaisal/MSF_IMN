@@ -157,7 +157,7 @@ class TransformToIMN_Node_ParamsW(nn.Module):
         z = F.relu(self.fc1(x_feats))
         z = F.relu(self.fc2(z))
         z = self.fc3(z)
-        z = F.softmax(z, dim=-1)
+        z = F.softplus(z)
         return z
 
 
@@ -172,7 +172,7 @@ class TransformToIMN_Node_Paramsbeta(nn.Module):
         z = F.relu(self.fc1(x_feats))
         z = F.relu(self.fc2(z))
         z = self.fc3(z)
-        z = F.softmax(z, dim=-1)
+        z = F.softplus(z)
         return z
 
 
