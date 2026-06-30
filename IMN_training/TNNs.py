@@ -119,7 +119,7 @@ class TransformToIMN_Node_Params(nn.Module):
         else:
             raise ValueError(f"Invalid weights shape: {weights.shape}")
 
-
+        # print(weights.sum())
         betas = F.softplus(betas)
         return torch.cat([weights, betas], dim=-1)
 
@@ -140,8 +140,13 @@ class TransformToIMN_Node_Params_W_and_Beta(nn.Module):
         weights = z[..., :self.weight_index]
         betas   = z[..., self.weight_index:]
         weights = F.softmax(weights, dim=-1)
-        FVC = torch.as_tensor(FVC, dtype=weights.dtype, device=weights.device)
-        weights = weights * FVC
+        print('-------------------')
+        print(weights.sum())
+        print('-------------------')
+
+
+        # FVC = torch.as_tensor(FVC, dtype=weights.dtype, device=weights.device)
+
 
         betas = F.softplus(betas)
         return torch.cat([weights, betas], dim=-1)

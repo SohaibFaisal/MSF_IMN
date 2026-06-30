@@ -95,6 +95,7 @@ def _normalized_weight_fraction_loss(
     ) ** 2
     # print(tgt_norm_sq)
 
+
     return diff_norm_sq / tgt_norm_sq.clamp_min(
         torch.finfo(target_weights.dtype).eps
     )
@@ -317,7 +318,6 @@ def _loss_gnn_imn(
     phases = sample["Phases"]
     mode = 'imn'
     main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, mode, device)
-
     flat_p = model.forward(phases, main_graph, phase_graphs)
     imn = imn_cache.get(phases) if imn_cache is not None else _make_imn(
         phases, N_layers, nodes_per_mech_per_phase, device, dtype

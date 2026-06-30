@@ -81,12 +81,12 @@ class HybridGNNIMN(nn.Module):
 
 
 
-        from .TNNs import TransformToIMN_Interaction_Params, TransformToIMN_Node_Params_W_and_Beta, TransformToIMN_Node_ParamsW, TransformToIMN_Node_Paramsbeta
+        from .TNNs import TransformToIMN_Interaction_Params, TransformToIMN_Node_Params_W_and_Beta, TransformToIMN_Node_ParamsW, TransformToIMN_Node_Paramsbeta, TransformToIMN_Node_Params
         self.T_interaction = TransformToIMN_Interaction_Params(p_dim=int(2*self.M), x_dim=self.x_dim, hidden_dim=tnn_hidden_dim)
         # self.T_nodesW = TransformToIMN_Node_ParamsW(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
         # self.T_nodesbeta = TransformToIMN_Node_Paramsbeta(p_dim=self.nodes_per_mech_per_phase * (self.M)*(2 ** (N_layers - 1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
-        self.T_nodes = TransformToIMN_Node_Params_W_and_Beta(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
-
+        # self.T_nodes = TransformToIMN_Node_Params_W_and_Beta(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
+        self.T_nodes =TransformToIMN_Node_Params(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
         self.imn_cache = {}
 
     def forward(self, phases, main_graph, phase_graphs):
