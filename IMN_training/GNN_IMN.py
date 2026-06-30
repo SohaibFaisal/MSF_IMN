@@ -83,9 +83,9 @@ class HybridGNNIMN(nn.Module):
 
         from .TNNs import TransformToIMN_Interaction_Params, TransformToIMN_Node_Params_W_and_Beta, TransformToIMN_Node_ParamsW, TransformToIMN_Node_Paramsbeta
         self.T_interaction = TransformToIMN_Interaction_Params(p_dim=int(2*self.M), x_dim=self.x_dim, hidden_dim=tnn_hidden_dim)
-        self.T_nodesW = TransformToIMN_Node_ParamsW(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
-        self.T_nodesbeta = TransformToIMN_Node_Paramsbeta(p_dim=self.nodes_per_mech_per_phase * (self.M)*(2 ** (N_layers - 1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
-        # self.T_nodes = TransformToIMN_Node_Params_W_and_Beta(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
+        # self.T_nodesW = TransformToIMN_Node_ParamsW(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
+        # self.T_nodesbeta = TransformToIMN_Node_Paramsbeta(p_dim=self.nodes_per_mech_per_phase * (self.M)*(2 ** (N_layers - 1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
+        self.T_nodes = TransformToIMN_Node_Params_W_and_Beta(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
 
         self.imn_cache = {}
 
@@ -108,10 +108,10 @@ class HybridGNNIMN(nn.Module):
             # print(f'Feature vector of phase: {ph}')
             # print(x_rep.shape)
             # print(phase_graphs[k].FVC[k])
-            # p_hat = self.T_nodes(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
-            z_k = self.T_nodesW(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
-            beta_k = self.T_nodesbeta(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
-            # z_k, beta_k = p_hat[:n_leaf], p_hat[n_leaf:]
+            p_hat = self.T_nodes(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
+            # z_k = self.T_nodesW(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
+            # beta_k = self.T_nodesbeta(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
+            z_k, beta_k = p_hat[:n_leaf], p_hat[n_leaf:]
             z_list.append(z_k)
             beta_list.append(beta_k)
 
@@ -797,6 +797,8 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     new_model.gnn.load_state_dict(ckpt["gnn"])
     new_model.T_interaction.load_state_dict(ckpt["T_interaction"])
     new_model.T_nodes.load_state_dict(ckpt["T_nodes"])
+    # new_model.T_nodesW.load_state_dict(ckpt["T_nodesW"])
+    # new_model.T_nodesbeta.load_state_dict(ckpt["T_nodesbeta"])
 
     new_model.gnn.eval()
     new_model.T_interaction.eval()
@@ -950,9 +952,9 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
         ckpt = {
             "gnn": model.gnn.state_dict(),
             "T_interaction": model.T_interaction.state_dict(),
-            # "T_nodes": model.T_nodes.state_dict(),
-            "T_nodesW": model.T_nodesW.state_dict(),
-            "T_nodesbeta": model.T_nodesbeta.state_dict(),
+            "T_nodes": model.T_nodes.state_dict(),
+            # "T_nodesW": model.T_nodesW.state_dict(),
+            # "T_nodesbeta": model.T_nodesbeta.state_dict(),
             "N_layers": model.N_layers,
             "node_feat_dim": model.node_feat_dim,
             "x_dim": model.x_dim,

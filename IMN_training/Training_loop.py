@@ -75,25 +75,25 @@ def _normalized_weight_fraction_loss(
         dtype=flat_p.dtype,
         non_blocking=True,
     )
-    print('dsffffffffffjhbvsdbhjvfdsvdfvdfbdfbgbgf')
+    # print('dsffffffffffjhbvsdbhjvfdsvdfvdfbdfbgbgf')
     n_phases = target_weights.numel()
-    print(n_phases)
+    # print(n_phases)
 
     # Sum weights belonging to each phase
     pred_phase_weights = torch.stack([
         pred_weights[i::n_phases].sum()
         for i in range(n_phases)
     ])
-    print(pred_phase_weights)
+    # print(pred_phase_weights)
     diff_norm_sq = torch.linalg.norm(
         pred_phase_weights - target_weights
     ) ** 2
-    print(target_weights)
-    print(diff_norm_sq)
+    # print(target_weights)
+    # print(diff_norm_sq)
     tgt_norm_sq = torch.linalg.norm(
         target_weights
     ) ** 2
-    print(tgt_norm_sq)
+    # print(tgt_norm_sq)
 
     return diff_norm_sq / tgt_norm_sq.clamp_min(
         torch.finfo(target_weights.dtype).eps

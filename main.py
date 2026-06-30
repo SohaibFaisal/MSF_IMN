@@ -11,7 +11,7 @@ start = dt.now()
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--layers", type=int, default=5)
+parser.add_argument("--layers", type=int, default=6)
 parser.add_argument("--nodes", type=int, default=2)
 parser.add_argument("--epochs", type=int, default=3000)
 args = parser.parse_args()
@@ -301,7 +301,7 @@ if imn_training:
 # -------------------------------------
 if imn_validation:
 
-    steps = 100
+    steps = 50
     create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
     nodes_per_mech_per_phase = 2
@@ -387,7 +387,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,3], )
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,4,5], )
 
 
     else:
