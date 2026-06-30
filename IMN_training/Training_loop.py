@@ -75,16 +75,13 @@ def _normalized_weight_fraction_loss(
         dtype=flat_p.dtype,
         non_blocking=True,
     )
-    # print('dsffffffffffjhbvsdbhjvfdsvdfvdfbdfbgbgf')
     n_phases = target_weights.numel()
-    # print(n_phases)
 
     # Sum weights belonging to each phase
     pred_phase_weights = torch.stack([
         pred_weights[i::n_phases].sum()
         for i in range(n_phases)
     ])
-    # print(pred_phase_weights)
     diff_norm_sq = torch.linalg.norm(
         pred_phase_weights - target_weights
     ) ** 2
@@ -328,13 +325,13 @@ def _loss_gnn_imn(
     with torch.amp.autocast(device_type=device.type, enabled=False):
         C_pred = imn.homogenize_from_flat_params(flat_p.float())
         loss = _normalized_frobenius_loss(C_pred, sample["C_Target"])
-
         FVC = [f.FVC for f in phase_graphs][0]
-
+        n_phases = len(phases)
+        weight_index = n_phases * nodes_per_mech_per_phase * (2 ** (N_layers - 1))
         weight_loss = _normalized_weight_fraction_loss(
             flat_p.float(),
             FVC,
-            nodes_per_mech_per_phase * (2 ** (N_layers - 1)),
+            weight_index,
         )
 
     del main_graph, phase_graphs, flat_p, C_pred

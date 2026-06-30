@@ -121,9 +121,6 @@ class HybridGNNIMN(nn.Module):
         # print(beta_by_phase.shape)
 
         x_feat = self.gnn(main_graph)
-
-
-
         x_rep = x_feat.repeat(1, 1)
         p_hat = self.T_interaction(x_rep).squeeze(0)
         # print('Feature vector of main graph')
@@ -131,8 +128,6 @@ class HybridGNNIMN(nn.Module):
         # print(p_hat.shape)
         theta, phi = p_hat[:self.M], p_hat[self.M:]
         flat_p = pack_flat_p(z_by_phase, beta_by_phase, theta, phi, self.M)
-
-
         return flat_p
 
 
