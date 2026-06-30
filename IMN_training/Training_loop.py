@@ -336,7 +336,6 @@ def _loss_gnn_imn(
             FVC,
             nodes_per_mech_per_phase * (2 ** (N_layers - 1)),
         )
-        loss = loss + weight_loss
 
     del main_graph, phase_graphs, flat_p, C_pred
     return loss, weight_loss

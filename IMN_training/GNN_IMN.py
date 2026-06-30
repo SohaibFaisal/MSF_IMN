@@ -645,10 +645,6 @@ def get_dataset_main(num_samples,training_dataset_folder):
         for k in npz.files
     }
 
-
-
-
-
     for i in range(num_samples):
         main_data_set[str(i)] = {}
         stage, rve, mesh = key_map[str(i)]['ids']
@@ -662,7 +658,6 @@ def get_dataset_main(num_samples,training_dataset_folder):
         C_target = torch.tensor(C_out[str(i)])
         fix_homogenized_C(C_target)
         main_data_set[str(i)][f'C_Target'] = C_target
-
 
     return main_data_set   #, graphs_data_set
 
@@ -706,6 +701,7 @@ def generate_dmn_params_for_new_graph_validation(
 
     new_model.gnn.load_state_dict(ckpt["gnn"])
     new_model.tnn.load_state_dict(ckpt["tnn"])
+    new_model.dmn.load_state_dict(ckpt["dmn"])
 
     if "dmn" in ckpt:
         new_model.dmn.load_state_dict(ckpt["dmn"])
@@ -749,16 +745,17 @@ def generate_dmn_params_for_new_graph_validation(
 
             p_flat = new_model.tnn(combined)
 
-            dmn = DMNCalculator3D(N_layers, sample_phases).to(device)
-            dmn.assign_node_stiffness(training_data_set[sid])
+            # dmn = DMNCalculator3D(N_layers, sample_phases).to(device)
+            new_model.dmn.assign_node_stiffness(training_data_set[sid])
 
-            C_pred = dmn.homogenize_from_flat_params(p_flat)
+            C_pred = new_model.dmn.homogenize_from_flat_params(p_flat)
+            fix_homogenized_C(C_pred)
             C_tgt = training_data_set[sid]["C_Target"].to(device)
 
             print("Solving for:", id)
 
             target_constants.append(extract_engineering_constants(C_tgt))
-            prediction_constants.append(extract_engineering_constants(C_pred))
+            prediction_constants.append(extract_engineering_constants(C_pred, 'mandel'))
 
         return target_constants, prediction_constants
 
@@ -774,11 +771,13 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
                                                  training_dataset_folder,
                                                  num_sam,
                                                  mode,
-                                                 nodes_per_mech_per_phase):
+                                                 ):
 
     GNN_FILE_PATH = imn_trained_data_folder / 'gnn_imn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
+
+
     N_layers = ckpt["N_layers"]
     node_feat_dim = ckpt["node_feat_dim"]
     x_dim = ckpt["x_dim"]
@@ -786,11 +785,8 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     tnn_hidden_dim = ckpt["tnn_hidden_dim"]
     gnn_structure = ckpt["gnn_structure"]
     heads = ckpt["heads"]
-
-
-    # nodes_per_mech_per_phase = ckpt["nodes_per_mech_per_phase"]
-    nodes_per_mech_per_phase =2
-
+    nodes_per_mech_per_phase = ckpt["nodes_per_mech_per_phase"]
+    # nodes_per_mech_per_phase =2
 
     new_model = HybridGNNIMN(node_feat_dim,N_layers,gnn_hidden_dim=gnn_hidden_dim,tnn_hidden_dim=tnn_hidden_dim, heads=heads, x_dim=x_dim, GNN_structure=gnn_structure, nodes_per_mech_per_phase=nodes_per_mech_per_phase).to(device).eval()
 
@@ -837,7 +833,8 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
 
 
 @torch.inference_mode()
-def generate_imn_params(imn_trained_data_folder,imn_validation_folder):
+def generate_imn_params(imn_trained_data_folder,imn_validation_folder, mode):
+
     GNN_FILE_PATH = imn_trained_data_folder / 'imn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
@@ -850,7 +847,7 @@ def generate_imn_params(imn_trained_data_folder,imn_validation_folder):
 
 
 @torch.inference_mode()
-def generate_dmn_params(imn_trained_data_folder,imn_validation_folder):
+def generate_dmn_params(imn_trained_data_folder,imn_validation_folder, mode):
     GNN_FILE_PATH = imn_trained_data_folder / 'dmn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
@@ -1047,7 +1044,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 #     )
 
 
-def extract_engineering_constants(C):
+def extract_engineering_constants(C, notation='voigt'):
     """
     Extract 9 engineering constants from 6x6 stiffness matrix C.
 
@@ -1065,10 +1062,12 @@ def extract_engineering_constants(C):
     if C.shape != (6, 6):
         raise ValueError("C must be a 6x6 matrix")
 
+    # print(C)
     # ----------------------------
     # Invert stiffness -> compliance
     # ----------------------------
     S = np.linalg.inv(C)
+    # print(S)
 
     # ----------------------------
     # Extract Young's moduli
@@ -1092,13 +1091,23 @@ def extract_engineering_constants(C):
     # ----------------------------
     # Shear moduli
     # ----------------------------
-    G12 = 1.0 / S[3, 3]
-    G23 = 1.0 / S[4, 4]
-    G13 = 1.0 / S[5, 5]
-
+    if notation == 'voigt':
+        G12 = 1.0 / S[3, 3]
+        G23 = 1.0 / S[4, 4]
+        G13 = 1.0 / S[5, 5]
+    else:
+        G23 = 1.0 / S[3, 3]
+        G13 = 1.0 / S[4, 4]
+        G12 = 1.0 / S[5, 5]
     # ----------------------------
     # Return dictionary
     # ----------------------------
+    # print({
+    #     "E1": E1, "E2": E2, "E3": E3,
+    #     "nu12": nu12, "nu13": nu13, "nu23": nu23,
+    #     "G12": G12, "G23": G23, "G13": G13,
+    #
+    # })
     return {
         "E1": E1, "E2": E2, "E3": E3,
         "nu12": nu12, "nu13": nu13, "nu23": nu23,

@@ -47,7 +47,7 @@ class TNN_DMN(nn.Module):
         z = combined
         z = F.relu(self.fc1(z))
         z = F.relu(self.fc2(z))
-        return F.softplus(self.fc3(z))
+        return self.fc3(z)
 
 
 class graph_checking(nn.Module):
@@ -140,6 +140,9 @@ class TransformToIMN_Node_Params_W_and_Beta(nn.Module):
         weights = z[..., :self.weight_index]
         betas   = z[..., self.weight_index:]
         weights = F.softmax(weights, dim=-1)
+        FVC = torch.as_tensor(FVC, dtype=weights.dtype, device=weights.device)
+        weights = weights * FVC
+
         betas = F.softplus(betas)
         return torch.cat([weights, betas], dim=-1)
 

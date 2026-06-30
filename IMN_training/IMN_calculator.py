@@ -351,6 +351,7 @@ class IMNCalculator:
             )
 
         idx = 0
+
         W = p[idx : idx + self.N]
         idx += self.N
 

@@ -116,6 +116,51 @@ def plot_just_mean(error_dict):
     # plt.show()
 
 
+def plot_just_mean_multi(error_dicts, labels=None, save_path="mean_error.svg"):
+    """
+    error_dicts: list of dicts, e.g. [err_case1, err_case2, err_case3]
+    labels: legend labels, e.g. ["GNN", "DMN", "GNN-DMN"]
+    """
+
+    if labels is None:
+        labels = [f"Case {i+1}" for i in range(len(error_dicts))]
+
+    # Use keys from first dict
+    keys = list(error_dicts[0].keys())
+    x = np.arange(len(keys))
+
+    n_cases = len(error_dicts)
+    bar_width = 0.8 / n_cases
+
+    plt.figure(figsize=(7, 4))
+
+    for i, error_dict in enumerate(error_dicts):
+        means = [np.mean(error_dict[k]) for k in keys]
+
+        offset = (i - (n_cases - 1) / 2) * bar_width
+        plt.bar(
+            x + offset,
+            means,
+            width=bar_width,
+            label=labels[i]
+        )
+
+    plt.xticks(x, keys, fontsize=10)
+    plt.ylabel("Percentage Error (%)", fontsize=11)
+    plt.title("Elastic constants prediction error", fontsize=12)
+
+    plt.grid(axis='y', linestyle='--', alpha=0.3)
+
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    plt.legend(frameon=False)
+    plt.tight_layout()
+
+    plt.savefig(save_path, format="svg")
+    plt.close()
+
 def plot_error_summary(error_dict):
     """
     error_dict: dict like

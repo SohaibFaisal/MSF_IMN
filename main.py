@@ -13,7 +13,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--layers", type=int, default=6)
 parser.add_argument("--nodes", type=int, default=2)
-parser.add_argument("--epochs", type=int, default=3000)
+parser.add_argument("--epochs", type=int, default=300)
 args = parser.parse_args()
 
 print('Running study for : ')
@@ -257,7 +257,7 @@ if imn_training:
     lr = 4.5e-3
     weight_decay = 5.05e-8
     # nodes_per_mech_per_phase = 2
-    use_GPU = False
+    use_GPU = True
 
     tnn_hidden_dim = 128
     gnn_hidden_dim = 64
@@ -379,7 +379,7 @@ if imn_validation:
 
 
                 if training_mode == 'GNN_IMN':
-                    generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, r, g_id, 0,0,1, nodes_per_mech_per_phase)
+                    generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, r, g_id, 0,0,1)
                 elif training_mode == 'IMN':
                     generate_imn_params(imn_trained_data_folder, imn_validation_folder)
                 elif training_mode == 'DMN':
@@ -387,7 +387,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,4,5], )
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,4], )
 
 
     else:
@@ -434,21 +434,53 @@ if imn_validation:
 
 
 if imn_validation_2:
-    stage = 1
-    training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(220):04d}") # Remove later
-    mesh_folder = training_dataset_folder / 'Meshes'
-    const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder,0,imn_trained_data_folder,imn_validation_folder,0,0,0, training_dataset_folder,90,2)
+    single = False
+    if single:
+        stage = 1
+        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(220):04d}") # Remove later
+        mesh_folder = training_dataset_folder / 'Meshes'
+        const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder,0,imn_trained_data_folder,imn_validation_folder,0,0,0, training_dataset_folder,90,2)
 
-    errors = dict()
-    for k in const_t[0].keys():
-        errors[k] = []
-    for ct, cp in zip(const_t, const_p):
 
-        for k in ct.keys():
-            errors[k].append(100*abs((ct[k]-cp[k])/ct[k]))
-    # plot_box(errors)
-    # plot_mean_with_scatter(errors)
-    plot_just_mean(errors)
+        errors = dict()
+        for k in const_t[0].keys():
+            errors[k] = []
+        for ct, cp in zip(const_t, const_p):
+            for k in ct.keys():
+                errors[k].append(100*abs((ct[k]-cp[k])/ct[k]))
+        # plot_box(errors)
+        # plot_mean_with_scatter(errors)
+        plot_just_mean(errors)
+
+
+    else:
+        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(725):04d}")  # Remove later
+        mesh_folder = training_dataset_folder / 'Meshes'
+
+        training_models = {'GNN_DMN': 725, 'GNN_IMN': 825}
+        multiple_errors = []
+        for k,v in training_models.items():
+            imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(v):04d}")
+
+            if 'GNN_IMN' in k:
+                const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder, 100, 2)
+            elif 'GNN_DMN' in k:
+                const_t, const_p = generate_dmn_params_for_new_graph_validation(mesh_folder, ['MATRIX', 'UD1'], imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
+                                                                                100, 2)
+
+            print(const_t)
+            print(const_p)
+            errors = dict()
+            for k in const_t[0].keys():
+                errors[k] = []
+            for ct, cp in zip(const_t, const_p):
+                for k in ct.keys():
+                    errors[k].append(100 * abs((ct[k] - cp[k]) / ct[k]))
+
+            print(errors)
+            multiple_errors.append(errors)
+
+        plot_just_mean_multi(multiple_errors, [x for x in training_models.keys()])
 
 
 
