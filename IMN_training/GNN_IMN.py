@@ -107,8 +107,7 @@ class HybridGNNIMN(nn.Module):
             x_rep = x_feats_ph[k]
             # print(f'Feature vector of phase: {ph}')
             # print(x_rep.shape)
-            # print(phase_graphs[k].FVC[k])
-            p_hat = self.T_nodes(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
+            p_hat = self.T_nodes(x_rep, phase_graphs[k].FVC[k]).reshape(-1) # ADD FVC[k]
             # z_k = self.T_nodesW(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
             # beta_k = self.T_nodesbeta(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
             z_k, beta_k = p_hat[:n_leaf], p_hat[n_leaf:]
@@ -796,8 +795,8 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     new_model.T_nodes.eval()
 
     if mode == 1:
-        main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}.npz')).to(device)
-        phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}_target_{ph}.npz')) for ph in phases]
+        main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}.npz')).to(device) # _old
+        phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{stage}_rve_{rve}_mesh_{mesh}_target_{ph}.npz')) for ph in phases] # _old
         phase_g = [g.to(device) for g in phase_g]
         p_flat = new_model.forward(phases, main_g, phase_g)
         imn = IMNCalculator(N_layers, phases, nodes_per_mech_per_phase)
@@ -810,8 +809,8 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
         for id in range(num_sam):
             sid = str(id)
             ss, rr, mm = training_data_set[sid]['ids']
-            main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device)
-            phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}_target_{ph}.npz')) for ph in training_data_set[sid][f"Phases"]]
+            main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device) # old
+            phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}_target_{ph}.npz')) for ph in training_data_set[sid][f"Phases"]] # old
             phase_g = [g.to(device) for g in phase_g]
             flat_p = new_model.forward(training_data_set[sid]['Phases'], main_g,
                                    phase_g)

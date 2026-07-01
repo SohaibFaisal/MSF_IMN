@@ -75,6 +75,7 @@ def _normalized_weight_fraction_loss(
         dtype=flat_p.dtype,
         non_blocking=True,
     )
+
     n_phases = target_weights.numel()
 
     # Sum weights belonging to each phase
@@ -153,7 +154,7 @@ def _split_indices(num_samples: int, val_ratio: float = 0.2, seed: int = 123) ->
 # Graph loading/cache: only used by GNN_IMN and GNN_DMN
 # -----------------------------------------------------------------------------
 
-def load_graph_npz_2(path: str | Path, target_col: int = 9) -> Data:
+def load_graph_npz_2(path: str | Path, target_col: int = 7) -> Data:
     with np.load(str(path), allow_pickle=False) as d:
         x = torch.from_numpy(d["x"]).to(dtype=torch.float32)
         edge_index = torch.from_numpy(d["edge_index"]).to(dtype=torch.long)
@@ -325,9 +326,15 @@ def _loss_gnn_imn(
     with torch.amp.autocast(device_type=device.type, enabled=False):
         C_pred = imn.homogenize_from_flat_params(flat_p.float())
         loss = _normalized_frobenius_loss(C_pred, sample["C_Target"])
+
         FVC = [f.FVC for f in phase_graphs][0]
+        # print('fdvs')
+        # print(FVC)
         n_phases = len(phases)
         weight_index = n_phases * nodes_per_mech_per_phase * (2 ** (N_layers - 1))
+
+
+
         weight_loss = _normalized_weight_fraction_loss(
             flat_p.float(),
             FVC,
@@ -464,7 +471,7 @@ def run_optimization(
     device,
     nodes_per_mech_per_phase=2,
     trial=None,
-    accumulation_steps=5,
+    accumulation_steps=1,
     val_every=2,
     graph_cache_size=2000,
     use_amp=True,

@@ -321,7 +321,7 @@ class IMNCalculator:
         # C_avg = C_avg.float()
         #
         X = torch.linalg.solve(K, -Mmat)
-        return self.fix_predicted_matrix(C_avg + Y @ X)
+        # return self.fix_predicted_matrix(C_avg + Y @ X)
         return C_avg + Y @ X
 
     def fix_predicted_matrix(self, C:Tensor) -> Tensor:

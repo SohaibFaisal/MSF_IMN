@@ -11,7 +11,7 @@ start = dt.now()
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--layers", type=int, default=6)
+parser.add_argument("--layers", type=int, default=5)
 parser.add_argument("--nodes", type=int, default=2)
 parser.add_argument("--epochs", type=int, default=300)
 args = parser.parse_args()
@@ -110,8 +110,8 @@ if training_data_generation:
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.02
-    materials_per_mesh = 3
-    mesh_per_config = 100
+    materials_per_mesh = 2
+    mesh_per_config = 50
 
 
     '''
@@ -203,6 +203,7 @@ if training_data_generation:
         shutil.copy("temp_abaqus.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh_DMN.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh.py", mesh_folder)
+        shutil.copy("Extracting_graph_from_mesh_old.py", mesh_folder)
 
         for r in range(len(rve_info_training_data)):
             for g_id in range(mesh_per_config):
@@ -259,14 +260,14 @@ if imn_training:
     # nodes_per_mech_per_phase = 2
     use_GPU = True
 
-    tnn_hidden_dim = 128
-    gnn_hidden_dim = 64
+    tnn_hidden_dim = 256
+    gnn_hidden_dim = 256
     gnn_heads = 8
-    x_feat = 128
-    gnn_structure = 2
+    x_feat = 512
+    gnn_structure = 3
     nodes_per_mech_per_phase = 2
     tnn_layers = 3
-    gnn_layers = 1
+    gnn_layers = 3
 
     optimizing_variables = [
         tnn_hidden_dim,
@@ -336,8 +337,8 @@ if imn_validation:
     if create_new_mesh:
 
         rve_info_validation_data = [
-            {'MATRIX': {'size': [0.5, 4.5, 4.5]},
-             'UD1': {'FVC': 0.22, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
+            {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+             'UD1': {'FVC': 0.22, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
             # {'MATRIX': {'size': [0.5, 4.5, 4.5]},
             #  'UD1': {'FVC': 0.32, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
             # {'MATRIX': {'size': [4.5, 4, 4]},
@@ -394,7 +395,7 @@ if imn_validation:
         os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
         rve_info_validation_data = [
             {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-             'UD1': {'FVC': 0.23, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}
+             'UD1': {'FVC': 0.22, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         ]
         # Has to be same as the one used to create the existing mesh
 
@@ -411,7 +412,7 @@ if imn_validation:
 
         create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder,
                                      new_folder, imn_validation_folder, steps, test_mesh_size,
-                                     IMN_material, stage, r, g_id, 'DMN')
+                                     IMN_material, stage, r, g_id, training_mode)
 
         # if training_mode == 'GNN_IMN':
         #     generate_imn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
@@ -437,7 +438,7 @@ if imn_validation_2:
     single = False
     if single:
         stage = 1
-        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(220):04d}") # Remove later
+        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(725):04d}") # Remove later
         mesh_folder = training_dataset_folder / 'Meshes'
         const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder,0,imn_trained_data_folder,imn_validation_folder,0,0,0, training_dataset_folder,90,2)
 
