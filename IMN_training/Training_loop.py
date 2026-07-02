@@ -56,12 +56,12 @@ def _normalized_frobenius_loss(C_pred: torch.Tensor, C_tgt: torch.Tensor) -> tor
 
     diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
     tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
-    print('NORMALIZED FROBENIUS LOSS')
-    # print(C_tgt)
-    # print(C_pred)
-    print(diff_norm_sq / tgt_norm_sq.clamp_min(
-        torch.finfo(C_tgt.dtype).eps))
-    print('-------------------------------------------------------------------')
+    # print('NORMALIZED FROBENIUS LOSS')
+    # # print(C_tgt)
+    # # print(C_pred)
+    # print(diff_norm_sq / tgt_norm_sq.clamp_min(
+    #     torch.finfo(C_tgt.dtype).eps))
+    # print('-------------------------------------------------------------------')
 
 
     return diff_norm_sq / tgt_norm_sq.clamp_min(
@@ -330,7 +330,7 @@ def _loss_gnn_imn(
         print(flat_p)
         raise RuntimeError("flat_p has NaN/Inf")
 
-    print("flat_p range:", flat_p.min().item(), flat_p.max().item())
+    # print("flat_p range:", flat_p.min().item(), flat_p.max().item())
     # print(flat_p)
 
     imn = imn_cache.get(phases) if imn_cache is not None else _make_imn(
