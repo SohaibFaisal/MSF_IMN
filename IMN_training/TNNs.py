@@ -148,7 +148,8 @@ class TransformToIMN_Node_Params(nn.Module):
         # else:
         #     raise ValueError(f"Invalid weights shape: {weights.shape}")
 
-        betas = F.softplus(betas)
+        # betas = F.softplus(betas)
+
         return torch.cat([weights, betas], dim=-1)
 
 # Produce W and beta with no constraint on W

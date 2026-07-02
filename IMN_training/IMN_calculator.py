@@ -253,7 +253,8 @@ class IMNCalculator:
             Wc = W[rows]                 # (G, Lj)
             beta_c = betas[rows, cols]   # (G, Lj), one beta column per join
 
-            alpha0 = beta_c[:, 0]        # (G,)
+            # alpha0 = beta_c[:, 0]        # (G,)
+            alpha0 = 0.5
             denom = beta_c[:, 1:].sum(dim=1, keepdim=True) + eps
 
             alpha_c = torch.zeros_like(Wc)
