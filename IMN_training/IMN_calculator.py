@@ -254,7 +254,7 @@ class IMNCalculator:
             beta_c = betas[rows, cols]   # (G, Lj), one beta column per join
 
             # alpha0 = beta_c[:, 0]        # (G,)
-            alpha0 = 0.5
+            alpha0 = torch.full_like(beta_c[:, 0], 0.5)
             denom = beta_c[:, 1:].sum(dim=1, keepdim=True) + eps
 
             alpha_c = torch.zeros_like(Wc)
