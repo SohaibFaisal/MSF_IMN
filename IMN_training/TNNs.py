@@ -47,7 +47,8 @@ class TNN_DMN(nn.Module):
         z = combined
         z = F.relu(self.fc1(z))
         z = F.relu(self.fc2(z))
-        return self.fc3(z)
+        z = F.softplus(self.fc3(z))
+        return z
 
 
 class graph_checking(nn.Module):
@@ -67,6 +68,26 @@ class graph_checking(nn.Module):
         z= F.softplus(self.fc3(z))
         return z
 
+
+def phase_softmax_with_floor(logits, phase_fraction, temperature=5.0, floor_ratio=0.05):
+    """
+    logits: [n_nodes_for_this_phase]
+    phase_fraction: scalar, e.g. 0.8
+    """
+
+    n = logits.numel()
+
+    # softer distribution
+    w = torch.softmax(logits / temperature, dim=0)
+
+    # force every node to get at least some share
+    floor = floor_ratio / n
+    w = (1.0 - floor_ratio) * w + floor
+
+    # scale to required phase volume fraction
+    w = phase_fraction * w
+
+    return w
 
 # Produce W and beta with hard constraint on W
 class TransformToIMN_Node_Params(nn.Module):
@@ -90,7 +111,7 @@ class TransformToIMN_Node_Params(nn.Module):
         weights = z[..., :self.weight_index]
         betas   = z[..., self.weight_index:]
         # weights sum to 1 along last dimension
-        weights = F.softmax(weights, dim=-1)
+        # weights = F.softmax(weights, dim=-1)
 
 
 
@@ -100,27 +121,34 @@ class TransformToIMN_Node_Params(nn.Module):
         else:
             FVC = FVC.to(dtype=weights.dtype, device=weights.device)
 
+        weights = phase_softmax_with_floor(
+            weights,
+            FVC,
+            temperature=5.0,
+            floor_ratio=0.05,
+        )
+
         # Case 1: single vector weights -> shape (weight_index,)
-        if weights.ndim == 1:
-            if FVC.ndim > 0:
-                FVC = FVC.reshape(-1)[0]
-            weights = weights * FVC
+        # if weights.ndim == 1:
+        #     if FVC.ndim > 0:
+        #         FVC = FVC.reshape(-1)[0]
+        #     weights = weights * FVC
+        #
+        # # Case 2: batched weights -> shape (B, weight_index)
+        # elif weights.ndim == 2:
+        #     if FVC.ndim == 0:
+        #         FVC = FVC.view(1, 1).expand(weights.shape[0], 1)
+        #     elif FVC.ndim == 1:
+        #         FVC = FVC.view(-1, 1)
+        #     elif FVC.ndim == 2 and FVC.shape[1] == 1:
+        #         pass
+        #     else:
+        #         raise ValueError(f"Invalid FVC shape: {FVC.shape}")
+        #     weights = weights * FVC
+        # else:
+        #     raise ValueError(f"Invalid weights shape: {weights.shape}")
 
-        # Case 2: batched weights -> shape (B, weight_index)
-        elif weights.ndim == 2:
-            if FVC.ndim == 0:
-                FVC = FVC.view(1, 1).expand(weights.shape[0], 1)
-            elif FVC.ndim == 1:
-                FVC = FVC.view(-1, 1)
-            elif FVC.ndim == 2 and FVC.shape[1] == 1:
-                pass
-            else:
-                raise ValueError(f"Invalid FVC shape: {FVC.shape}")
-            weights = weights * FVC
-        else:
-            raise ValueError(f"Invalid weights shape: {weights.shape}")
-
-        # betas = F.softplus(betas)
+        betas = F.softplus(betas)
         return torch.cat([weights, betas], dim=-1)
 
 # Produce W and beta with no constraint on W

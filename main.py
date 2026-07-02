@@ -91,7 +91,7 @@ show_mesh = False
 imn_training = True
 cost_live_plot = True
 
-imn_validation = False
+imn_validation = True
 val_solve = True
 val_plot = True
 
@@ -263,8 +263,8 @@ if imn_training:
     tnn_hidden_dim = 256
     gnn_hidden_dim = 256
     gnn_heads = 8
-    x_feat = 512
-    gnn_structure = 3
+    x_feat = 128
+    gnn_structure = 2
     nodes_per_mech_per_phase = 2
     tnn_layers = 3
     gnn_layers = 3
@@ -388,7 +388,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,4], )
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,4,5], )
 
 
     else:

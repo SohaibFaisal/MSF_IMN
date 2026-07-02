@@ -50,11 +50,19 @@ def _normalized_frobenius_loss(C_pred: torch.Tensor, C_tgt: torch.Tensor) -> tor
         dtype=C_pred.dtype,
         non_blocking=True,
     )
+
     from .GNN_IMN import fix_homogenized_C
-    fix_homogenized_C(C_pred)
+    # fix_homogenized_C(C_pred)
 
     diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
     tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
+    print('NORMALIZED FROBENIUS LOSS')
+    # print(C_tgt)
+    # print(C_pred)
+    print(diff_norm_sq / tgt_norm_sq.clamp_min(
+        torch.finfo(C_tgt.dtype).eps))
+    print('-------------------------------------------------------------------')
+
 
     return diff_norm_sq / tgt_norm_sq.clamp_min(
         torch.finfo(C_tgt.dtype).eps
@@ -317,14 +325,34 @@ def _loss_gnn_imn(
     mode = 'imn'
     main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache, mode, device)
     flat_p = model.forward(phases, main_graph, phase_graphs)
+    if not torch.isfinite(flat_p).all():
+        print("BAD flat_p before IMN:", sample["ids"])
+        print(flat_p)
+        raise RuntimeError("flat_p has NaN/Inf")
+
+    print("flat_p range:", flat_p.min().item(), flat_p.max().item())
+    # print(flat_p)
+
     imn = imn_cache.get(phases) if imn_cache is not None else _make_imn(
         phases, N_layers, nodes_per_mech_per_phase, device, dtype
     )
     imn.assign_node_stiffness(sample)
+    for k, v in sample.items():
+        if torch.is_tensor(v):
+            if not torch.isfinite(v).all():
+                print("BAD sample tensor:", k, sample["ids"])
+                print(v)
+                raise RuntimeError("sample contains nan/inf")
 
     # Keep homogenization out of AMP because torch.linalg.solve does not support Half on CUDA.
     with torch.amp.autocast(device_type=device.type, enabled=False):
         C_pred = imn.homogenize_from_flat_params(flat_p.float())
+        if not torch.isfinite(C_pred).all():
+            print("BAD C_pred", sample["ids"])
+            print("flat_p min/max:", flat_p.min().item(), flat_p.max().item())
+            print("flat_p:", flat_p)
+            raise RuntimeError("C_pred has nan/inf")
+
         loss = _normalized_frobenius_loss(C_pred, sample["C_Target"])
 
         FVC = [f.FVC for f in phase_graphs][0]
@@ -471,13 +499,13 @@ def run_optimization(
     device,
     nodes_per_mech_per_phase=2,
     trial=None,
-    accumulation_steps=1,
+    accumulation_steps=200,
     val_every=2,
     graph_cache_size=2000,
-    use_amp=True,
-    force_float32=True,
+    use_amp=False,
+    force_float32=False,
     cache_imn_by_phase_count=True,
-    imn_dtype="float32",
+    imn_dtype="float64",
     samples_per_epoch=None,
     mode: Mode = "GNN_IMN",
 ):
@@ -579,6 +607,15 @@ def run_optimization(
                 else:
                     loss = out
                     weight_loss = None
+
+                # scaler.scale(loss).backward()
+                #
+                # scaler.unscale_(optimizer)
+                # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                #
+                # scaler.step(optimizer)
+                # scaler.update()
+                # optimizer.zero_grad(set_to_none=True)
 
                 scaled_loss = loss / accumulation_steps
 
@@ -703,7 +740,7 @@ def run_live_optimization(
     device,
     nodes_per_mech_per_phase=2,
     trial=None,
-    accumulation_steps=50,
+    accumulation_steps=1,
     val_every=5,
     graph_cache_size=2000,
     use_amp=True,

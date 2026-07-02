@@ -111,6 +111,8 @@ class HybridGNNIMN(nn.Module):
             # z_k = self.T_nodesW(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
             # beta_k = self.T_nodesbeta(x_rep, phase_graphs[k].FVC[k]).reshape(-1)
             z_k, beta_k = p_hat[:n_leaf], p_hat[n_leaf:]
+            # print('Z_K and beta')
+            # print(z_k, beta_k)
             z_list.append(z_k)
             beta_list.append(beta_k)
 
@@ -122,6 +124,8 @@ class HybridGNNIMN(nn.Module):
         x_feat = self.gnn(main_graph)
         x_rep = x_feat.repeat(1, 1)
         p_hat = self.T_interaction(x_rep).squeeze(0)
+        # print('p_hat', p_hat)
+
         # print('Feature vector of main graph')
         # print(x_feat.shape)
         # print(p_hat.shape)
@@ -650,7 +654,7 @@ def get_dataset_main(num_samples,training_dataset_folder):
             main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
 
         C_target = torch.tensor(C_out[str(i)])
-        fix_homogenized_C(C_target)
+        # fix_homogenized_C(C_target)
         main_data_set[str(i)][f'C_Target'] = C_target
 
     return main_data_set   #, graphs_data_set
@@ -855,11 +859,15 @@ def generate_dmn_params(imn_trained_data_folder,imn_validation_folder, mode):
     new_model.output_params_from_p_flat(p_hat, imn_validation_folder)
 
 def get_device(use_gpu=True):
-    if use_gpu:
-        if not torch.cuda.is_available():
-            raise RuntimeError("GPU requested, but CUDA is not available.")
-        return torch.device("cuda:0")
-    return torch.device("cpu")
+
+    if not torch.cuda.is_available():
+        print('GPU NOT AVAILABLE. USING CPU')
+        return torch.device("cpu")
+    else:
+        if use_gpu:
+            return torch.device("cuda:0")
+        else:
+            return torch.device("cpu")
 
 # def GNNIMN(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder
 #             , training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU):
@@ -931,7 +939,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
 
     best_val = run_live_optimization(num_epochs, num_samples, training_data_set, mesh_folder, 1, opt, model, cost_live_plot, imn_trained_data_folder, 1, N_layers, device,
-                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=200, mode=mode )
+                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=300, mode=mode )
 
 
 
