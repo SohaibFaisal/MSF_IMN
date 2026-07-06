@@ -6,7 +6,8 @@ from datetime import datetime as dt
 from Training_data_generation.data_generation import *
 from output_DMN_params_from_pt import export_dmn_params_from_checkpoint
 start = dt.now()
-
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
 import argparse
@@ -59,10 +60,10 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 904
+main_id = 901
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 904
+train_folder_id = 901
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -105,7 +106,7 @@ imn_validation_2 = False # For elastic constants error
 # -------------------------------------
 if training_data_generation:
     stage = 1
-    mesh_size = 0.3
+    mesh_size = 0.35
     fiber_collision_tolerance = mesh_size/2
 
     smallest_volume_tolerance = mesh_size/2
@@ -150,6 +151,12 @@ if training_data_generation:
     rve_info_training_data = [
         {'MATRIX': {'size': [0.2, 3.0, 3.0]},
          'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
         #  'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
@@ -291,7 +298,7 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 4050 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)

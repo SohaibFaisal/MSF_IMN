@@ -23,7 +23,7 @@ class TransformToIMN_Interaction_Params(nn.Module):
         z = x_feats
         z = F.relu(self.fc1(z))
         z = F.relu(self.fc2(z))
-        return F.softmax(self.fc3(z), dim=-1)
+        return F.sigmoid(self.fc3(z))
 
 
 class TNN_DMN(nn.Module):
