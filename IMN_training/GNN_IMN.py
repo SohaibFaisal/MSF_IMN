@@ -3,13 +3,13 @@
 import torch.optim as optim
 
 
-from .Optimization_loop_GNN_IMN import *
+# from .Optimization_loop_GNN_IMN import *
 from .Optimization_loop_graphs import *
 from torch_geometric.data import Data, Batch
 from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_pool, GATv2Conv, GlobalAttention, JumpingKnowledge, Set2Set
 from .IMN_Network import *
 from .IMN_calculator import *
-from .Optimization_loop import *
+# from .Optimization_loop import *
 from .Training_loop import *
 
 # from GNNs import GraphFeatureExtractor_nodes
@@ -939,7 +939,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
 
     best_val = run_live_optimization(num_epochs, num_samples, training_data_set, mesh_folder, 1, opt, model, cost_live_plot, imn_trained_data_folder, 1, N_layers, device,
-                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=300, mode=mode )
+                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=1000, mode=mode )
 
 
 
