@@ -262,14 +262,14 @@ if imn_training:
     # nodes_per_mech_per_phase = 2
     use_GPU = True
 
-    tnn_hidden_dim = 256
-    gnn_hidden_dim = 256
+    tnn_hidden_dim = 128
+    gnn_hidden_dim = 128
     gnn_heads = 8
     x_feat = 128
     gnn_structure = 2
     nodes_per_mech_per_phase = 2
-    tnn_layers = 3
-    gnn_layers = 3
+    tnn_layers = 2
+    gnn_layers = 2
 
     optimizing_variables = [
         tnn_hidden_dim,
