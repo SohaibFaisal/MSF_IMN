@@ -59,10 +59,10 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 725
+main_id = 905
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 825
+train_folder_id = 905
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -91,7 +91,7 @@ show_mesh = False
 imn_training = True
 cost_live_plot = True
 
-imn_validation = True
+imn_validation = False
 val_solve = True
 val_plot = True
 
@@ -109,9 +109,9 @@ if training_data_generation:
     fiber_collision_tolerance = mesh_size/2
 
     smallest_volume_tolerance = mesh_size/2
-    strain = 0.02
-    materials_per_mesh = 2
-    mesh_per_config = 50
+    strain = 0.01
+    materials_per_mesh = 50
+    mesh_per_config = 9
 
 
     '''
@@ -149,32 +149,32 @@ if training_data_generation:
 
     rve_info_training_data = [
         {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-         'UD1': {'FVC': 0.22, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-        #  'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [0.2, 4.0, 4.0]},
-        #  'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [4.5, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.12, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]},
-        #  'SFR2': {'FVC': 0.1, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]}},
-        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
-        #  'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.22, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'PR2': {'FVC': 0.1, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.05, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'PR2': {'FVC': 0.08, 'dia': [0.42, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'PR3': {'FVC': 0.09, 'dia': [0.48, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+         'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+         'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [0.2, 4.0, 4.0]},
+         'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+         'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [4.5, 3.0, 3.0]},
+         'SFR1': {'FVC': 0.12, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]},
+         'SFR2': {'FVC': 0.1, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]}},
+        {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+         'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
+         'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.22, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'PR2': {'FVC': 0.1, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.05, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'PR2': {'FVC': 0.08, 'dia': [0.42, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'PR3': {'FVC': 0.09, 'dia': [0.48, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
 
 
                 ]
@@ -203,7 +203,7 @@ if training_data_generation:
         shutil.copy("temp_abaqus.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh_DMN.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh.py", mesh_folder)
-        shutil.copy("Extracting_graph_from_mesh_old.py", mesh_folder)
+        # shutil.copy("Extracting_graph_from_mesh_old.py", mesh_folder)
 
         for r in range(len(rve_info_training_data)):
             for g_id in range(mesh_per_config):
@@ -222,6 +222,7 @@ if training_data_generation:
         for g_id in range(mesh_per_config):
             print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
             if 'GNN' in training_mode:
+                break
                 create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
 
 
@@ -239,9 +240,9 @@ if training_data_generation:
     np.savez_compressed(str(key_map_file), **key_map, allow_pickle=True)
 
     solve_abaqus_input_files(total_samples, training_dataset_folder)
-    os.system(f"abaqus python homogenize_abaqus.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.01")
+    os.system(f"abaqus python homogenize_abaqus.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.0001")
     # os.system(f"abaqus python homogenize_blocks.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.01")
-    cleanup(training_dataset_folder)
+    # cleanup(training_dataset_folder)
 
 
 
@@ -280,7 +281,7 @@ if imn_training:
         gnn_layers,
     ]
 
-    total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 100 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)

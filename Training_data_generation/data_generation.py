@@ -13,6 +13,77 @@ from .material_sampling_new import RangeSpec, sample_many_orthotropic_materials,
 
 
 
+def extract_engineering_constants(C, notation='voigt'):
+    """
+    Extract 9 engineering constants from 6x6 stiffness matrix C.
+
+    Parameters:
+        C (6x6 numpy array): stiffness matrix
+
+    Returns:
+        dict with E1, E2, E3, nu12, nu13, nu23, G12, G23, G13
+    """
+
+    # ----------------------------
+    # Check input
+    # ----------------------------
+    C = np.array(C, dtype=float)
+    if C.shape != (6, 6):
+        raise ValueError("C must be a 6x6 matrix")
+
+    # print(C)
+    # ----------------------------
+    # Invert stiffness -> compliance
+    # ----------------------------
+    S = np.linalg.inv(C)
+    # print(S)
+
+    # ----------------------------
+    # Extract Young's moduli
+    # ----------------------------
+    E1 = 1.0 / S[0, 0]
+    E2 = 1.0 / S[1, 1]
+    E3 = 1.0 / S[2, 2]
+
+    # ----------------------------
+    # Extract Poisson ratios
+    # ----------------------------
+    nu12 = -S[0, 1] / S[0, 0]
+    nu13 = -S[0, 2] / S[0, 0]
+
+    nu21 = -S[1, 0] / S[1, 1]
+    nu23 = -S[1, 2] / S[1, 1]
+
+    nu31 = -S[2, 0] / S[2, 2]
+    nu32 = -S[2, 1] / S[2, 2]
+
+    # ----------------------------
+    # Shear moduli
+    # ----------------------------
+    if notation == 'voigt':
+        G12 = 1.0 / S[3, 3]
+        G23 = 1.0 / S[4, 4]
+        G13 = 1.0 / S[5, 5]
+    else:
+        G23 = 1.0 / S[3, 3]
+        G13 = 1.0 / S[4, 4]
+        G12 = 1.0 / S[5, 5]
+    # ----------------------------
+    # Return dictionary
+    # ----------------------------
+    # print({
+    #     "E1": E1, "E2": E2, "E3": E3,
+    #     "nu12": nu12, "nu13": nu13, "nu23": nu23,
+    #     "G12": G12, "G23": G23, "G13": G13,
+    #
+    # })
+    return [E1,E2,E3,nu12,nu13,nu23,G12,G23,G13,]
+    return {
+        "E1": E1, "E2": E2, "E3": E3,
+        "nu12": nu12, "nu13": nu13, "nu23": nu23,
+        "G12": G12, "G23": G23, "G13": G13,
+
+    }
 
 
 def split_annulus_face_transfinite(faceTag, cy, cz, ri, ro, xconst,
@@ -1515,6 +1586,13 @@ def create_abaqus_input_files(
         out.append('%.16g\n' % float(vals[8]))
         return out
 
+    def engineering_constants(C):
+        vals = C
+        out = ['*Elastic, type=ENGINEERING CONSTANTS\n']
+        out.append(', '.join('%.16g' % float(v) for v in vals[:8]) + '\n')
+        out.append('%.16g\n' % float(vals[8]))
+        return out
+
     for i in range(sample_num, sample_num + samples):
         new_dir = training_dataset_folder / f'folder_{i}'
         new_dir.mkdir(exist_ok=True)
@@ -1563,8 +1641,10 @@ def create_abaqus_input_files(
                     key_map[str(i)]['phases'].append(mat_name)
 
                     C = material_dictionary[str(i)][mat_name]
+                    EC = extract_engineering_constants(C)
                     # out_lines.extend(anisotropic_elastic_block(C))
-                    out_lines.extend(orthotropic_elastic_block(C))
+                    # out_lines.extend(orthotropic_elastic_block(C))
+                    out_lines.extend(engineering_constants(EC))
 
                     # Do not copy old elastic data
                     # But preserve non-elastic keywords inside material if any

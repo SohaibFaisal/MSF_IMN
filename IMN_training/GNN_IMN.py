@@ -654,7 +654,7 @@ def get_dataset_main(num_samples,training_dataset_folder):
             main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
 
         C_target = torch.tensor(C_out[str(i)])
-        # fix_homogenized_C(C_target)
+        fix_homogenized_C(C_target)
         main_data_set[str(i)][f'C_Target'] = C_target
 
     return main_data_set   #, graphs_data_set

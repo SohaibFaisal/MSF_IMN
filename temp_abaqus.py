@@ -22,7 +22,7 @@ base_inp = os.path.join(
     'gmsh_stage_%d_rve_%d_mesh_%d.inp' % (stage, r, graph_id)
 )
 
-strain = 0.01
+strain = 0.0001
 
 load_cases = [
     [strain, 0,      0,      0,      0,      0     ],
