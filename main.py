@@ -59,10 +59,10 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 905
+main_id = 904
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 905
+train_folder_id = 904
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -189,8 +189,8 @@ if training_data_generation:
                     if attempts == 99:
                         raise (RuntimeError)
                     try:
-                        create_mesh(rve_info_training_data[r], mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r,g_id)
-                        print(f'RVE {r}... Mesh {g_id} created ')
+                        # create_mesh(rve_info_training_data[r], mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r,g_id)
+                        # print(f'RVE {r}... Mesh {g_id} created ')
                         break
                     except Exception as e:
                         last_error = e
@@ -207,8 +207,9 @@ if training_data_generation:
 
         for r in range(len(rve_info_training_data)):
             for g_id in range(mesh_per_config):
-                print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')
-                create_abaqus_main_file(mesh_folder, stage, r, g_id)
+                pass
+                # print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')
+                # create_abaqus_main_file(mesh_folder, stage, r, g_id)
 
         # solve_abaqus_main_files(int(len(rve_info_training_data)), training_dataset_folder)
 
@@ -222,8 +223,8 @@ if training_data_generation:
         for g_id in range(mesh_per_config):
             print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
             if 'GNN' in training_mode:
-                break
-                create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
+                pass
+                # create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
 
 
 
@@ -232,15 +233,15 @@ if training_data_generation:
     key_map = {}
     for r in range(len(rve_info_training_data)):
         for g_id in range(mesh_per_config):
-            print(f' Creating {materials_per_mesh} abaqus input files for RVE: {r} and mesh: {g_id}')
+            # print(f' Creating {materials_per_mesh} abaqus input files for RVE: {r} and mesh: {g_id}')
             create_abaqus_input_files(rve_info_training_data[r],sample_num, materials_per_mesh, training_dataset_folder,mesh_folder, stage,r, g_id, key_map)
             sample_num += materials_per_mesh
 
     key_map_file = training_dataset_folder / 'key_map.npz'
     np.savez_compressed(str(key_map_file), **key_map, allow_pickle=True)
 
-    solve_abaqus_input_files(total_samples, training_dataset_folder)
-    os.system(f"abaqus python homogenize_abaqus.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.0001")
+    # solve_abaqus_input_files(total_samples, training_dataset_folder)
+    # os.system(f"abaqus python homogenize_abaqus.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.0001")
     # os.system(f"abaqus python homogenize_blocks.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.01")
     # cleanup(training_dataset_folder)
 
@@ -280,8 +281,17 @@ if imn_training:
         tnn_layers,
         gnn_layers,
     ]
+    import os
+    import torch
+    print('----------------------------------')
+    print("CUDA_VISIBLE_DEVICES =", os.environ.get("CUDA_VISIBLE_DEVICES"))
+    print("CUDA available:", torch.cuda.is_available())
+    print("CUDA device count:", torch.cuda.device_count())
 
-    total_samples = 100 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    if torch.cuda.is_available():
+        print("Using GPU:", torch.cuda.get_device_name(0))
+
+    total_samples = 4050 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)

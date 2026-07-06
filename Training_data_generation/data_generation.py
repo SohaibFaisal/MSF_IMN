@@ -1503,13 +1503,13 @@ def create_mesh_graph(mesh_folder, stage, r, graph_id, mode):
                 stderr=f
             )
 
-            result = subprocess.run(
-                f"abaqus cae noGUI=Extracting_graph_from_mesh_old.py -- {stage} {r} {graph_id}",
-                cwd=str(mesh_folder),
-                shell=True,
-                stdout=f,
-                stderr=f
-            )
+            # result = subprocess.run(
+            #     f"abaqus cae noGUI=Extracting_graph_from_mesh_old.py -- {stage} {r} {graph_id}",
+            #     cwd=str(mesh_folder),
+            #     shell=True,
+            #     stdout=f,
+            #     stderr=f
+            # )
             # elif mode == 'GNN_DMN':
             result = subprocess.run(
                 f"abaqus cae noGUI=Extracting_graph_from_mesh_DMN.py -- {stage} {r} {graph_id}",
