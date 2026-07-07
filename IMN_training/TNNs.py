@@ -165,16 +165,16 @@ class TransformToIMN_Node_Params(nn.Module):
 
         self.weight_index = weight_index
         assert self.weight_index <= p_dim, "weight_index must be <= p_dim"
-        assert layers >= 1, "layers must be >= 1"
+        assert num_layers >= 1, "layers must be >= 1"
 
         self.hidden_layers = nn.ModuleList()
 
-        if layers == 1:
+        if num_layers == 1:
             self.output = nn.Linear(in_dim, p_dim)
         else:
             self.hidden_layers.append(nn.Linear(in_dim, hidden_dim))
 
-            for _ in range(layers - 2):
+            for _ in range(num_layers - 2):
                 self.hidden_layers.append(nn.Linear(hidden_dim, hidden_dim))
 
             self.output = nn.Linear(hidden_dim, p_dim)

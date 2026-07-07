@@ -139,3 +139,45 @@ runtime_sec   : 554.70
 epochs_ran     : 7
 ====================================
 
+====================================
+timestamp : 2026-07-07 10:35:50
+trial     : 0
+status    : COMPLETED
+parameters:
+  N_layers : 5
+  nodes_per_mech_per_phase : 3
+  tnn_hidden_dim : 128
+  gnn_hidden_dim : 128
+  x_feat : 128
+  tnn_layers : 1
+  gnn_layers : 1
+  gnn_structure : 3
+  lr : 0.006772235270698153
+  gnn_heads : 4
+  weight_decay : 6.582674193847337e-06
+best_val_loss : None
+runtime_sec   : 0.46
+epochs_ran     : None
+====================================
+
+====================================
+timestamp : 2026-07-07 10:36:37
+trial     : 1
+status    : COMPLETED
+parameters:
+  N_layers : 4
+  nodes_per_mech_per_phase : 2
+  tnn_hidden_dim : 128
+  gnn_hidden_dim : 128
+  x_feat : 64
+  tnn_layers : 3
+  gnn_layers : 2
+  gnn_structure : 3
+  lr : 0.0013275537899249813
+  gnn_heads : 4
+  weight_decay : 2.1777697245276554e-06
+best_val_loss : None
+runtime_sec   : 3.94
+epochs_ran     : None
+====================================
+
