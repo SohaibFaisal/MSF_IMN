@@ -63,7 +63,7 @@ SIM_NAME = 'OLA'
 main_id = 901
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 901
+train_folder_id = 999
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -111,8 +111,8 @@ if training_data_generation:
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.01
-    materials_per_mesh = 5
-    mesh_per_config = 100
+    materials_per_mesh = 50
+    mesh_per_config = 10
 
 
     '''
@@ -196,7 +196,7 @@ if training_data_generation:
                     if attempts == 99:
                         raise (RuntimeError)
                     try:
-                        create_mesh(rve_info_training_data[r], mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r,g_id)
+                        # create_mesh(rve_info_training_data[r], mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r,g_id)
                         print(f'RVE {r}... Mesh {g_id} created ')
                         break
                     except Exception as e:
@@ -240,7 +240,7 @@ if training_data_generation:
     key_map = {}
     for r in range(len(rve_info_training_data)):
         for g_id in range(mesh_per_config):
-            print(f' Creating {materials_per_mesh} abaqus input files for RVE: {r} and mesh: {g_id}')
+            #print(f' Creating {materials_per?|_mesh} abaqus input files for RVE: {r} and mesh: {g_id}')
             create_abaqus_input_files(rve_info_training_data[r],sample_num, materials_per_mesh, training_dataset_folder,mesh_folder, stage,r, g_id, key_map)
             sample_num += materials_per_mesh
 
@@ -473,10 +473,10 @@ if imn_validation_2:
 
 
     else:
-        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(725):04d}")  # Remove later
+        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(901):04d}")  # Remove later
         mesh_folder = training_dataset_folder / 'Meshes'
 
-        training_models = {'GNN_DMN': 725, 'GNN_IMN': 825}
+        training_models = {'GNN_DMN': 911, 'GNN_IMN': 901}
         multiple_errors = []
         for k,v in training_models.items():
             imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(v):04d}")
@@ -487,8 +487,7 @@ if imn_validation_2:
                 const_t, const_p = generate_dmn_params_for_new_graph_validation(mesh_folder, ['MATRIX', 'UD1'], imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
                                                                                 100, 2)
 
-            print(const_t)
-            print(const_p)
+
             errors = dict()
             for k in const_t[0].keys():
                 errors[k] = []
@@ -516,9 +515,9 @@ if False:
 if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
-    folders = {'GNN DMN - 5 Layers': 725,
-               'GNN DMN - 6 Layers': 726,
-               'GNN IMN - 5 Layers': 825,
+    folders = {'GNN DMN - 5 Layers': 911,
+
+               'GNN IMN - 5 Layers': 901,
                # 'Layers: 3 - Nodes: 3': 33,
                # 'Layers: 4 - Nodes: 1': 41,
                # 'Layers: 4 - Nodes: 2': 42,
@@ -527,7 +526,7 @@ if False:
                # 'Layers: 5 - Nodes: 2': 52,
                # 'Layers: 5 - Nodes: 3': 53
                }
-    compare_trainings(folders, True, 250) # Set True to show the plot, False to save it in the main Directory
+    compare_trainings(folders, True, 100) # Set True to show the plot, False to save it in the main Directory
 
 if False:
     # Compare validation results

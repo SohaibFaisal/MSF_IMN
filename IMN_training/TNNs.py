@@ -2,28 +2,84 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
 class TransformToIMN_Interaction_Params(nn.Module):
     """
-    p_hat = T([X_feats, p_bar])
+    p_hat = T(X_feats)
 
-    Input:  (32 + P)
-    Output: (P)
-    Softplus to keep IMN weights positive-friendly (your IMN uses softplus on z anyway).
+    Input:  (x_dim)
+    Output: (p_dim)
+
+    num_layers:
+        1 -> Input -> Output
+        2 -> Input -> Hidden -> Output
+        3 -> Input -> Hidden -> Hidden -> Output
+        ...
     """
-    def __init__(self, p_dim: int, x_dim: int, hidden_dim:int):
+
+    def __init__(
+        self,
+        p_dim: int,
+        x_dim: int,
+        hidden_dim: int,
+        num_layers: int,
+    ):
         super().__init__()
-        # in_dim = x_dim + p_dim chg1
-        in_dim = x_dim
-        self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc3 = nn.Linear(hidden_dim, p_dim)
+
+        assert num_layers >= 1, "num_layers must be >= 1"
+
+        self.hidden_layers = nn.ModuleList()
+
+        if num_layers == 1:
+            # No hidden layers
+            self.output = nn.Linear(x_dim, p_dim)
+        else:
+            # First hidden layer
+            self.hidden_layers.append(nn.Linear(x_dim, hidden_dim))
+
+            # Remaining hidden layers
+            for _ in range(num_layers - 2):
+                self.hidden_layers.append(nn.Linear(hidden_dim, hidden_dim))
+
+            # Output layer
+            self.output = nn.Linear(hidden_dim, p_dim)
 
     def forward(self, x_feats: torch.Tensor) -> torch.Tensor:
-        # z = torch.cat([x_feats, p_bar], dim=-1) chg1
         z = x_feats
-        z = F.relu(self.fc1(z))
-        z = F.relu(self.fc2(z))
-        return F.sigmoid(self.fc3(z))
+
+        for layer in self.hidden_layers:
+            z = F.relu(layer(z))
+
+        return torch.sigmoid(self.output(z))
+
+
+# class TransformToIMN_Interaction_Params(nn.Module):
+#     """
+#     p_hat = T([X_feats, p_bar])
+#
+#     Input:  (32 + P)
+#     Output: (P)
+#     Softplus to keep IMN weights positive-friendly (your IMN uses softplus on z anyway).
+#     """
+#     def __init__(self, p_dim: int, x_dim: int, hidden_dim:int):
+#         super().__init__()
+#         # in_dim = x_dim + p_dim chg1
+#         in_dim = x_dim
+#         self.fc1 = nn.Linear(in_dim, hidden_dim)
+#         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+#         self.fc3 = nn.Linear(hidden_dim, p_dim)
+#     def forward(self, x_feats: torch.Tensor) -> torch.Tensor:
+#         z = x_feats
+#         z = F.relu(self.fc1(z))
+#         z = F.relu(self.fc2(z))
+#         return F.sigmoid(self.fc3(z))
 
 
 class TNN_DMN(nn.Module):
@@ -89,31 +145,53 @@ def phase_softmax_with_floor(logits, phase_fraction, temperature=5.0, floor_rati
 
     return w
 
-# Produce W and beta with hard constraint on W
+
+
+
+
+
+
 class TransformToIMN_Node_Params(nn.Module):
-    def __init__(self, p_dim: int, in_dim: int, layers: int, hidden_dim: int, weight_index: int):
+    def __init__(
+        self,
+        p_dim: int,
+        in_dim: int,
+
+        hidden_dim: int,
+        weight_index: int,
+        num_layers: int,
+    ):
         super().__init__()
 
         self.weight_index = weight_index
         assert self.weight_index <= p_dim, "weight_index must be <= p_dim"
+        assert layers >= 1, "layers must be >= 1"
 
-        self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc3 = nn.Linear(hidden_dim, p_dim)
+        self.hidden_layers = nn.ModuleList()
+
+        if layers == 1:
+            self.output = nn.Linear(in_dim, p_dim)
+        else:
+            self.hidden_layers.append(nn.Linear(in_dim, hidden_dim))
+
+            for _ in range(layers - 2):
+                self.hidden_layers.append(nn.Linear(hidden_dim, hidden_dim))
+
+            self.output = nn.Linear(hidden_dim, p_dim)
 
     def forward(self, x_feats: torch.Tensor, FVC: torch.Tensor) -> torch.Tensor:
-        z = F.relu(self.fc1(x_feats))
-        z = F.relu(self.fc2(z))
-        z = self.fc3(z)
+        z = x_feats
+
+        for layer in self.hidden_layers:
+            z = F.relu(layer(z))
+
+        z = self.output(z)
+
         # Works for both:
         # z shape (p_dim,)
         # z shape (B, p_dim)
         weights = z[..., :self.weight_index]
         betas   = z[..., self.weight_index:]
-        # weights sum to 1 along last dimension
-        # weights = F.softmax(weights, dim=-1)
-
-
 
         # Put FVC on same device/dtype
         if not torch.is_tensor(FVC):
@@ -127,30 +205,69 @@ class TransformToIMN_Node_Params(nn.Module):
             temperature=5.0,
             floor_ratio=0.05,
         )
-
-        # Case 1: single vector weights -> shape (weight_index,)
-        # if weights.ndim == 1:
-        #     if FVC.ndim > 0:
-        #         FVC = FVC.reshape(-1)[0]
-        #     weights = weights * FVC
-        #
-        # # Case 2: batched weights -> shape (B, weight_index)
-        # elif weights.ndim == 2:
-        #     if FVC.ndim == 0:
-        #         FVC = FVC.view(1, 1).expand(weights.shape[0], 1)
-        #     elif FVC.ndim == 1:
-        #         FVC = FVC.view(-1, 1)
-        #     elif FVC.ndim == 2 and FVC.shape[1] == 1:
-        #         pass
-        #     else:
-        #         raise ValueError(f"Invalid FVC shape: {FVC.shape}")
-        #     weights = weights * FVC
-        # else:
-        #     raise ValueError(f"Invalid weights shape: {weights.shape}")
-
-        # betas = F.softplus(betas)
-
         return torch.cat([weights, betas], dim=-1)
+# Produce W and beta with hard constraint on W
+# class TransformToIMN_Node_Params(nn.Module):
+#     def __init__(self, p_dim: int, in_dim: int, layers: int, hidden_dim: int, weight_index: int):
+#         super().__init__()
+#
+#         self.weight_index = weight_index
+#         assert self.weight_index <= p_dim, "weight_index must be <= p_dim"
+#
+#         self.fc1 = nn.Linear(in_dim, hidden_dim)
+#         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+#         self.fc3 = nn.Linear(hidden_dim, p_dim)
+#
+#     def forward(self, x_feats: torch.Tensor, FVC: torch.Tensor) -> torch.Tensor:
+#         z = F.relu(self.fc1(x_feats))
+#         z = F.relu(self.fc2(z))
+#         z = self.fc3(z)
+#         # Works for both:
+#         # z shape (p_dim,)
+#         # z shape (B, p_dim)
+#         weights = z[..., :self.weight_index]
+#         betas   = z[..., self.weight_index:]
+#         # weights sum to 1 along last dimension
+#         # weights = F.softmax(weights, dim=-1)
+#
+#
+#
+#         # Put FVC on same device/dtype
+#         if not torch.is_tensor(FVC):
+#             FVC = torch.tensor(FVC, dtype=weights.dtype, device=weights.device)
+#         else:
+#             FVC = FVC.to(dtype=weights.dtype, device=weights.device)
+#
+#         weights = phase_softmax_with_floor(
+#             weights,
+#             FVC,
+#             temperature=5.0,
+#             floor_ratio=0.05,
+#         )
+#
+#         # Case 1: single vector weights -> shape (weight_index,)
+#         # if weights.ndim == 1:
+#         #     if FVC.ndim > 0:
+#         #         FVC = FVC.reshape(-1)[0]
+#         #     weights = weights * FVC
+#         #
+#         # # Case 2: batched weights -> shape (B, weight_index)
+#         # elif weights.ndim == 2:
+#         #     if FVC.ndim == 0:
+#         #         FVC = FVC.view(1, 1).expand(weights.shape[0], 1)
+#         #     elif FVC.ndim == 1:
+#         #         FVC = FVC.view(-1, 1)
+#         #     elif FVC.ndim == 2 and FVC.shape[1] == 1:
+#         #         pass
+#         #     else:
+#         #         raise ValueError(f"Invalid FVC shape: {FVC.shape}")
+#         #     weights = weights * FVC
+#         # else:
+#         #     raise ValueError(f"Invalid weights shape: {weights.shape}")
+#
+#         # betas = F.softplus(betas)
+#
+#         return torch.cat([weights, betas], dim=-1)
 
 # Produce W and beta with no constraint on W
 class TransformToIMN_Node_Params_W_and_Beta(nn.Module):

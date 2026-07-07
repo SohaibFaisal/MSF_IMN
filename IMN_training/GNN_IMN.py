@@ -43,7 +43,7 @@ def load_graph_npz(path: str) -> Data:
 
 
 class HybridGNNIMN(nn.Module):
-    def __init__(self, node_feat_dim: int,N_layers:int, gnn_hidden_dim:int,tnn_hidden_dim:int, heads:int, x_dim: int, GNN_structure: int, nodes_per_mech_per_phase:int):
+    def __init__(self, node_feat_dim: int,N_layers:int, gnn_hidden_dim:int,tnn_hidden_dim:int, heads:int, x_dim: int, GNN_structure: int, nodes_per_mech_per_phase:int, gnn_layers:int, tnn_layers:int):
 
         super().__init__()
         self.gnn_hidden_dim = gnn_hidden_dim
@@ -60,13 +60,13 @@ class HybridGNNIMN(nn.Module):
 
         if GNN_structure == 1:
             from .GNNs import GraphFeatureExtractor_phase_aware
-            self.gnn = GraphFeatureExtractor_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads) #ok
+            self.gnn = GraphFeatureExtractor_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads,num_layers=gnn_layers) #ok
         elif GNN_structure == 2:
             from .GNNs import GraphFeatureExtractor_AttentionPool_phase_aware
-            self.gnn = GraphFeatureExtractor_AttentionPool_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)  # Good
+            self.gnn = GraphFeatureExtractor_AttentionPool_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads, num_layers=gnn_layers)  # Good
         elif GNN_structure == 3:
             from .GNNs import GraphFeatureExtractor_JK_Set2Set_phase_aware
-            self.gnn = GraphFeatureExtractor_JK_Set2Set_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads)
+            self.gnn = GraphFeatureExtractor_JK_Set2Set_phase_aware(in_dim=node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads,num_layers=gnn_layers)
 
         # GNN_DMN
         elif GNN_structure == 4:
@@ -82,11 +82,11 @@ class HybridGNNIMN(nn.Module):
 
 
         from .TNNs import TransformToIMN_Interaction_Params, TransformToIMN_Node_Params_W_and_Beta, TransformToIMN_Node_ParamsW, TransformToIMN_Node_Paramsbeta, TransformToIMN_Node_Params
-        self.T_interaction = TransformToIMN_Interaction_Params(p_dim=int(2*self.M), x_dim=self.x_dim, hidden_dim=tnn_hidden_dim)
+        self.T_interaction = TransformToIMN_Interaction_Params(p_dim=int(2*self.M), x_dim=self.x_dim, hidden_dim=tnn_hidden_dim,num_layers=tnn_layers)
         # self.T_nodesW = TransformToIMN_Node_ParamsW(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
         # self.T_nodesbeta = TransformToIMN_Node_Paramsbeta(p_dim=self.nodes_per_mech_per_phase * (self.M)*(2 ** (N_layers - 1)), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim)
         # self.T_nodes = TransformToIMN_Node_Params_W_and_Beta(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
-        self.T_nodes =TransformToIMN_Node_Params(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)))
+        self.T_nodes =TransformToIMN_Node_Params(p_dim=self.nodes_per_mech_per_phase * (2 ** (N_layers-1))*(1+self.M), in_dim=self.x_dim, layers=self.N_layers, hidden_dim=tnn_hidden_dim, weight_index=self.nodes_per_mech_per_phase * (2 ** (N_layers-1)),num_layers=tnn_layers)
         self.imn_cache = {}
 
     def forward(self, phases, main_graph, phase_graphs):
@@ -919,7 +919,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
     if mode == 'GNN_IMN':
         model = HybridGNNIMN(node_feat_dim=cfg['node_feat_dim'], N_layers=N_layers, gnn_hidden_dim=cfg['gnn_hidden_dim'], tnn_hidden_dim=cfg['tnn_hidden_dim'],
-                             heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure=cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase).float().to(device)
+                             heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure=cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase, gnn_layers=cfg['gnn_layers'], tnn_layers=cfg['tnn_layers']).float().to(device)
 
     elif mode == 'IMN':
         model = IMNModel(5, ['MATRIX', 'UD1']).float().to(device)

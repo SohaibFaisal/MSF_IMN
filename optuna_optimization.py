@@ -5,7 +5,7 @@ from pathlib import Path
 import csv
 from optuna.trial import TrialState
 
-from IMN_training.GNN_IMN import train_GNN_IMN
+from IMN_training.GNN_IMN import Train
 
 viz_dir = Path(r"IMN_training/optuna")
 viz_dir.mkdir(parents=True, exist_ok=True)
@@ -14,10 +14,10 @@ CSV_FILE = viz_dir / "trials_summary.csv"
 def objective(trial):
 
     # ----- keep tuning runs cheap -----
-    num_samples = 90
-    num_epochs = 50
+    num_samples = 20
+    num_epochs = 10
 
-    training_dataset_folder = Path(r"Training_data_generation/Training_data0924")  # your folder
+    training_dataset_folder = Path(r"Training_data_generation/Training_data0901")  # your folder
     out_dir = Path(r"IMN_training/optuna") / f"trial_{trial.number:04d}"
     out_dir.mkdir(parents=True, exist_ok=True)
     start_time = time.perf_counter()
@@ -79,18 +79,21 @@ def objective(trial):
         # Training
         # ----------------------------
 
-        best_val = train_GNN_IMN(
+        best_val = Train(
             N_layers=N_layers,
             num_samples=num_samples,
             num_epochs=num_epochs,
-            lr_rest=lr,
-            live_plot=False,
-            training_dataset_folder=training_dataset_folder,
+            lr=lr,
+            cost_live_plot=False,
             imn_trained_data_folder=out_dir,
+            training_dataset_folder=training_dataset_folder,
             optimizing_variables=optimizing_variables,
             weight_decay=weight_decay,
+            nodes_per_mech_per_phase=2,
+            use_GPU=False,
+            mode='GNN_IMN',
             trial=trial,
-            use_GPU=True,
+
         )
 
     except optuna.TrialPruned:
@@ -248,7 +251,7 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    # study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=5)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
