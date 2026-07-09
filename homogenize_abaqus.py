@@ -28,6 +28,10 @@ STEP_TO_COL = {
     'Step-6': 5,  # E23
 }
 
+def zero_C6():
+    return [[0.0]*6 for _ in range(6)]
+
+
 def find_single_odb_in_folder(folder_path):
     # Prefer I_<n>_stage_<stage>.odb, else I_<n>.odb, else first .odb
     candidates = [fn for fn in os.listdir(folder_path) if fn.lower().endswith('.odb')]
@@ -142,30 +146,59 @@ for fdir in folders:
     folder_name = os.path.basename(fdir)
     number_str = folder_name.split('_')[-1]
 
-    odb_path, _ = find_single_odb_in_folder(fdir)
-    if odb_path is None:
-        print("WARNING: No ODB found in", fdir)
+    found = find_single_odb_in_folder(fdir)
+    if found is None:
+        print("WARNING: No ODB found in %s. Saving zero 6x6 matrix." % fdir)
+        homo[number_str] = zero_C6()
         continue
+
+    odb_path, _ = found
 
     print("\n=== %s ===" % fdir)
     print("ODB:", os.path.basename(odb_path))
 
     step_sigma = {}
-    odb = openOdb(odb_path, readOnly=True)
+    odb = None
+
     try:
+        odb = openOdb(odb_path, readOnly=True)
+
+        # Corrupt/incomplete ODBs sometimes open but contain no usable analysis steps.
+        if len(odb.steps) == 0:
+            raise RuntimeError("ODB has no steps")
+
         for sname in ['Step-1','Step-2','Step-3','Step-4','Step-5','Step-6']:
             if sname not in odb.steps:
                 print("  WARNING: missing step", sname)
                 continue
+
+            step = odb.steps[sname]
+            if len(step.frames) == 0:
+                print("  WARNING: step %s has no frames" % sname)
+                continue
+
             frame = last_frame_of_step(odb, sname)
             sig = avg_stress_IVOL(frame)
             step_sigma[sname] = sig
             print("  %s sigma_avg = %s" % (sname, str(sig)))
-    finally:
-        odb.close()
 
-    # C = build_C_from_step_sigmas(step_sigma)
-    homo[number_str] = build_C_from_step_sigmas(step_sigma)
+        # Require all six load cases. If any are missing, treat this RVE as failed.
+        if len(step_sigma) != 6:
+            raise RuntimeError("Only %d/6 steps had usable data" % len(step_sigma))
+
+        homo[number_str] = build_C_from_step_sigmas(step_sigma)
+
+    except Exception as e:
+        print("  WARNING: Failed to homogenize %s. Reason: %s" % (folder_name, str(e)))
+        print("  Saving zero 6x6 matrix for this folder.")
+        homo[number_str] = zero_C6()
+
+    finally:
+        if odb is not None:
+            try:
+                odb.close()
+            except Exception:
+                pass
 
     # out_csv = os.path.join(fdir, "C_homogenized.csv")
     # write_C_csv(out_csv, C)

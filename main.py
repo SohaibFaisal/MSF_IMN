@@ -10,23 +10,26 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--layers", type=int, default=5)
-parser.add_argument("--nodes", type=int, default=2)
-parser.add_argument("--epochs", type=int, default=300)
-args = parser.parse_args()
+# import argparse
+# parser = argparse.ArgumentParser()
+# parser.add_argument("--layers", type=int, default=5)
+# parser.add_argument("--nodes", type=int, default=2)
+# parser.add_argument("--epochs", type=int, default=300)
+# args = parser.parse_args()
+#
+# print('Running study for : ')
+# print("Layers:", args.layers)
+# print("Nodes per mech per phase:", args.nodes)
+# print("Epochs:", args.epochs)
 
-print('Running study for : ')
-print("Layers:", args.layers)
-print("Nodes per mech per phase:", args.nodes)
-print("Epochs:", args.epochs)
 print('Start at : ', dt.now())
-N_layers = args.layers
-nodes_per_mech_per_phase = args.nodes
-num_epochs = args.epochs
+# N_layers = args.layers
+# nodes_per_mech_per_phase = args.nodes
+# num_epochs = args.epochs
 # train_folder_id = f'072{N_layers}'
-
+N_layers = 5
+nodes_per_mech_per_phase = 2
+num_epochs = 100
 
 
 
@@ -63,7 +66,7 @@ SIM_NAME = 'OLA'
 main_id = 901
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 999
+train_folder_id = 911
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -81,7 +84,7 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'GNN_IMN' # GNN_IMN, IMN, GNN_DMN, DMN
+training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
 training_data_generation = False
 show_mesh = False
@@ -157,31 +160,31 @@ if training_data_generation:
         #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
         #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-        #  'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [0.2, 4.0, 4.0]},
-        #  'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [4.5, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.12, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]},
-        #  'SFR2': {'FVC': 0.1, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]}},
-        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
-        #  'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.22, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'PR2': {'FVC': 0.1, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.05, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'PR2': {'FVC': 0.08, 'dia': [0.42, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'PR3': {'FVC': 0.09, 'dia': [0.48, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+         'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [0.2, 4.0, 4.0]},
+         'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+         'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [4.5, 3.0, 3.0]},
+         'SFR1': {'FVC': 0.12, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]},
+         'SFR2': {'FVC': 0.1, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]}},
+        {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+         'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
+         'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.22, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'PR2': {'FVC': 0.1, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.05, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'PR2': {'FVC': 0.08, 'dia': [0.42, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+         'PR3': {'FVC': 0.09, 'dia': [0.48, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
 
 
                 ]
@@ -216,7 +219,7 @@ if training_data_generation:
             for g_id in range(mesh_per_config):
                 pass
                 print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')
-                create_abaqus_main_file(mesh_folder, stage, r, g_id)
+                # create_abaqus_main_file(mesh_folder, stage, r, g_id)
 
         # solve_abaqus_main_files(int(len(rve_info_training_data)), training_dataset_folder)
 
@@ -231,7 +234,7 @@ if training_data_generation:
             print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
             if 'GNN' in training_mode:
                 pass
-                create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
+                # create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
 
 
 
@@ -241,7 +244,7 @@ if training_data_generation:
     for r in range(len(rve_info_training_data)):
         for g_id in range(mesh_per_config):
             #print(f' Creating {materials_per?|_mesh} abaqus input files for RVE: {r} and mesh: {g_id}')
-            create_abaqus_input_files(rve_info_training_data[r],sample_num, materials_per_mesh, training_dataset_folder,mesh_folder, stage,r, g_id, key_map)
+            # create_abaqus_input_files(rve_info_training_data[r],sample_num, materials_per_mesh, training_dataset_folder,mesh_folder, stage,r, g_id, key_map)
             sample_num += materials_per_mesh
 
     key_map_file = training_dataset_folder / 'key_map.npz'
@@ -336,7 +339,7 @@ if imn_validation:
     -------------------------------   
     '''
     mat1 = [2, 1500, 0.35, 10.0, 15.0, 20, 15]
-    mat2 = [1, 1500*5, 0.2, 0.2, 0.2, 0, 0]
+    mat2 = [1, 1500*3, 0.2, 0.2, 0.2, 0, 0]
     mat3 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat4 = [1, 300, 0.3, 0.2, 0.2, 0, 0]
     mat = [mat1, mat2, mat3, mat4]
@@ -356,7 +359,7 @@ if imn_validation:
 
         rve_info_validation_data = [
             {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-             'UD1': {'FVC': 0.22, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+             'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
             # {'MATRIX': {'size': [0.5, 4.5, 4.5]},
             #  'UD1': {'FVC': 0.32, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
             # {'MATRIX': {'size': [4.5, 4, 4]},
@@ -406,7 +409,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,4,5], )
+                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,3,4,5,6], )
 
 
     else:

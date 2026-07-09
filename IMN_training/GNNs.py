@@ -247,9 +247,7 @@ class GraphFeatureExtractor_phase_aware(nn.Module):
                     concat=True,
                 )
             )
-
             self.fcs.append(nn.Linear(hidden_dim, hidden_dim))
-
         # Important change:
         # pooling now returns [target, context, global]
         # so the readout size is 3 * hidden_dim, not hidden_dim.

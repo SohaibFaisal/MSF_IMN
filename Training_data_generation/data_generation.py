@@ -1855,8 +1855,17 @@ def solve_abaqus_input_files(samples, training_dataset_folder):
             # if file.startswith('I_') and file.endswith(f'_{graph_id}.inp') and f'stage_{stage}' in file:
             if file.startswith('I_'):
                 job = os.path.splitext(file)[0]
+                # ----------------------------------------------------
+                # Skip if ODB already exists
+                # ----------------------------------------------------
+                odb_path = os.path.join(root_dir, job + ".odb")
+                if os.path.exists(odb_path):
+                    print(f"\nSkipping {job} (ODB already exists)")
+                    continue
+                # ----------------------------------------------------
                 running += 1
                 print(f"\rRunning job: {job}     |    Completed={int(100*running/(samples))} %...", end ="")
+
 
                 log_path = os.path.join(root_dir, f"{job}_run.log")
                 with open(log_path, "w") as log:
@@ -1871,17 +1880,17 @@ def solve_abaqus_input_files(samples, training_dataset_folder):
                     )
                     # ---- Delete unwanted files AFTER job finishes ----
 
-                if result.returncode != 0:
-                    raise RuntimeError(
-                        f"\nAbaqus system-level failure in job {job}. "
-                        f"Return code: {result.returncode}. Log: {log_path}"
-                    )
-
-                if abaqus_job_failed(root_dir, job):
-                    raise RuntimeError(
-                        f"\nAbaqus analysis failed in job {job}. "
-                        f"Check: {log_path}, {job}.dat, {job}.msg, {job}.sta"
-                    )
+                # if result.returncode != 0:
+                #     raise RuntimeError(
+                #         f"\nAbaqus system-level failure in job {job}. "
+                #         f"Return code: {result.returncode}. Log: {log_path}"
+                #     )
+                #
+                # if abaqus_job_failed(root_dir, job):
+                #     raise RuntimeError(
+                #         f"\nAbaqus analysis failed in job {job}. "
+                #         f"Check: {log_path}, {job}.dat, {job}.msg, {job}.sta"
+                #     )
 
                 for ext in extensions_to_delete:
                     path = os.path.join(root_dir, job + ext)

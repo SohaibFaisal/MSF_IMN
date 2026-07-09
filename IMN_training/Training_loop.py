@@ -68,7 +68,43 @@ def _normalized_frobenius_loss(C_pred: torch.Tensor, C_tgt: torch.Tensor) -> tor
         torch.finfo(C_tgt.dtype).eps
     )
 
+def _normalized_frobenius_loss_mandel(C_pred: torch.Tensor, C_tgt: torch.Tensor) -> torch.Tensor:
+    # C_tgt = C_tgt.to(device=C_pred.device, dtype=C_pred.dtype, non_blocking=True)
+    # denom = torch.linalg.norm(C_tgt, ord="fro").clamp_min(torch.finfo(C_tgt.dtype).eps)**2
+    # return torch.linalg.norm(C_pred - C_tgt, ord="fro")**2 / denom
+    C_tgt = C_tgt.to(
+        device=C_pred.device,
+        dtype=C_pred.dtype,
+        non_blocking=True,
+    )
 
+    T = torch.zeros((6, 6), dtype=dtype, device=C_pred.device)
+
+    # eps_mandel_internal = T @ eps_fem_engineering
+    T[0, 0] = 1.0
+    T[1, 1] = 1.0
+    T[2, 2] = 1.0
+    T[3, 4] = 1.0 / 2 ** 0.5  # gamma23 -> sqrt(2) eps23
+    T[4, 5] = 1.0 / 2 ** 0.5  # gamma31 -> sqrt(2) eps31
+    T[5, 3] = 1.0 / 2 ** 0.5  # gamma12 -> sqrt(2) eps12
+
+    Tinv = torch.linalg.inv(T)
+    C_tgt = Tinv.T @ C_tgt @ Tinv
+    # C_mandel = T^{-T} C_fem T^{-1}
+
+    diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
+    tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
+    # print('NORMALIZED FROBENIUS LOSS')
+    # # print(C_tgt)
+    # # print(C_pred)
+    # print(diff_norm_sq / tgt_norm_sq.clamp_min(
+    #     torch.finfo(C_tgt.dtype).eps))
+    # print('-------------------------------------------------------------------')
+
+
+    return diff_norm_sq / tgt_norm_sq.clamp_min(
+        torch.finfo(C_tgt.dtype).eps
+    )
 
 def _normalized_weight_fraction_loss(
     flat_p: torch.Tensor,
@@ -399,7 +435,8 @@ def _loss_gnn_dmn(
     if torch.is_tensor(out) and out.ndim == 0:
         loss_C = out
     else:
-        loss_C = _normalized_frobenius_loss(out, sample["C_Target"])
+        # loss_C = _normalized_frobenius_loss(out, sample["C_Target"])
+        loss_C = _normalized_frobenius_loss_mandel(out, sample["C_Target"])
 
     lambda_reg = 1e-5  # tune
     loss_reg = model.dmn.regularization_loss()
