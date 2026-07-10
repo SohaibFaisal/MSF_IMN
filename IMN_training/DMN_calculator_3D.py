@@ -294,6 +294,22 @@ class DMNCalculator3D(nn.Module):
             C = C.to(device=self.C_leaves.device, dtype=self.C_leaves.dtype)
             if C.shape != (6, 6):
                 raise ValueError(f"Phase {phase_name!r} stiffness must be (6,6), got {tuple(C.shape)}.")
+
+            # Convert to mandel notation -------------------------------------------- START
+            T = torch.zeros((6, 6), dtype=C.dtype, device=C.device)
+
+            # eps_mandel_internal = T @ eps_fem_engineering
+            T[0, 0] = 1.0
+            T[1, 1] = 1.0
+            T[2, 2] = 1.0
+            T[3, 4] = 1.0 / 2 ** 0.5  # gamma23 -> sqrt(2) eps23
+            T[4, 5] = 1.0 / 2 ** 0.5  # gamma31 -> sqrt(2) eps31
+            T[5, 3] = 1.0 / 2 ** 0.5  # gamma12 -> sqrt(2) eps12
+
+            Tinv = torch.linalg.inv(T)
+            C = Tinv.T @ C @ Tinv
+            # Convert to mandel notation -------------------------------------------------- END
+
             phase_mats.append(0.5 * (C + C.T))
 
         phase_C = torch.stack(phase_mats, dim=0)

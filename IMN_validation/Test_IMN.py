@@ -205,8 +205,8 @@ def validation(new_folder,val_solve,val_plot, stage,r,g_id, loads_cases):
     if val_solve:
         # new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
         with open(new_folder / f'i_all_tests.bat', 'w') as load_file:
-            for i in ['DNS','IMN']:
-            # for i in ['IMN']:
+            #for i in ['DNS','IMN']:
+            for i in ['IMN']:
                 # for x in range(1, 7):
                 for x in loads_cases:
                     load_file.write(f'feap86 -iI_val_{i}_stage_{stage}_{x}\n')

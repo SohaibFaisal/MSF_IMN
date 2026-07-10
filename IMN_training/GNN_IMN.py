@@ -55,6 +55,8 @@ class HybridGNNIMN(nn.Module):
         self.N_layers = N_layers
         self.M = 2**N_layers - 1
         self.nodes_per_mech_per_phase = nodes_per_mech_per_phase
+        self.gnn_layers=gnn_layers
+        self.tnn_layers=tnn_layers
 
 
 
@@ -784,9 +786,15 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     gnn_structure = ckpt["gnn_structure"]
     heads = ckpt["heads"]
     nodes_per_mech_per_phase = ckpt["nodes_per_mech_per_phase"]
+    # gnn_layers = ckpt["gnn_layers"]
+    # tnn_layers = ckpt["tnn_layers"]
+    gnn_layers = 3
+    tnn_layers = 3
+
+
     # nodes_per_mech_per_phase =2
 
-    new_model = HybridGNNIMN(node_feat_dim,N_layers,gnn_hidden_dim=gnn_hidden_dim,tnn_hidden_dim=tnn_hidden_dim, heads=heads, x_dim=x_dim, GNN_structure=gnn_structure, nodes_per_mech_per_phase=nodes_per_mech_per_phase).to(device).eval()
+    new_model = HybridGNNIMN(node_feat_dim,N_layers,gnn_hidden_dim=gnn_hidden_dim,tnn_hidden_dim=tnn_hidden_dim, heads=heads, x_dim=x_dim, GNN_structure=gnn_structure, nodes_per_mech_per_phase=nodes_per_mech_per_phase, gnn_layers=gnn_layers,tnn_layers=tnn_layers).to(device).eval()
 
     new_model.gnn.load_state_dict(ckpt["gnn"])
     new_model.T_interaction.load_state_dict(ckpt["T_interaction"])
@@ -845,7 +853,7 @@ def generate_imn_params(imn_trained_data_folder,imn_validation_folder, mode):
 
 
 @torch.inference_mode()
-def generate_dmn_params(imn_trained_data_folder,imn_validation_folder, mode):
+def generate_dmn_params(imn_trained_data_folder,imn_validation_folder):
     GNN_FILE_PATH = imn_trained_data_folder / 'dmn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
@@ -961,6 +969,8 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
             "imn_N_layers": model.N_layers,
             "gnn_structure": model.gnn_structure,
             "nodes_per_mech_per_phase": model.nodes_per_mech_per_phase,
+            "gnn_layers": model.gnn_layers,
+            "tnn_layers":model.tnn_layers
         }
     elif mode == 'IMN':
         GNN_FILE_PATH = imn_trained_data_folder / f"imn_generator.pt"

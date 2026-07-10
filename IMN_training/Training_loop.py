@@ -78,7 +78,7 @@ def _normalized_frobenius_loss_mandel(C_pred: torch.Tensor, C_tgt: torch.Tensor)
         non_blocking=True,
     )
 
-    T = torch.zeros((6, 6), dtype=dtype, device=C_pred.device)
+    T = torch.zeros((6, 6), dtype=C_pred.dtype, device=C_pred.device)
 
     # eps_mandel_internal = T @ eps_fem_engineering
     T[0, 0] = 1.0
@@ -328,7 +328,7 @@ def _make_dmn(phases, N_layers: int, device: torch.device, dtype: torch.dtype) -
 # Mode-specific loss functions
 # -----------------------------------------------------------------------------
 
-def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: torch.device) -> torch.Tensor:
+def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: torch.device, mandel) -> torch.Tensor:
     """
     For IMN and DMN modes.
 
@@ -340,7 +340,10 @@ def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: t
 
     C_pred = model()
     C_tgt = sample["C_Target"].to(device=device, dtype=C_pred.dtype, non_blocking=True)
-    loss_C = _normalized_frobenius_loss(C_pred, C_tgt)
+    if mandel:
+        loss_C = _normalized_frobenius_loss_mandel(C_pred, C_tgt)
+    else:
+        loss_C = _normalized_frobenius_loss(C_pred, C_tgt)
     lambda_reg = 1e-5  # tune
     loss_reg = model.regularization_loss()
     return loss_C + lambda_reg * loss_reg
@@ -457,8 +460,11 @@ def _make_loss_fn(
 ) -> Callable[[torch.nn.Module, dict[str, Any]], torch.Tensor]:
     mode = mode.upper()  # type: ignore[assignment]
 
-    if mode in {"IMN", "DMN"}:
-        return lambda model, sample: _loss_direct_model(model, sample, device)
+    if mode == 'IMN':
+        return lambda model, sample: _loss_direct_model(model, sample, device, False)
+
+    if mode == 'DMN':
+        return lambda model, sample: _loss_direct_model(model, sample, device, True)
 
     if mode == "GNN_IMN":
         if graph_cache is None:

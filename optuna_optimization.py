@@ -14,10 +14,10 @@ CSV_FILE = viz_dir / "trials_summary.csv"
 def objective(trial):
 
     # ----- keep tuning runs cheap -----
-    num_samples = 20
-    num_epochs = 10
+    num_samples = 300
+    num_epochs = 40
 
-    training_dataset_folder = Path(r"Training_data_generation/Training_data0901")  # your folder
+    training_dataset_folder = Path(r"Training_data_generation/Training_data0921")  # your folder
     out_dir = Path(r"IMN_training/optuna") / f"trial_{trial.number:04d}"
     out_dir.mkdir(parents=True, exist_ok=True)
     start_time = time.perf_counter()
@@ -241,7 +241,7 @@ def export_trials_csv(study, csv_path: Path):
 
 if __name__ == "__main__":
 
-    pruner = optuna.pruners.MedianPruner(n_startup_trials=12, n_warmup_steps=8)
+    pruner = optuna.pruners.MedianPruner(n_startup_trials=10, n_warmup_steps=8)
     storage = "sqlite:///optuna_gnn_imn.db"  # creates a local file
     study_name = "gnn_imn_v1"
     study = optuna.create_study(
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    study.optimize(objective, n_trials=5)
+    study.optimize(objective, n_trials=100)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
