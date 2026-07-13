@@ -14,7 +14,7 @@ CSV_FILE = viz_dir / "trials_summary.csv"
 def objective(trial):
 
     # ----- keep tuning runs cheap -----
-    num_samples = 300
+    num_samples = 200
     num_epochs = 40
 
     training_dataset_folder = Path(r"Training_data_generation/Training_data0921")  # your folder
@@ -60,9 +60,11 @@ def objective(trial):
             "gnn_structure", 1, 3
         )
 
-        lr = trial.suggest_float("lr", 8e-5, 8e-3, log=True)
+        # lr = trial.suggest_float("lr", 8e-5, 8e-3, log=True)
+        lr = 2e-3
         gnn_heads = trial.suggest_categorical("gnn_heads", [4, 8, 16])
-        weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-3, log=True)
+        # weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-3, log=True)
+        weight_decay = 1e-5
 
         optimizing_variables = [
             tnn_hidden_dim,
@@ -89,8 +91,8 @@ def objective(trial):
             training_dataset_folder=training_dataset_folder,
             optimizing_variables=optimizing_variables,
             weight_decay=weight_decay,
-            nodes_per_mech_per_phase=2,
-            use_GPU=False,
+            nodes_per_mech_per_phase=nodes_per_mech_per_phase,
+            use_GPU=True,
             mode='GNN_IMN',
             trial=trial,
 
@@ -251,7 +253,7 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    # study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=50)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
