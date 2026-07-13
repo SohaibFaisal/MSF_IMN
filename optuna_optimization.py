@@ -251,7 +251,7 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    study.optimize(objective, n_trials=100)
+    # study.optimize(objective, n_trials=100)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
