@@ -244,7 +244,7 @@ def export_trials_csv(study, csv_path: Path):
 if __name__ == "__main__":
 
     pruner = optuna.pruners.MedianPruner(n_startup_trials=10, n_warmup_steps=8)
-    storage = "sqlite:///optuna_gnn_imn.db"  # creates a local file
+    storage = "sqlite:///optuna_gnn_imn_0001.db"  # creates a local file
     study_name = "gnn_imn_v1"
     study = optuna.create_study(
         study_name=study_name,
@@ -253,10 +253,11 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    study.optimize(objective, n_trials=50)
+    # study.optimize(objective, n_trials=50)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
+    # exit()
     # CSV
 
 

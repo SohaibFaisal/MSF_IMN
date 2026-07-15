@@ -63,10 +63,10 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 3
+main_id = 2
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 3
+train_folder_id = 2
 validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -114,7 +114,7 @@ if training_data_generation:
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.01
-    materials_per_mesh = 5
+    materials_per_mesh = 50
     mesh_per_config = 10
 
 
@@ -199,7 +199,7 @@ if training_data_generation:
                     if attempts == 99:
                         raise (RuntimeError)
                     try:
-                        create_mesh(rve_info_training_data[r], mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r,g_id)
+                        # create_mesh(rve_info_training_data[r], mesh_size, fiber_collision_tolerance, mesh_folder, show_mesh, stage, r,g_id)
                         print(f'RVE {r}... Mesh {g_id} created ')
                         break
                     except Exception as e:
@@ -219,7 +219,7 @@ if training_data_generation:
             for g_id in range(mesh_per_config):
                 pass
                 print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')
-                create_abaqus_main_file(mesh_folder, stage, r, g_id)
+                # create_abaqus_main_file(mesh_folder, stage, r, g_id)
 
         # solve_abaqus_main_files(int(len(rve_info_training_data)), training_dataset_folder)
 
@@ -232,7 +232,7 @@ if training_data_generation:
     for r in range(len(rve_info_training_data)):
         for g_id in range(mesh_per_config):
             print(f' Creating mesh graph for RVE: {r} and mesh: {g_id}')
-            create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
+            # create_mesh_graph(mesh_folder, stage, r, g_id, training_mode)
 
 
 
