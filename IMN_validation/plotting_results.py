@@ -288,12 +288,14 @@ def plot(new_folder, stress_normal, strain_normal, stress_IMN, strain_IMN):
         "strain_IMN": strain_IMN,
     }
 
-    for lc in range(6):
-        for name, data in datasets.items():
-            np.savez_compressed(
-                out_dir / f"LC{lc + 1}_{name}.npz",
-                data=np.asarray(data[lc])
-            )
+
+
+    # for lc in range(6):
+    #     for name, data in datasets.items():
+    #         np.savez_compressed(
+    #             out_dir / f"LC{lc + 1}_{name}.npz",
+    #             data=np.asarray(data[lc])
+    #         )
 
 
 
@@ -303,9 +305,41 @@ def plot(new_folder, stress_normal, strain_normal, stress_IMN, strain_IMN):
             stress_normal, strain_normal, n_loadcases=6
         )
 
+
     stress_imn_lc, strain_imn_lc = split_by_loadcase(
         stress_IMN, strain_IMN, n_loadcases=6
     )
+
+    # Saving NPZ FILES ------------------------------------------------------------------ START
+    for lc in range(6):
+        x = [y[lc] for y in stress_dns_lc[int(lc+1)]]
+        np.savez_compressed(
+            out_dir / f"LC{lc + 1}_stress_DNS.npz",
+            data=np.asarray(x)
+        )
+
+    for lc in range(6):
+        x = [y[lc] for y in strain_dns_lc[int(lc+1)]]
+        np.savez_compressed(
+            out_dir / f"LC{lc + 1}_strain_DNS.npz",
+            data=np.asarray(x)
+        )
+
+    for lc in range(6):
+        x = [y[lc] for y in stress_imn_lc[int(lc+1)]]
+        np.savez_compressed(
+            out_dir / f"LC{lc + 1}_stress_IMN.npz",
+            data=np.asarray(x)
+        )
+
+    for lc in range(6):
+        x = [y[lc] for y in strain_imn_lc[int(lc+1)]]
+        np.savez_compressed(
+            out_dir / f"LC{lc + 1}_strain_IMN.npz",
+            data=np.asarray(x)
+        )
+
+    # Saving NPZ FILES ------------------------------------------------------------------ END
 
     # Optional sanity checks (highly recommended once)
     for lc in range(1,7):

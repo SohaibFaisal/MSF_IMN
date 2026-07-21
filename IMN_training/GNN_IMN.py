@@ -1,3 +1,4 @@
+from typing import Sequence
 
 
 import torch.optim as optim
@@ -100,8 +101,13 @@ class HybridGNNIMN(nn.Module):
         n_leaf = 2 ** (self.N_layers - 1) * self.nodes_per_mech_per_phase
         z_list = []
         beta_list = []
-        bg = Batch.from_data_list(phase_graphs)
-        x_feats_ph = self.gnn(bg)  # (P, x_dim) instead of P calls
+        # bg = Batch.from_data_list(phase_graphs)
+        # x_feats_ph = self.gnn(bg)  # (P, x_dim) instead of P calls
+        x_feats_ph = []
+
+        for phase_graph in phase_graphs:
+            x_phase = self.gnn(phase_graph)  # typically (1, x_dim)
+            x_feats_ph.append(x_phase.squeeze(0))
         # print(x_feats_ph.shape)
 
 
@@ -141,15 +147,17 @@ class HybridGNNIMN(nn.Module):
 # =============================================================================
 
 class HybridGNNDMN(nn.Module):
-    """
-    Workflow:
-      graph -> GNN -> x_feat
-      trainable base DMN params -> get_flat_params()
-      concat([x_feat, base_params]) -> T_DMN -> sample-specific p_hat
-      p_hat can be passed to DMN.homogenize_from_flat_params(p_hat[b]) for loss.
+    """Graph-conditioned DMN with a jointly optimized universal DMN.
 
-    forward(..., material_data_batch=None, C_target_batch=None) can optionally
-    compute C_pred and normalized Frobenius losses inside the model.
+    Paper-consistent data flow:
+        G -> GNN -> x_feat
+        p_bar = trainable parameters of one universal DMN
+        p_hat = TNN([x_feat, p_bar])
+        C_pred = DMN(C_phase | p_hat)
+
+    The universal vector ``p_bar`` is not copied or detached. Therefore the
+    homogenization loss back-propagates through the derived parameters, the
+    TNN, and into the universal DMN parameters themselves.
     """
 
     def __init__(
@@ -161,77 +169,77 @@ class HybridGNNDMN(nn.Module):
         tnn_hidden_dim: int,
         heads: int,
         x_dim: int,
-        GNN_structure: int = 0,
+        GNN_structure: int = 4,
         weight_activation: str = "softplus",
-        residual_params: bool = True,
+        residual_params: bool = False,
         delta_scale: float = 0.1,
     ):
         super().__init__()
-        self.gnn_hidden_dim = gnn_hidden_dim
-        self.tnn_hidden_dim = tnn_hidden_dim
-        self.gnn_structure = GNN_structure
-        self.node_feat_dim = node_feat_dim
-        self.heads = heads
-        self.x_dim = x_dim
-        self.N_layers = N_layers
+        self.gnn_hidden_dim = int(gnn_hidden_dim)
+        self.tnn_hidden_dim = int(tnn_hidden_dim)
+        self.gnn_structure = int(GNN_structure)
+        self.node_feat_dim = int(node_feat_dim)
+        self.heads = int(heads)
+        self.x_dim = int(x_dim)
+        self.N_layers = int(N_layers)
         self.phases = list(phases)
-        self.M = 2 ** N_layers - 1
-
 
         from .GNNs import GraphFeatureExtractor_DMN
         self.gnn = GraphFeatureExtractor_DMN(
-            in_dim=node_feat_dim,
-            hidden_dim=gnn_hidden_dim,
-            x_dim=x_dim,
-            heads=heads,
+            in_dim=self.node_feat_dim,
+            hidden_dim=self.gnn_hidden_dim,
+            x_dim=self.x_dim,
+            heads=self.heads,
         )
 
-
+        # This module owns p_bar = [z_bar, alpha_bar, beta_bar, gamma_bar].
+        # Since it is registered as a submodule, model.parameters() includes it.
         self.dmn = DMNCalculator3D(
-            N_layers=N_layers,
-            phases=phases,
+            N_layers=self.N_layers,
+            phases=self.phases,
             weight_activation=weight_activation,
         )
         self.p_dim = self.dmn.param_dim()
 
-        num_params = 7 * 2 ** (N_layers - 1) - 3
-        from .TNNs import TNN_DMN
-        self.tnn = TNN_DMN(
-            in_dim=num_params+x_dim,
-            out_dim=num_params,
-            hidden_dim=tnn_hidden_dim,
+        # Maps concat(X_feats, p_bar) to the microstructure-specific p_hat.
+        # residual_params=False most closely follows Eq. (11) of the paper.
+        from .DMN_calculator_3D import TransformToDMNParams
+        self.tnn = TransformToDMNParams(
+            x_dim=self.x_dim,
+            p_dim=self.p_dim,
+            hidden_dim=self.tnn_hidden_dim,
+            residual=residual_params,
+            delta_scale=delta_scale,
         )
 
-    def forward(
-        self,
-        main_graph: Data,
-        sample
-    ) :
-        """
-        Returns a dictionary containing at least:
-          p_hat_batch: [B, P]
-          x_feat:      [B, x_dim]
-          base_params: [P]
+    def universal_flat_params(self) -> torch.Tensor:
+        """Differentiable universal DMN vector p_bar."""
+        return self.dmn.get_flat_params()
 
-        If material_data_batch is supplied, also returns:
-          C_pred_batch: [B, 6, 6]
+    def derive_flat_params(self, main_graph: Data) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Return (p_hat, x_feat, p_bar) without evaluating constitutive data."""
+        x_feat = self.gnn(main_graph)
+        if x_feat.ndim == 1:
+            x_feat = x_feat.unsqueeze(0)
 
-        If C_target_batch is supplied too, also returns:
-          loss_per_sample: [B]
-          loss: scalar mean loss
-        """
-        x_feat = self.gnn(main_graph).squeeze(0)
-        base_params = self.dmn.get_flat_params()  # [P]
-        combined = torch.cat([x_feat, base_params], dim=0)
-        p_hat = self.tnn(combined)
+        p_bar = self.universal_flat_params()
+        p_hat = self.tnn(x_feat, p_bar)
+        return p_hat.squeeze(0), x_feat.squeeze(0), p_bar
 
+    def forward(self, main_graph: Data, sample, return_details: bool = False):
+        p_hat, x_feat, p_bar = self.derive_flat_params(main_graph)
 
         self.dmn.assign_node_stiffness(sample)
-        C_pred = self.dmn.homogenize_from_flat_params(
-            p_hat
-        )
-        return self.dmn.normalized_frobenius_mse(C_pred, sample['C_Target'])
+        C_pred = self.dmn.homogenize_from_flat_params(p_hat)
 
+        if return_details:
+            return {
+                "C_pred": C_pred,
+                "p_hat": p_hat,
+                "x_feat": x_feat,
+                "p_bar": p_bar,
+            }
+        return C_pred
 
 
 class Graph_Model(nn.Module):
@@ -703,8 +711,8 @@ def generate_dmn_params_for_new_graph_validation(
     new_model.tnn.load_state_dict(ckpt["tnn"])
     new_model.dmn.load_state_dict(ckpt["dmn"])
 
-    if "dmn" in ckpt:
-        new_model.dmn.load_state_dict(ckpt["dmn"])
+    # if "dmn" in ckpt:
+    #     new_model.dmn.load_state_dict(ckpt["dmn"])
 
     new_model.gnn.eval()
     new_model.tnn.eval()
@@ -715,14 +723,12 @@ def generate_dmn_params_for_new_graph_validation(
             str(mesh_folder / f"graph_stage_{stage}_rve_{rve}_mesh_{mesh}_DMN.npz")
         ).to(device)
 
-        x_feat = new_model.gnn(main_g).squeeze(0)
-        base_params = new_model.dmn.get_flat_params()
-        combined = torch.cat([x_feat, base_params], dim=0)
+        p_flat, x_feat, p_bar = new_model.derive_flat_params(main_g)
 
-        p_flat = new_model.tnn(combined)
-
-        dmn = DMNCalculator3D(N_layers, phases).to(device)
-        dmn.output_params_from_p_flat(p_flat, imn_validation_folder)
+        new_model.dmn.output_params_from_p_flat(
+            p_flat,
+            imn_validation_folder,
+        )
 
     else:
         training_data_set = get_dataset_main(num_sam, training_dataset_folder)
@@ -739,25 +745,74 @@ def generate_dmn_params_for_new_graph_validation(
                 str(mesh_folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}_DMN.npz")
             ).to(device)
 
-            x_feat = new_model.gnn(main_g).squeeze(0)
-            base_params = new_model.dmn.get_flat_params()
-            combined = torch.cat([x_feat, base_params], dim=0)
-
-            p_flat = new_model.tnn(combined)
-
+            p_flat, x_feat, p_bar = new_model.derive_flat_params(main_g)
             # dmn = DMNCalculator3D(N_layers, sample_phases).to(device)
             new_model.dmn.assign_node_stiffness(training_data_set[sid])
 
             C_pred = new_model.dmn.homogenize_from_flat_params(p_flat)
-            fix_homogenized_C(C_pred)
+            C_pred = mandel_to_voigt(C_pred)
+            # fix_homogenized_C(C_pred)
             C_tgt = training_data_set[sid]["C_Target"].to(device)
 
             print("Solving for:", id)
 
             target_constants.append(extract_engineering_constants(C_tgt))
-            prediction_constants.append(extract_engineering_constants(C_pred, 'mandel'))
+            prediction_constants.append(extract_engineering_constants(C_pred))
 
         return target_constants, prediction_constants
+
+
+
+import torch
+
+
+def mandel_to_voigt(C_mandel: torch.Tensor) -> torch.Tensor:
+    """
+    Convert a 6x6 stiffness matrix from Mandel notation to the FEM
+    engineering-Voigt convention.
+
+    Mandel ordering:
+        [11, 22, 33, 23, 31, 12]
+
+    FEM Voigt ordering:
+        [11, 22, 33, 12, 23, 31]
+
+    FEM engineering strain convention:
+        [eps11, eps22, eps33, gamma12, gamma23, gamma31]
+
+    Supports:
+        C_mandel.shape == (6, 6)
+        C_mandel.shape == (..., 6, 6)
+    """
+    if C_mandel.shape[-2:] != (6, 6):
+        raise ValueError(
+            f"Expected matrix shape (..., 6, 6), got {C_mandel.shape}"
+        )
+
+    T = torch.zeros(
+        (6, 6),
+        dtype=C_mandel.dtype,
+        device=C_mandel.device,
+    )
+
+    T[0, 0] = 1.0
+    T[1, 1] = 1.0
+    T[2, 2] = 1.0
+
+    sqrt_2 = torch.sqrt(
+        torch.tensor(2.0, dtype=C_mandel.dtype, device=C_mandel.device)
+    )
+
+    T[3, 4] = 1.0 / sqrt_2  # gamma23 -> sqrt(2) eps23
+    T[4, 5] = 1.0 / sqrt_2  # gamma31 -> sqrt(2) eps31
+    T[5, 3] = 1.0 / sqrt_2  # gamma12 -> sqrt(2) eps12
+
+    C_voigt = T.T @ C_mandel @ T
+
+    return C_voigt
+
+
+
 
 
 @torch.inference_mode()
@@ -786,10 +841,10 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     gnn_structure = ckpt["gnn_structure"]
     heads = ckpt["heads"]
     nodes_per_mech_per_phase = ckpt["nodes_per_mech_per_phase"]
-    # gnn_layers = ckpt["gnn_layers"]
-    # tnn_layers = ckpt["tnn_layers"]
-    gnn_layers = 3
-    tnn_layers = 3
+    gnn_layers = ckpt["gnn_layers"]
+    tnn_layers = ckpt["tnn_layers"]
+    # gnn_layers = 3
+    # tnn_layers = 3
 
 
     # nodes_per_mech_per_phase =2
@@ -853,7 +908,7 @@ def generate_imn_params(imn_trained_data_folder,imn_validation_folder, mode):
 
 
 @torch.inference_mode()
-def generate_dmn_params(imn_trained_data_folder,imn_validation_folder):
+def generate_dmn_params(imn_trained_data_folder,imn_validation_folder, mode):
     GNN_FILE_PATH = imn_trained_data_folder / 'dmn_generator.pt'
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
@@ -939,10 +994,21 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
     elif mode == 'DMN':
         model = DMNCalculator3D(N_layers, ['MATRIX', 'UD1']).float().to(device)
 
-    opt = optim.AdamW(
-        [{"params": [p for n, p in model.named_parameters() if n != "p_bar"], "lr": lr}],
-        weight_decay=weight_decay
-    )
+    if mode == "GNN_DMN":
+        # The paper optimizes H and T with the normal learning rate and p_bar
+        # with its own learning rate. A larger p_bar LR (e.g. 1e-2) was used in
+        # one of the paper examples; keep it configurable through cfg when added.
+        lr_universal = float(optimizing_variables[8]) if len(optimizing_variables) > 8 else float(lr)
+        opt = optim.AdamW(
+            [
+                {"params": model.gnn.parameters(), "lr": float(lr), "name": "gnn"},
+                {"params": model.tnn.parameters(), "lr": float(lr), "name": "tnn"},
+                {"params": model.dmn.parameters(), "lr": lr_universal, "name": "universal_dmn"},
+            ],
+            weight_decay=weight_decay,
+        )
+    else:
+        opt = optim.AdamW(model.parameters(), lr=float(lr), weight_decay=weight_decay)
 
 
 
@@ -1092,12 +1158,12 @@ def extract_engineering_constants(C, notation='voigt'):
     # Extract Poisson ratios
     # ----------------------------
     nu12 = -S[0, 1] / S[0, 0]
-    nu13 = -S[0, 2] / S[0, 0]
+    nu13 = -S[2, 0] / S[0, 0]
 
     nu21 = -S[1, 0] / S[1, 1]
     nu23 = -S[1, 2] / S[1, 1]
 
-    nu31 = -S[2, 0] / S[2, 2]
+    nu31 = -S[0, 2] / S[2, 2]
     nu32 = -S[2, 1] / S[2, 2]
 
     # ----------------------------
@@ -1122,7 +1188,13 @@ def extract_engineering_constants(C, notation='voigt'):
     # })
     return {
         "E1": E1, "E2": E2, "E3": E3,
-        "nu12": nu12, "nu13": nu13, "nu23": nu23,
+        "nu12": nu12, "nu31": nu32, "nu23": nu23,
         "G12": G12, "G23": G23, "G13": G13,
 
     }
+    # return {
+    #     "E1": E1, "E2": E2,
+    #     "nu12": nu12, "nu23": nu23,
+    #     "G12": G12, "G23": G23,
+    #
+    # }

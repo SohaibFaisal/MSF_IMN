@@ -328,7 +328,7 @@ def _make_dmn(phases, N_layers: int, device: torch.device, dtype: torch.dtype) -
 # Mode-specific loss functions
 # -----------------------------------------------------------------------------
 
-def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: torch.device, mandel) -> torch.Tensor:
+def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: torch.device) -> torch.Tensor:
     """
     For IMN and DMN modes.
 
@@ -340,10 +340,7 @@ def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: t
 
     C_pred = model()
     C_tgt = sample["C_Target"].to(device=device, dtype=C_pred.dtype, non_blocking=True)
-    if mandel:
-        loss_C = _normalized_frobenius_loss_mandel(C_pred, C_tgt)
-    else:
-        loss_C = _normalized_frobenius_loss(C_pred, C_tgt)
+    loss_C = _normalized_frobenius_loss(C_pred, C_tgt)
     lambda_reg = 1e-5  # tune
     loss_reg = model.regularization_loss()
     return loss_C + lambda_reg * loss_reg
@@ -419,33 +416,32 @@ def _loss_gnn_dmn(
     graph_cache: GraphCPUCache,
     device: torch.device,
 ) -> torch.Tensor:
-    """
-    For GNN_DMN mode.
+    """Loss for the paper-consistent GNN-DMN architecture."""
+    main_graph, phase_graphs = _sample_graphs_to_device(
+        sample, mesh_folder, graph_cache, "dmn", device
+    )
 
-    Supported model contracts:
-      1. model.forward(main_graph, sample) returns a scalar loss.
-      2. model.forward(main_graph, sample) returns C_pred, then this function computes the loss.
-      3. model.forward(main_graph, phase_graphs, sample) if your implementation needs phase graphs.
-    """
-    mode = 'dmn'
-    main_graph, phase_graphs = _sample_graphs_to_device(sample, mesh_folder, graph_cache,mode, device)
-    out = model.forward(main_graph, sample)
-    # try:
-    #     out = model.forward(main_graph, sample)
-    # except TypeError:
-    #     out = model.forward(main_graph, phase_graphs, sample)
+    details = model.forward(main_graph, sample, return_details=True)
+    C_pred = details["C_pred"]
 
-    if torch.is_tensor(out) and out.ndim == 0:
-        loss_C = out
-    else:
-        # loss_C = _normalized_frobenius_loss(out, sample["C_Target"])
-        loss_C = _normalized_frobenius_loss_mandel(out, sample["C_Target"])
+    if not torch.isfinite(C_pred).all():
+        raise RuntimeError(
+            f"GNN-DMN produced NaN/Inf for sample {sample.get('ids')}"
+        )
 
-    lambda_reg = 1e-5  # tune
-    loss_reg = model.dmn.regularization_loss()
-    del main_graph, phase_graphs, out
+    # The DMN calculator uses Mandel notation internally.
+    loss_C = _normalized_frobenius_loss_mandel(
+        C_pred, sample["C_Target"]
+    )
 
-    return loss_C + lambda_reg * loss_reg
+    # Paper Eq. (21)-(22): regularize the bottom weights of the universal
+    # DMN p_bar, rather than the derived, sample-specific p_hat.
+    lambda_universal_weight = 1e-5
+    loss_universal_weight = model.dmn.regularization_loss(details["p_bar"])
+
+    total_loss = loss_C + lambda_universal_weight * loss_universal_weight
+    del main_graph, phase_graphs, details, C_pred
+    return total_loss
 
 
 def _make_loss_fn(
@@ -460,11 +456,8 @@ def _make_loss_fn(
 ) -> Callable[[torch.nn.Module, dict[str, Any]], torch.Tensor]:
     mode = mode.upper()  # type: ignore[assignment]
 
-    if mode == 'IMN':
-        return lambda model, sample: _loss_direct_model(model, sample, device, False)
-
-    if mode == 'DMN':
-        return lambda model, sample: _loss_direct_model(model, sample, device, True)
+    if mode in {"IMN", "DMN"}:
+        return lambda model, sample: _loss_direct_model(model, sample, device)
 
     if mode == "GNN_IMN":
         if graph_cache is None:
@@ -786,7 +779,7 @@ def run_live_optimization(
     accumulation_steps=100,
     val_every=5,
     graph_cache_size=0,
-    use_amp=False,
+    use_amp=True,
     force_float32=True,
     cache_imn_by_phase_count=False,
     imn_dtype="float32",

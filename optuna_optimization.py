@@ -276,10 +276,6 @@ if __name__ == "__main__":
         plot_contour
     )
 
-    study = optuna.load_study(
-        study_name="gnn_imn_v1",
-        storage="sqlite:///optuna_gnn_imn.db"
-    )
     # Optimization history
     fig = plot_optimization_history(study)
     fig = format_for_paper(fig)

@@ -11,6 +11,7 @@ def compare_trainings(
     yscale="linear",
     marker_every=None,
     dpi=600,
+    colors=None,
 ):
     plt.rcParams.update({
         "font.family": "Times New Roman",
@@ -24,8 +25,21 @@ def compare_trainings(
         "savefig.dpi": dpi,
     })
     # plt.rcParams["text.usetex"] = True
+
     markers = ["o", "s", "^", "D", "v", "P", "X", "*", "<", ">"]
     linestyles = ["-", "-", "-.", ":"]
+
+    # ------------------------------------------------------------------
+    # Define your colors here
+    # ------------------------------------------------------------------
+    if colors is None:
+        colors = [
+            "#4C72B0",
+            "#DD8452",
+            "#55A868",
+            "#C44E52",
+        ]
+    # ------------------------------------------------------------------
 
     fig, ax = plt.subplots(figsize=(6.2, 3.8))
 
@@ -43,12 +57,17 @@ def compare_trainings(
 
         epoch_axis = np.arange(1, len(train) + 1)
 
-        markevery = marker_every if marker_every is not None else max(1, len(train) // 12)
+        markevery = (
+            marker_every
+            if marker_every is not None
+            else max(1, len(train) // 12)
+        )
 
         line, = ax.plot(
             epoch_axis,
             train,
             label=name,
+            color=colors[i % len(colors)],          # <-- Uses your colors
             marker=markers[i % len(markers)],
             markevery=markevery,
             markersize=4.0,
@@ -58,12 +77,21 @@ def compare_trainings(
             linewidth=1.7,
         )
 
-        final_points.append((epoch_axis[-1], train[-1], name, line.get_color(), markers[i % len(markers)]))
+        final_points.append(
+            (
+                epoch_axis[-1],
+                train[-1],
+                name,
+                line.get_color(),
+                markers[i % len(markers)],
+            )
+        )
 
-    # Add final solid markers and labels
+    # Extend x-axis so final labels fit
     x_min, x_max = ax.get_xlim()
     ax.set_xlim(x_min, x_max + 0.12 * (x_max - x_min))
 
+    # Final marker + percentage
     for x_final, y_final, name, color, marker in final_points:
         ax.plot(
             x_final,
@@ -77,7 +105,7 @@ def compare_trainings(
         )
 
         ax.annotate(
-            f"{100 * y_final:.2f}%",
+            f"{100*y_final:.2f}%",
             xy=(x_final, y_final),
             xytext=(8, 0),
             textcoords="offset points",
@@ -94,23 +122,30 @@ def compare_trainings(
 
     ax.grid(True, which="major", linestyle=":", linewidth=0.7, alpha=0.55)
 
-    ax.tick_params(direction="in", length=4, width=0.8, top=True, right=True)
+    ax.tick_params(
+        direction="in",
+        length=4,
+        width=0.8,
+        top=True,
+        right=True,
+    )
 
     for spine in ax.spines.values():
         spine.set_linewidth(0.8)
 
-    ax.legend(frameon=False, loc="upper right", handlelength=2.8)
+    ax.legend(
+        frameon=False,
+        loc="upper right",
+        handlelength=2.8,
+    )
 
     fig.tight_layout()
 
+    fig.savefig(f"{save_name}.png", bbox_inches="tight")
+    fig.savefig(f"{save_name}.pdf", bbox_inches="tight")
+    fig.savefig(f"{save_name}.svg", bbox_inches="tight")
+
     if show:
         plt.show()
-        fig.savefig(f"{save_name}.png", bbox_inches="tight")
-        fig.savefig(f"{save_name}.pdf", bbox_inches="tight")
-        fig.savefig(f"{save_name}.svg", bbox_inches="tight")
-    else:
-        fig.savefig(f"{save_name}.png", bbox_inches="tight")
-        fig.savefig(f"{save_name}.pdf", bbox_inches="tight")
-        fig.savefig(f"{save_name}.svg", bbox_inches="tight")
 
     plt.close(fig)

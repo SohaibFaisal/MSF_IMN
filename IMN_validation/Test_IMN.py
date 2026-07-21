@@ -116,50 +116,162 @@ def plot_just_mean(error_dict):
     # plt.show()
 
 
-def plot_just_mean_multi(error_dicts, labels=None, save_path="mean_error.svg"):
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def plot_just_mean_multi(
+    error_dicts,
+    labels=None,
+    colors=None,
+    hatches=None,
+    save_path="mean_error.svg",
+):
     """
-    error_dicts: list of dicts, e.g. [err_case1, err_case2, err_case3]
-    labels: legend labels, e.g. ["GNN", "DMN", "GNN-DMN"]
+    Plot grouped mean prediction errors for multiple models.
+
+    Parameters
+    ----------
+    error_dicts : list of dict
+        Each dictionary contains arrays or lists of errors for each
+        elastic constant.
+
+    labels : list of str
+        Labels used in the legend.
+
+    colors : list of str
+        Manually selected colors for each model.
+
+    hatches : list of str, optional
+        Hatch patterns, useful for black-and-white printing.
+
+    save_path : str
+        Output file path.
     """
+
+    n_cases = len(error_dicts)
 
     if labels is None:
-        labels = [f"Case {i+1}" for i in range(len(error_dicts))]
+        labels = [f"Model {i + 1}" for i in range(n_cases)]
 
-    # Use keys from first dict
+    if colors is None:
+        colors = [
+            "#4C72B0",
+            "#DD8452",
+            "#55A868",
+            "#C44E52",
+        ][:n_cases]
+
+    if hatches is None:
+        hatches = ["", "//", "\\\\", "xx"][:n_cases]
+
+    if len(labels) != n_cases:
+        raise ValueError("Number of labels must equal number of datasets.")
+
+    if len(colors) != n_cases:
+        raise ValueError("Number of colors must equal number of datasets.")
+
     keys = list(error_dicts[0].keys())
     x = np.arange(len(keys))
 
-    n_cases = len(error_dicts)
-    bar_width = 0.8 / n_cases
+    means_per_case = [
+        np.array([np.mean(error_dict[key]) for key in keys])
+        for error_dict in error_dicts
+    ]
 
-    plt.figure(figsize=(7, 4))
+    # Slightly narrower bars create more white space between groups
+    total_group_width = 0.72
+    bar_width = total_group_width / n_cases
 
-    for i, error_dict in enumerate(error_dicts):
-        means = [np.mean(error_dict[k]) for k in keys]
+    fig, ax = plt.subplots(figsize=(7.5, 4.5))
 
+    for i, means in enumerate(means_per_case):
         offset = (i - (n_cases - 1) / 2) * bar_width
-        plt.bar(
+
+        bars = ax.bar(
             x + offset,
             means,
             width=bar_width,
-            label=labels[i]
+            color=colors[i],
+            edgecolor="black",
+            linewidth=0.55,
+            hatch=hatches[i],
+            label=labels[i],
+            zorder=3,
         )
 
-    plt.xticks(x, keys, fontsize=10)
-    plt.ylabel("Percentage Error (%)", fontsize=11)
-    plt.title("Elastic constants prediction error", fontsize=12)
+        # Add compact numerical values above bars
+        ax.bar_label(
+            bars,
+            labels=[f"{value:.0f}" for value in means],
+            padding=3,
+            fontsize=8,
+            rotation=0,
+        )
 
-    plt.grid(axis='y', linestyle='--', alpha=0.3)
+    ax.set_xticks(x)
+    ax.set_xticklabels(keys, fontsize=10)
 
-    ax = plt.gca()
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    ax.set_ylabel("Mean absolute percentage error (%)", fontsize=11)
+    ax.set_xlabel("Effective elastic constant", fontsize=11)
 
-    plt.legend(frameon=False)
-    plt.tight_layout()
+    # Usually unnecessary in a paper if the caption already explains it
+    # ax.set_title("Elastic constants prediction error", fontsize=12)
 
-    plt.savefig(save_path, format="svg")
-    plt.close()
+    ax.tick_params(
+        axis="both",
+        which="major",
+        labelsize=10,
+        direction="out",
+        length=4,
+        width=0.8,
+    )
+
+    ax.grid(
+        axis="y",
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.35,
+        zorder=0,
+    )
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_linewidth(0.9)
+    ax.spines["bottom"].set_linewidth(0.9)
+
+    ax.set_ylim(
+        0,
+        max(np.max(values) for values in means_per_case) * 1.15,
+    )
+
+    # Horizontal legend above the plot
+    ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1.01),
+        ncol=n_cases,
+        frameon=False,
+        fontsize=10,
+        handlelength=1.8,
+        columnspacing=1.5,
+    )
+
+    fig.tight_layout()
+
+    fig.savefig(
+        save_path,
+        format="svg",
+        bbox_inches="tight",
+    )
+
+    # Optional high-resolution raster output
+    fig.savefig(
+        save_path.replace(".svg", ".png"),
+        dpi=600,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)
 
 def plot_error_summary(error_dict):
     """
@@ -205,8 +317,8 @@ def validation(new_folder,val_solve,val_plot, stage,r,g_id, loads_cases):
     if val_solve:
         # new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
         with open(new_folder / f'i_all_tests.bat', 'w') as load_file:
-            #for i in ['DNS','IMN']:
-            for i in ['IMN']:
+            for i in ['DNS','IMN']: #-----------------------------------
+            #for i in ['IMN']:
                 # for x in range(1, 7):
                 for x in loads_cases:
                     load_file.write(f'feap86 -iI_val_{i}_stage_{stage}_{x}\n')

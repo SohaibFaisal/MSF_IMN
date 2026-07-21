@@ -67,7 +67,7 @@ main_id = 2
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
 train_folder_id = 2
-validation_folder_id = main_id # Change here if needed
+validation_folder_id = 2 # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
 imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(train_folder_id):04d}")
@@ -84,15 +84,15 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
+training_mode = 'GNN_IMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
-training_data_generation = True
+training_data_generation = False
 show_mesh = False
 
 
 
 
-imn_training = False
+imn_training = True
 cost_live_plot = True
 
 imn_validation = False
@@ -160,31 +160,31 @@ if training_data_generation:
         #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
         #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-         'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [0.2, 4.0, 4.0]},
-         'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-         'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [4.5, 3.0, 3.0]},
-         'SFR1': {'FVC': 0.12, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]},
-         'SFR2': {'FVC': 0.1, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]}},
-        {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-         'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
-         'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
-        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-         'PR1': {'FVC': 0.22, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-         'PR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'PR2': {'FVC': 0.1, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-         'PR1': {'FVC': 0.05, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'PR2': {'FVC': 0.08, 'dia': [0.42, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'PR3': {'FVC': 0.09, 'dia': [0.48, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.1, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'UD2': {'FVC': 0.1, 'dia': [0.15, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 4.0, 4.0]},
+        #  'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+        #  'SFR1': {'FVC': 0.2, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [4.5, 3.0, 3.0]},
+        #  'SFR1': {'FVC': 0.12, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]},
+        #  'SFR2': {'FVC': 0.1, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]}},
+        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+        #  'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
+        #  'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.22, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR2': {'FVC': 0.1, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.05, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR2': {'FVC': 0.08, 'dia': [0.42, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR3': {'FVC': 0.09, 'dia': [0.48, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
 
 
                 ]
@@ -265,19 +265,19 @@ if training_data_generation:
 if imn_training:
     # N_layers = 4
     # num_epochs = 11
-    lr = 4.5e-3
-    weight_decay = 5.05e-8
+    lr = 2e-3
+    weight_decay = 1e-5
     # nodes_per_mech_per_phase = 2
     use_GPU = True
 
-    tnn_hidden_dim = 128
-    gnn_hidden_dim = 128
-    gnn_heads = 8
-    x_feat = 128
-    gnn_structure = 2
+    tnn_hidden_dim = 64
+    gnn_hidden_dim = 127
+    gnn_heads = 4
+    x_feat = 64
+    gnn_structure = 3
     nodes_per_mech_per_phase = 2
     tnn_layers = 2
-    gnn_layers = 2
+    gnn_layers = 3
 
     optimizing_variables = [
         tnn_hidden_dim,
@@ -299,7 +299,7 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 20 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 4500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
@@ -321,10 +321,10 @@ if imn_training:
 # -------------------------------------
 if imn_validation:
 
-    steps = 25
-    create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
+    steps = 100
+    create_new_mesh = False # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
-    nodes_per_mech_per_phase = 2
+    # nodes_per_mech_per_phase = 2
 
     '''
     --- MATERIAL SPECIFICATION ---
@@ -407,7 +407,7 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, True,val_plot, stage, r, g_id, [1,2,3,4,5,6], )
+                validation(new_folder, val_solve,val_plot, stage, r, g_id, [1,2,3,4,5,6], )
 
 
     else:
@@ -420,7 +420,7 @@ if imn_validation:
 
         r = 0
         g_id = 0
-        stage = 1
+        stage = 2
         new_folder = imn_validation_folder / f'Val_stage_{stage}_rve_{r}_mesh_{g_id}'
         phases = list(rve_info_validation_data[r].keys())
         i = 0
@@ -438,7 +438,9 @@ if imn_validation:
         # elif training_mode == 'IMN':
         #     generate_imn_params(imn_trained_data_folder, imn_validation_folder)
         if training_mode == 'GNN_IMN':
-            generate_imn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1, nodes_per_mech_per_phase)
+            generate_imn_params_for_new_graph_validation(mesh_folder,phases,imn_trained_data_folder,imn_validation_folder, stage, r, g_id, 0,0,1)
+
+            # generate_imn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1, nodes_per_mech_per_phase)
         elif training_mode == 'IMN':
             generate_imn_params(imn_trained_data_folder, imn_validation_folder)
         elif training_mode == 'DMN':
@@ -446,7 +448,7 @@ if imn_validation:
         elif training_mode == 'GNN_DMN':
             generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-        validation(new_folder, val_solve, val_plot, stage, r, g_id, [1,2,3,4, 5,6])
+        validation(new_folder, True, val_plot, stage, r, g_id, [1,2,3,4, 5,6])
 
 
 
@@ -474,19 +476,19 @@ if imn_validation_2:
 
 
     else:
-        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(901):04d}")  # Remove later
+        training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(1):04d}")  # Remove later
         mesh_folder = training_dataset_folder / 'Meshes'
 
-        training_models = {'GNN_DMN': 911, 'GNN_IMN': 901}
+        training_models = {'GAT IMN': 11, 'GNN DMN': 1}
         multiple_errors = []
         for k,v in training_models.items():
             imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(v):04d}")
 
-            if 'GNN_IMN' in k:
-                const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder, 200, 2)
-            elif 'GNN_DMN' in k:
+            if 'IMN' in k:
+                const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder, 500, 2)
+            elif 'DMN' in k:
                 const_t, const_p = generate_dmn_params_for_new_graph_validation(mesh_folder, ['MATRIX', 'UD1'], imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
-                                                                                200, 2)
+                                                                                500, 2)
 
 
             errors = dict()
@@ -499,7 +501,8 @@ if imn_validation_2:
             print(errors)
             multiple_errors.append(errors)
 
-        plot_just_mean_multi(multiple_errors, [x for x in training_models.keys()])
+        # ['#FF0000', '#000080']
+        plot_just_mean_multi(multiple_errors, labels=[x for x in training_models.keys()], hatches=['',''])
 
 
 
@@ -516,9 +519,11 @@ if False:
 if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
-    folders = {'GNN DMN - 5 Layers': 911,
+    folders = {
+        'GAT IMN - 5 Layers': 11,
+        'GNN DMN - 5 Layers': 1,
 
-               'GNN IMN - 5 Layers': 901,
+
                # 'Layers: 3 - Nodes: 3': 33,
                # 'Layers: 4 - Nodes: 1': 41,
                # 'Layers: 4 - Nodes: 2': 42,
@@ -527,17 +532,17 @@ if False:
                # 'Layers: 5 - Nodes: 2': 52,
                # 'Layers: 5 - Nodes: 3': 53
                }
-    compare_trainings(folders, True, 100) # Set True to show the plot, False to save it in the main Directory
+    compare_trainings(folders, False, 100) # Set True to show the plot, False to save it in the main Directory
 
-if False:
+if True:
     # Compare validation results
     from IMN_validation.compare_validations import compare_validations
 
-    load_case = [1,2,3]
-    folders = {'Layers: 5 - DMN': 726,
-               'Layers: 5 - IMN': 725,
+    load_case = [1,2,3,4,5,6]
+    folders = {'GAT IMN': 11,
+               'GNN DMN': 1,
                }
-    compare_validations(load_case, folders, True)
+    compare_validations(load_case, folders, False)
 
 
 if False:
