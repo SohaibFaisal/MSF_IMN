@@ -843,6 +843,16 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     nodes_per_mech_per_phase = ckpt["nodes_per_mech_per_phase"]
     gnn_layers = ckpt["gnn_layers"]
     tnn_layers = ckpt["tnn_layers"]
+
+    print(N_layers)
+    print(node_feat_dim)
+    print(gnn_hidden_dim)
+    print(gnn_structure)
+    print(heads)
+    print(nodes_per_mech_per_phase)
+    print(gnn_layers)
+    print(tnn_layers)
+    print(tnn_hidden_dim)
     # gnn_layers = 3
     # tnn_layers = 3
 

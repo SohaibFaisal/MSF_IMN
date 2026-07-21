@@ -63,11 +63,11 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 2
+main_id = 1
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 2
-validation_folder_id = 2 # Change here if needed
+train_folder_id = 11
+validation_folder_id = 11 # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
 imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(train_folder_id):04d}")
@@ -92,10 +92,10 @@ show_mesh = False
 
 
 
-imn_training = True
+imn_training = False
 cost_live_plot = True
 
-imn_validation = False
+imn_validation = True
 val_solve = True
 val_plot = True
 
