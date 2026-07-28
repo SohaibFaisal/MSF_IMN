@@ -897,8 +897,12 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
             C_tgt = training_data_set[sid]["C_Target"]
 
             print('Solving for: ' + str(id))
-            target_constants.append(extract_engineering_constants(C_tgt))
-            prediction_constants.append(extract_engineering_constants(C_pred))
+            try:
+                target_constants.append(extract_engineering_constants(C_tgt))
+                prediction_constants.append(extract_engineering_constants(C_pred))
+            except:
+                print('Skippig a sample! :-)')
+                continue
 
         return target_constants, prediction_constants
 
@@ -1197,9 +1201,9 @@ def extract_engineering_constants(C, notation='voigt'):
     #
     # })
     return {
-        "E1": E1, "E2": E2, "E3": E3,
-        "nu12": nu12, "nu31": nu32, "nu23": nu23,
-        "G12": G12, "G23": G23, "G13": G13,
+        "E1": E1, "E2": E2,
+        "nu12": nu12, "nu23": nu23,
+        "G12": G12, "G23": G23,
 
     }
     # return {

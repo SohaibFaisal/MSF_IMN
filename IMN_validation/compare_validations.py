@@ -10,22 +10,7 @@ def compare_validations(
     save_folder=".",
     dpi=600,
 ):
-    """
-    Compare stress-strain responses of different IMN models against DNS.
 
-    Parameters
-    ----------
-    load_case : iterable
-        List of load case numbers.
-    folders : dict
-        Dictionary of {"Model Name": folder_id}.
-    show : bool
-        Display figures.
-    save_folder : str or Path
-        Output directory.
-    dpi : int
-        Figure resolution.
-    """
 
     plt.rcParams.update({
         "font.family": "Times New Roman",
@@ -50,6 +35,8 @@ def compare_validations(
     }
 
     markers = ["o", "s", "^", "D", "v", "P", "X", "<", ">"]
+    linestyle = ["-", "--"]
+
 
     for lc in load_case:
 
@@ -85,11 +72,11 @@ def compare_validations(
                 stress,
                 label=name,
                 color=color,
-                linestyle="-",
-                # marker=markers[marker_id % len(markers)],
-                # markerfacecolor="white",
-                # markevery=max(len(strain) // 20, 1),
-                # markersize=4,
+                linestyle=linestyle[marker_id],
+                marker=markers[marker_id % len(markers)],
+                markerfacecolor="white",
+                markevery=max(len(strain) // 25, 1),
+                markersize=4,
                 linewidth=2,
             )
 
@@ -116,9 +103,9 @@ def compare_validations(
                     # color=colors["DNS"],
                     color='black',
                     linestyle="none",
-                    marker='o',
+                    marker='^',
                     markerfacecolor="none",
-                    markevery=max(len(dns_strain) // 50, 1),
+                    markevery=max(len(dns_strain) // 25, 1),
                     linewidth=0.5,
                     markersize=4,
                     label="DNS",

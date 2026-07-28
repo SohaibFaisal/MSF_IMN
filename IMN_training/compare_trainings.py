@@ -51,6 +51,7 @@ def compare_trainings(
         data = np.load(folder / "epoch_costs_1.npz")
 
         train = np.asarray(data["train"], dtype=float)
+        train[10:] = np.clip(train[10:], None, 0.03) # Clip peaks
 
         if epochs is not None:
             train = train[:epochs]
@@ -60,7 +61,7 @@ def compare_trainings(
         markevery = (
             marker_every
             if marker_every is not None
-            else max(1, len(train) // 12)
+            else max(1, len(train) // 20)
         )
 
         line, = ax.plot(

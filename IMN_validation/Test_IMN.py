@@ -84,7 +84,7 @@ def plot_mean_with_scatter(error_dict):
     # plt.show()
 
 
-def plot_just_mean(error_dict):
+def plot_just_mean(error_dict, name):
     keys = list(error_dict.keys())
     x = np.arange(len(keys))
 
@@ -92,8 +92,22 @@ def plot_just_mean(error_dict):
 
     plt.figure(figsize=(6, 4))
 
+    colors = [
+        "#4C72B0",
+        "#DD8452",
+        "#55A868",
+        "#C44E52",
+    ][:1]
     # Slim, elegant bars
-    plt.bar(x, means, width=0.5)
+    bars = plt.bar(x, means, width=0.36, color="#4C72B0", edgecolor="black",zorder=3,)
+    plt.bar_label(
+        bars,
+        labels=[f"{value:.0f}" for value in means],
+        padding=3,
+        fontsize=8,
+        rotation=0,
+    )
+
 
     # Minimal styling
     plt.xticks(x, keys, fontsize=10)
@@ -111,7 +125,7 @@ def plot_just_mean(error_dict):
     # Slight padding
     plt.tight_layout()
 
-    plt.savefig("mean_error.svg", format='svg')
+    plt.savefig(f"mean_error_{name}.svg", format='svg')
     plt.close()
     # plt.show()
 
@@ -163,7 +177,7 @@ def plot_just_mean_multi(
         ][:n_cases]
 
     if hatches is None:
-        hatches = ["", "//", "\\\\", "xx"][:n_cases]
+        hatches = ["", "//", "xx"][:n_cases]
 
     if len(labels) != n_cases:
         raise ValueError("Number of labels must equal number of datasets.")
@@ -187,12 +201,13 @@ def plot_just_mean_multi(
 
     for i, means in enumerate(means_per_case):
         offset = (i - (n_cases - 1) / 2) * bar_width
-
+        print(i)
+        print(hatches)
         bars = ax.bar(
             x + offset,
             means,
             width=bar_width,
-            color=colors[i],
+            color=colors[0],
             edgecolor="black",
             linewidth=0.55,
             hatch=hatches[i],

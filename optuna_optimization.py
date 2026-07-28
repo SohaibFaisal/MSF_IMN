@@ -253,11 +253,11 @@ if __name__ == "__main__":
         load_if_exists=True,  # lets you resume later
         pruner=pruner
     )
-    study.optimize(objective, n_trials=50)
+    # study.optimize(objective, n_trials=50)
     print("Best value:", study.best_value)
     print("Best params:", study.best_params)
 
-    exit()
+    #exit()
     #CSV
 
 
@@ -293,7 +293,22 @@ if __name__ == "__main__":
     fig.write_image(viz_dir / "param_importance.svg", scale=3)
 
     # Slice plot
-    fig = plot_slice(study)
+    import optuna
+
+    good_trials = [
+        t for t in study.trials
+        if t.value is not None and t.value <= 0.05
+    ]
+
+    filtered = optuna.create_study(direction=study.direction)
+
+    for t in good_trials:
+        filtered.add_trial(t)
+
+    fig = plot_slice(filtered)
+
+
+    # fig = plot_slice(study)
     fig = format_for_paper(fig)
     fig.update_traces(
         marker=dict(
@@ -307,6 +322,27 @@ if __name__ == "__main__":
         )
     )
     fig.update_layout(title=None)
+    fig.update_xaxes(
+        showgrid=True,
+        gridwidth=1,
+        gridcolor="lightgray",
+        griddash="dot",
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        gridwidth=1,
+        gridcolor="lightgray",
+        griddash="dot",
+    )
+
+    # fig.update_layout(
+    #     width=900,
+    #     height=1400,
+    #     plot_bgcolor="white",
+    #     paper_bgcolor="white",
+    # )
+
     fig.write_image(viz_dir / "slice_plot.pdf")
     fig.write_image(viz_dir / "slice_plot.svg", scale=3)
 
@@ -339,7 +375,14 @@ if __name__ == "__main__":
     fig.write_image(viz_dir / "parallel_coord.svg", scale=3)
 
     # Contour plot
-    fig = plot_contour(study, params=[ "N_layers","x_feat","gnn_structure", "tnn_hidden_dim", "gnn_hidden_dim"])
+    fig = plot_contour(study, params=[ "N_layers",
+        "x_feat",
+        "gnn_layers",
+        "tnn_layers",
+        "tnn_hidden_dim",
+        "gnn_hidden_dim",
+        "nodes_per_mech_per_phase",
+        "gnn_structure", ])
     # fig = plot_contour(study)
     for t in fig.data:
         if t.type == "contour":
@@ -347,9 +390,23 @@ if __name__ == "__main__":
             # t.contours = dict(showlines=False) # Remove black lines
 
 
+
+
     fig = make_left_labels_horizontal(fig, x_shift=-0.06, font_size=14)
     fig = format_for_paper(fig)
     fig.update_layout(title=None)
+
+    # Remove scale anchoring
+    for key in fig.layout:
+        if key.startswith("yaxis"):
+            fig.layout[key].scaleanchor = None
+            fig.layout[key].scaleratio = None
+
+    fig.update_layout(
+        width=1600,
+        height=1600,
+        margin=dict(l=100, r=130, t=80, b=100),
+    )
     # # Make left-side parameter labels horizontal
     # fig.update_layout(margin=dict(l=150, r=40, t=80, b=160))
     # fig.update_xaxes(
@@ -375,5 +432,5 @@ if __name__ == "__main__":
     fig.write_image(viz_dir / "edf.svg", scale=3)
 
 
-    export_trials_csv(study, CSV_FILE)
-    print("Wrote CSV:", CSV_FILE)
+    # export_trials_csv(study, CSV_FILE)
+    # print("Wrote CSV:", CSV_FILE)
