@@ -78,19 +78,7 @@ def _normalized_frobenius_loss_mandel(C_pred: torch.Tensor, C_tgt: torch.Tensor)
         non_blocking=True,
     )
 
-    T = torch.zeros((6, 6), dtype=C_pred.dtype, device=C_pred.device)
-
-    # eps_mandel_internal = T @ eps_fem_engineering
-    T[0, 0] = 1.0
-    T[1, 1] = 1.0
-    T[2, 2] = 1.0
-    T[3, 4] = 1.0 / 2 ** 0.5  # gamma23 -> sqrt(2) eps23
-    T[4, 5] = 1.0 / 2 ** 0.5  # gamma31 -> sqrt(2) eps31
-    T[5, 3] = 1.0 / 2 ** 0.5  # gamma12 -> sqrt(2) eps12
-
-    Tinv = torch.linalg.inv(T)
-    C_tgt = Tinv.T @ C_tgt @ Tinv
-    # C_mandel = T^{-T} C_fem T^{-1}
+    C_tgt = _voigt_to_mandel_stiffness(C_tgt)
 
     diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
     tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
@@ -105,6 +93,76 @@ def _normalized_frobenius_loss_mandel(C_pred: torch.Tensor, C_tgt: torch.Tensor)
     return diff_norm_sq / tgt_norm_sq.clamp_min(
         torch.finfo(C_tgt.dtype).eps
     )
+
+
+
+def _voigt_to_mandel_stiffness(C_voigt: torch.Tensor) -> torch.Tensor:
+    """Convert FEM/engineering-Voigt stiffness to the internal Mandel ordering.
+
+    Expected engineering-Voigt strain order is [11, 22, 33, 12, 23, 31], while
+    the internal Mandel order is [11, 22, 33, 23, 31, 12].
+    """
+    T = torch.zeros((6, 6), dtype=C_voigt.dtype, device=C_voigt.device)
+    T[0, 0] = 1.0
+    T[1, 1] = 1.0
+    T[2, 2] = 1.0
+    T[3, 4] = 1.0 / (2.0 ** 0.5)
+    T[4, 5] = 1.0 / (2.0 ** 0.5)
+    T[5, 3] = 1.0 / (2.0 ** 0.5)
+    Tinv = torch.linalg.inv(T)
+    return Tinv.T @ C_voigt @ Tinv
+
+
+def _per_component_scaled_mse_loss(
+    C_pred: torch.Tensor,
+    C_tgt: torch.Tensor,
+    component_scale: torch.Tensor,
+    *,
+    target_is_voigt: bool = False,
+) -> torch.Tensor:
+    """MSE after scaling every stiffness component by its training-set std.
+
+    This gives components with different numerical magnitudes comparable influence.
+    The scale must be computed only from the training split to avoid validation leakage.
+    """
+    C_tgt = C_tgt.to(device=C_pred.device, dtype=C_pred.dtype, non_blocking=True)
+    if target_is_voigt:
+        C_tgt = _voigt_to_mandel_stiffness(C_tgt)
+
+    scale = component_scale.to(device=C_pred.device, dtype=C_pred.dtype, non_blocking=True)
+    eps = torch.finfo(C_pred.dtype).eps
+    return torch.mean(((C_pred - C_tgt) / scale.clamp_min(eps)) ** 2)
+
+
+def _compute_component_scale(
+    training_data_set: dict[str, Any],
+    train_idx: torch.Tensor,
+    *,
+    convert_voigt_to_mandel: bool,
+    dtype: torch.dtype = torch.float64,
+) -> torch.Tensor:
+    """Compute one standard deviation for each 6x6 target component."""
+    targets = []
+    for idx in train_idx:
+        C = training_data_set[str(idx.item())]["C_Target"]
+        C = torch.as_tensor(C, dtype=dtype, device="cpu")
+        if convert_voigt_to_mandel:
+            C = _voigt_to_mandel_stiffness(C)
+        targets.append(C)
+
+    if not targets:
+        raise ValueError("Cannot compute component scales from an empty training split.")
+
+    stacked = torch.stack(targets, dim=0)
+    scale = stacked.std(dim=0, unbiased=False)
+
+    # A nearly constant component has std ~= 0. Fall back to its RMS magnitude,
+    # then to 1.0 if the component is identically zero throughout the training set.
+    rms = torch.sqrt(torch.mean(stacked ** 2, dim=0))
+    tiny = torch.finfo(dtype).eps ** 0.5
+    scale = torch.where(scale > tiny, scale, rms)
+    scale = torch.where(scale > tiny, scale, torch.ones_like(scale))
+    return scale
 
 def _normalized_weight_fraction_loss(
     flat_p: torch.Tensor,
@@ -328,7 +386,14 @@ def _make_dmn(phases, N_layers: int, device: torch.device, dtype: torch.dtype) -
 # Mode-specific loss functions
 # -----------------------------------------------------------------------------
 
-def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: torch.device) -> torch.Tensor:
+def _loss_direct_model(
+    model: torch.nn.Module,
+    sample: dict[str, Any],
+    device: torch.device,
+    component_scale: torch.Tensor,
+    *,
+    model_uses_mandel: bool,
+) -> torch.Tensor:
     """
     For IMN and DMN modes.
 
@@ -340,7 +405,9 @@ def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: t
 
     C_pred = model()
     C_tgt = sample["C_Target"].to(device=device, dtype=C_pred.dtype, non_blocking=True)
-    loss_C = _normalized_frobenius_loss(C_pred, C_tgt)
+    loss_C = _per_component_scaled_mse_loss(
+        C_pred, C_tgt, component_scale, target_is_voigt=model_uses_mandel
+    )
     lambda_reg = 1e-5  # tune
     loss_reg = model.regularization_loss()
     return loss_C + lambda_reg * loss_reg
@@ -356,6 +423,7 @@ def _loss_gnn_imn(
     nodes_per_mech_per_phase: int,
     dtype: torch.dtype,
     imn_cache: IMNPhaseCountCache | None,
+    component_scale: torch.Tensor,
 ) -> torch.Tensor:
     phases = sample["Phases"]
     mode = 'imn'
@@ -389,7 +457,9 @@ def _loss_gnn_imn(
             print("flat_p:", flat_p)
             raise RuntimeError("C_pred has nan/inf")
 
-        loss = _normalized_frobenius_loss(C_pred, sample["C_Target"])
+        loss = _per_component_scaled_mse_loss(
+            C_pred, sample["C_Target"], component_scale, target_is_voigt=False
+        )
 
         FVC = [f.FVC for f in phase_graphs][0]
         # print('fdvs')
@@ -415,6 +485,7 @@ def _loss_gnn_dmn(
     mesh_folder: Path,
     graph_cache: GraphCPUCache,
     device: torch.device,
+    component_scale: torch.Tensor,
 ) -> torch.Tensor:
     """Loss for the paper-consistent GNN-DMN architecture."""
     main_graph, phase_graphs = _sample_graphs_to_device(
@@ -430,8 +501,8 @@ def _loss_gnn_dmn(
         )
 
     # The DMN calculator uses Mandel notation internally.
-    loss_C = _normalized_frobenius_loss_mandel(
-        C_pred, sample["C_Target"]
+    loss_C = _per_component_scaled_mse_loss(
+        C_pred, sample["C_Target"], component_scale, target_is_voigt=True
     )
 
     # Paper Eq. (21)-(22): regularize the bottom weights of the universal
@@ -453,11 +524,19 @@ def _make_loss_fn(
     nodes_per_mech_per_phase: int,
     dtype: torch.dtype,
     imn_cache: IMNPhaseCountCache | None,
+    component_scale: torch.Tensor,
 ) -> Callable[[torch.nn.Module, dict[str, Any]], torch.Tensor]:
     mode = mode.upper()  # type: ignore[assignment]
 
-    if mode in {"IMN", "DMN"}:
-        return lambda model, sample: _loss_direct_model(model, sample, device)
+    if mode == "IMN":
+        return lambda model, sample: _loss_direct_model(
+            model, sample, device, component_scale, model_uses_mandel=False
+        )
+
+    if mode == "DMN":
+        return lambda model, sample: _loss_direct_model(
+            model, sample, device, component_scale, model_uses_mandel=True
+        )
 
     if mode == "GNN_IMN":
         if graph_cache is None:
@@ -472,12 +551,13 @@ def _make_loss_fn(
             nodes_per_mech_per_phase,
             dtype,
             imn_cache,
+            component_scale,
         )
 
     if mode == "GNN_DMN":
         if graph_cache is None:
             raise ValueError("GNN_DMN requires a graph cache.")
-        return lambda model, sample: _loss_gnn_dmn(model, sample, mesh_folder, graph_cache, device)
+        return lambda model, sample: _loss_gnn_dmn(model, sample, mesh_folder, graph_cache, device, component_scale)
 
     raise ValueError(f"Unknown mode {mode!r}. Use one of: IMN, GNN_IMN, DMN, GNN_DMN.")
 
@@ -579,6 +659,14 @@ def run_optimization(
         if mode == "GNN_IMN" and cache_imn_by_phase_count
         else None
     )
+    uses_mandel_targets = mode in {"DMN", "GNN_DMN"}
+    component_scale = _compute_component_scale(
+        training_data_set,
+        train_idx,
+        convert_voigt_to_mandel=uses_mandel_targets,
+        dtype=torch.float64,
+    )
+
     loss_fn = _make_loss_fn(
         mode=mode,  # type: ignore[arg-type]
         mesh_folder=mesh_folder,
@@ -588,6 +676,7 @@ def run_optimization(
         nodes_per_mech_per_phase=nodes_per_mech_per_phase,
         dtype=tensor_dtype,
         imn_cache=imn_cache,
+        component_scale=component_scale,
     )
 
     print("CUDA available:", torch.cuda.is_available())
@@ -599,6 +688,7 @@ def run_optimization(
     print("Uses graphs:", uses_graphs)
     print("Graph cache size:", graph_cache_size if uses_graphs else "not used")
     print("Tensor dtype:", tensor_dtype)
+    print("Per-component stiffness scaling: enabled")
     print("IMN phase-count cache:", bool(imn_cache))
 
     best_val = float("inf")
