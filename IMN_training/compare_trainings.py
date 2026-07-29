@@ -21,7 +21,7 @@ def compare_trainings(
         "xtick.labelsize": 9,
         "ytick.labelsize": 9,
         "axes.linewidth": 0.8,
-        "lines.linewidth": 1.0,
+        "lines.linewidth": 0.5,
         "savefig.dpi": dpi,
     })
     # plt.rcParams["text.usetex"] = True
@@ -47,75 +47,84 @@ def compare_trainings(
     final_points = []
 
     for i, (name, folder_id) in enumerate(trained_folder_ids.items()):
-        folder = base_folder / f"msf{int(folder_id):04d}"
-        data = np.load(folder / "epoch_costs_1.npz")
+        for loss_type in ['train', 'val']:
+            folder = base_folder / f"msf{int(folder_id):04d}"
+            data = np.load(folder / "epoch_costs_1.npz")
 
-        train = np.asarray(data["train"], dtype=float)
-        train[10:] = np.clip(train[10:], None, 0.03) # Clip peaks
+            train = np.asarray(data[loss_type], dtype=float)
 
-        if epochs is not None:
-            train = train[:epochs]
+            # train[10:] = np.clip(train[10:], None, 0.03) # Clip peaks
 
-        epoch_axis = np.arange(1, len(train) + 1)
+            if epochs is not None:
+                train = train[:epochs]
 
-        markevery = (
-            marker_every
-            if marker_every is not None
-            else max(1, len(train) // 20)
-        )
 
-        line, = ax.plot(
-            epoch_axis,
-            train,
-            label=name,
-            color=colors[i % len(colors)],          # <-- Uses your colors
-            marker=markers[i % len(markers)],
-            markevery=markevery,
-            markersize=4.0,
-            markerfacecolor="white",
-            markeredgewidth=0.9,
-            linestyle=linestyles[i % len(linestyles)],
-            linewidth=1.7,
-        )
+            epoch_axis = np.arange(1, len(train) + 1)
 
-        final_points.append(
-            (
-                epoch_axis[-1],
-                train[-1],
-                name,
-                line.get_color(),
-                markers[i % len(markers)],
+            markevery = (
+                marker_every
+                if marker_every is not None
+                else max(1, len(train) // 20)
             )
-        )
 
-    # Extend x-axis so final labels fit
-    x_min, x_max = ax.get_xlim()
-    ax.set_xlim(x_min, x_max + 0.12 * (x_max - x_min))
+            if loss_type == 'train':
+                ls = '-'
+            else:
+                ls = '--'
+            line, = ax.plot(
+                epoch_axis,
+                train,
+                label=(name + ' ' + loss_type if loss_type == 'train' else name + ' ' + loss_type + 'idation'),
+                color=colors[i % len(colors)],          # <-- Uses your colors
+                # marker=markers[i % len(markers)],
+                # markevery=markevery,
+                # markersize=4.0,
+                # markerfacecolor="white",
+                # markeredgewidth=0.9,
+                # linestyle=linestyles[i % len(linestyles)],
+                linestyle=ls,
+                linewidth=1.7,
+            )
 
-    # Final marker + percentage
-    for x_final, y_final, name, color, marker in final_points:
-        ax.plot(
-            x_final,
-            y_final,
-            marker=marker,
-            markersize=6.0,
-            markerfacecolor=color,
-            markeredgecolor=color,
-            linestyle="None",
-            zorder=5,
-        )
+            if loss_type == 'val':
+                final_points.append(
+                    (
+                        epoch_axis[-1],
+                        train[-1],
+                        name,
+                        line.get_color(),
+                        markers[i % len(markers)],
+                    )
+                )
 
-        ax.annotate(
-            f"{100*y_final:.2f}%",
-            xy=(x_final, y_final),
-            xytext=(8, 0),
-            textcoords="offset points",
-            va="center",
-            ha="left",
-            fontsize=8.5,
-            fontweight="bold",
-            color=color,
-        )
+        # Extend x-axis so final labels fit
+        x_min, x_max = ax.get_xlim()
+        ax.set_xlim(x_min, x_max + 0.12 * (x_max - x_min))
+
+        # Final marker + percentage
+        for x_final, y_final, name, color, marker in final_points:
+            ax.plot(
+                x_final,
+                y_final,
+                marker=marker,
+                markersize=3.0,
+                markerfacecolor=color,
+                markeredgecolor=color,
+                linestyle="None",
+                zorder=5,
+            )
+
+            ax.annotate(
+                f"{100*y_final:.2f}%",
+                xy=(x_final, y_final),
+                xytext=(8, 0),
+                textcoords="offset points",
+                va="center",
+                ha="left",
+                fontsize=8.5,
+                fontweight="bold",
+                color=color,
+            )
 
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Training loss")

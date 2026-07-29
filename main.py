@@ -66,8 +66,8 @@ SIM_NAME = 'OLA'
 main_id = 1
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 31
-validation_folder_id = 31 # Change here if needed
+train_folder_id = 51
+validation_folder_id = 51 # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
 imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(train_folder_id):04d}")
@@ -84,15 +84,15 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'GNN_IMN' # GNN_IMN, IMN, GNN_DMN, DMN
+training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
-training_data_generation = False
+training_data_generation = True
 show_mesh = False
 
 
 
 
-imn_training = True
+imn_training = False
 cost_live_plot = True
 
 imn_validation = False
@@ -153,11 +153,11 @@ if training_data_generation:
 
     rve_info_training_data = [
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-        #  'UD1': {'FVC': 0.30, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
+        #  'UD1': {'FVC': 0.2, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
 
 
-        {'MATRIX': {'size': [2.0, 3.0, 3.0]},
-         'UD1': {'FVC': 0.15, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+        # {'MATRIX': {'size': [0.2, 5.0, 3.0]},
+        #  'UD1': {'FVC': 0.2, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
         #  'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
@@ -169,8 +169,8 @@ if training_data_generation:
         #  'UD1': {'FVC': 0.08, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'UD2': {'FVC': 0.05, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'UD3': {'FVC': 0.09, 'dia': [0.2, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
-        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
-        #  'SFR1': {'FVC': 0.16, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.20
+        # {'MATRIX': {'size': [3.0, 2.0, 2.0]},
+        #  'SFR1': {'FVC': 0.26, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}}, # 0.20
 
 
         # {'MATRIX': {'size': [4.5, 3.0, 3.0]},
@@ -180,8 +180,8 @@ if training_data_generation:
         #  'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
         #  'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
-        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-        #  'PR1': {'FVC': 0.18, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+         'PR1': {'FVC': 0.17, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
         # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
         #  'PR1': {'FVC': 0.15, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'PR2': {'FVC': 0.15, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
@@ -193,14 +193,14 @@ if training_data_generation:
         #  'UD1': {'FVC': 0.07, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'SFR1': {'FVC': 0.08, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         # 'PR1': {'FVC': 0.07, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
-        #
+        # #
         # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
         #  'UD1': {'FVC': 0.12, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'PR1': {'FVC': 0.08, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
         #
-        # {'MATRIX': {'size': [5.0, 2.0, 2.0]},
-        #  'UD1': {'FVC': 0.1, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-        #  'SFR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},},  # 0.22
+        # # {'MATRIX': {'size': [5.0, 2.0, 2.0]},
+        # #  'UD1': {'FVC': 0.1, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        # #  'SFR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},},  # 0.22
         #
         # {'MATRIX': {'size': [4.0, 4.0, 4.0]},
         #  'SFR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
@@ -318,7 +318,7 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 300 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
@@ -377,8 +377,8 @@ if imn_validation:
         rve_info_validation_data = [
             # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
             #  'SFR1': {'FVC': 0.15, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.20
-            {'MATRIX': {'size': [2, 3.0, 3.0]},
-             'UD1': {'FVC': 0.18, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]}},
+            {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+             'UD1': {'FVC': 0.15, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
             # {'MATRIX': {'size': [4.5, 4, 4]},
             #  'UD1': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]},
             # 'SFR1': {'FVC': 0.08, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]},
@@ -475,9 +475,9 @@ if imn_validation:
 
 
 if imn_validation_2:
-    single = False
+    single = True
     if single:
-        for x in [5,6,7]:
+        for x in [20]:
             stage = 1
             training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(x):04d}") # Remove later
             mesh_folder = training_dataset_folder / 'Meshes'
@@ -488,7 +488,7 @@ if imn_validation_2:
                                                                             0,
                                                                             0,
                                                                             training_dataset_folder,
-                                                                            400,
+                                                                            100,
                                                                             2)
 
 
@@ -507,7 +507,7 @@ if imn_validation_2:
         training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(4):04d}")  # Remove later
         mesh_folder = training_dataset_folder / 'Meshes'
 
-        training_models = {'Interpolation': [12,8], 'Extrapolation to higher FVC': [12,6], 'Extrapolation to new RVE configs': [12,7]}
+        training_models = {'Interpolation': [12,3], 'Extrapolation to higher FVC': [12,16], 'Extrapolation to bigger RVEs': [12,17], 'Extrapolation to new RVE configs': [12,18]}
         multiple_errors = []
         for k,v in training_models.items():
             imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(v[0]):04d}")
@@ -521,7 +521,7 @@ if imn_validation_2:
                                                                                 400, 2)
             else:
                 const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
-                                                                                400, 2)
+                                                                                300, 2)
 
 
             errors = dict()
@@ -546,14 +546,15 @@ if False:
     # Create a randomized subset from training data
     from Training_data_generation.dataset_subset import dataset_subset
     source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(2):04d}")  # Define here
-    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(8):04d}")  # Define here
-    dataset_subset(source_dataset_folder, new_dataset_folder,400)
+    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(15):04d}")  # Define here
+    dataset_subset(source_dataset_folder, new_dataset_folder,300)
 
 if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
     folders = {
-        'GAT IMN - 5 Layers': 12,
+        'GAT IMN - 5 Layers': 11,
+        'GAT DMN - 5 Layers': 1,
 
 
 

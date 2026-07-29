@@ -177,7 +177,7 @@ def plot_just_mean_multi(
         ][:n_cases]
 
     if hatches is None:
-        hatches = ["", "//", "xx"][:n_cases]
+        hatches = ["", "---", "...", 'xxx'][:n_cases]
 
     if len(labels) != n_cases:
         raise ValueError("Number of labels must equal number of datasets.")
@@ -197,7 +197,7 @@ def plot_just_mean_multi(
     total_group_width = 0.72
     bar_width = total_group_width / n_cases
 
-    fig, ax = plt.subplots(figsize=(7.5, 4.5))
+    fig, ax = plt.subplots(figsize=(12, 7.2))
 
     for i, means in enumerate(means_per_case):
         offset = (i - (n_cases - 1) / 2) * bar_width
