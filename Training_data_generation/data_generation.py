@@ -980,9 +980,11 @@ def write_coh_coords(file_name_for_coords, rve_info):
 def convert_to_feap(in_file, out_file, material_identifiers):
     with open(in_file, "r") as infile:
         lines = infile.readlines()[:-1]
+
+
     elements = dict()
     for m in material_identifiers:
-        print(m)
+
         elements[m[1]] = []
 
     reading = 'none'
@@ -1383,7 +1385,40 @@ def create_mesh(rve_info, mesh_size, fiber_collision_tolerance, mesh_folder, sho
 
     # rsa(rve_info, fiber_collision_tolerance)
     new_rsa(rve_info, fiber_collision_tolerance)
-    create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_name_for_coords)
+    create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh, show_mesh, file_name_for_coords)
+
+
+    # For multiple mesh sizes of the same RVE in different folders
+    # mesh_szies = {'101':0.35,'102':0.23,'103':0.175,'104':0.1167}
+    # old = 'Training_data0101'
+    # graph_id = -1
+    # for x in [101,102,103,104]:
+    #     gmsh.finalize()
+    #     gmsh.initialize()
+    #     gmsh.model.add("collision_check")
+    #     gmsh.model.add("periodicity_check")
+    #     gmsh.model.add("final")
+    #     gmsh.option.setNumber('General.Verbosity', 0)
+    #     graph_id +=1
+    #     file_name_for_mesh = mesh_folder / f'gmsh_stage_{stage}_rve_{r}_mesh_{graph_id}.inp'  # From gmsh in abaqus format
+    #     # new = f'Training_data{x:04d}'
+    #     #
+    #     #
+    #     # parts = list(file_name_for_mesh.parts)
+    #     # parts[parts.index(old)] = new
+    #     # file_name_for_mesh = Path(*parts)
+    #     # # mesh_folder.mkdir(exist_ok=True)
+    #     # old = f'Training_data{x:04d}'
+    #     #
+    #     # print('----------------------------------')
+    #     # print(mesh_folder)
+    #     # print(file_name_for_mesh)
+    #     mesh_size = mesh_szies[str(x)]
+    #
+    #
+    #     # import time
+    #     # time.sleep(10e6)
+    #     create_periodic_mesh(rve_info, mesh_size, file_name_for_mesh,show_mesh,file_name_for_coords)
 
 
 
@@ -2010,6 +2045,7 @@ def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder,imn_v
     file_name_for_mesh = mesh_folder / f'gmsh_stage_{stage}_rve_{r}_mesh_{g_id}.inp'  # From gmsh in abaqus format
     file_name_for_FEAP_mesh = mesh_folder / f'val_IMN_stage_{stage}_rve_{r}_mesh_{g_id}'  # From abaqus to FEAP format
     material_identifiers = [[y[:-3], y[-3:]] for y in list(IMN_material.keys())]
+    print(material_identifiers)
     convert_to_feap(file_name_for_mesh, file_name_for_FEAP_mesh,material_identifiers)
 
     write_feap_input(file_name_for_FEAP_mesh,new_folder,imn_validation_folder,rve_info['MATRIX']['size'],strain,steps,test_mesh_size,IMN_material,stage, r,g_id, IMN)

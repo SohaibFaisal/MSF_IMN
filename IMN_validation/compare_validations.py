@@ -28,14 +28,27 @@ def compare_validations(
     save_folder = Path(save_folder)
     save_folder.mkdir(exist_ok=True)
 
+    # colors = {
+    #     "DNS": "black",
+    #     "IMN": "#4C72B0",
+    #     "GNN": "#DD8452",
+    # }
+    # colors = {
+    #     "1": "#9ECAE1",  # light
+    #     "2": "#6BAED6",
+    #     "3": "#3182BD",
+    #     "4": "#08519C",  # dark
+    # }
+
     colors = {
-        "DNS": "black",
-        "IMN": "#4C72B0",
-        "GNN": "#DD8452",
+        "1": "#E41A1C",  # red
+        "2": "#377EB8",  # blue
+        "3": "#4DAF4A",  # green
+        "4": "#984EA3",  # purple
     }
 
-    markers = ["o", "s", "^", "D", "v", "P", "X", "<", ">"]
-    linestyle = ["-", "--"]
+    markers = ["o", "s", "D", "v", "P", "X", "<", ">"]
+    linestyle = ["-", "-","-", "-"]
 
 
     for lc in load_case:
@@ -62,22 +75,22 @@ def compare_validations(
             stress = np.load(validation_folder / f"LC{lc}_stress_IMN.npz")["data"]
             strain = np.load(validation_folder / f"LC{lc}_strain_IMN.npz")["data"]
 
-            if "IMN" in name:
-                color = colors["IMN"]
-            else:
-                color = colors["GNN"]
+            # if "IMN" in name:
+            #     color = colors["IMN"]
+            # else:
+            #     color = colors["GNN"]
 
             ax.plot(
                 strain,
                 stress,
                 label=name,
-                color=color,
+                color=colors[str(marker_id+1)],
                 linestyle=linestyle[marker_id],
-                marker=markers[marker_id % len(markers)],
-                markerfacecolor="white",
-                markevery=max(len(strain) // 25, 1),
-                markersize=4,
-                linewidth=2,
+                # marker=markers[marker_id % len(markers)],
+                # markerfacecolor="white",
+                # markevery=max(len(strain) // 25, 1),
+                # markersize=4,
+                linewidth=1.5,
             )
 
             marker_id += 1
@@ -121,7 +134,7 @@ def compare_validations(
         # -------------------------------
         ax.set_xlabel("Strain")
         ax.set_ylabel("Stress")
-        ax.set_title(f"Load Case {lc}")
+        # ax.set_title(f"Load Case {lc}")
 
         ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.5)
         ax.set_axisbelow(True)

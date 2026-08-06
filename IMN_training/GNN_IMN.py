@@ -142,6 +142,35 @@ class HybridGNNIMN(nn.Module):
         return flat_p
 
 
+
+class JustGNN(nn.Module):
+    def __init__(self,  gnn_hidden_dim:int, heads:int, x_dim: int, GNN_structure: int, gnn_layers:int, ):
+
+        super().__init__()
+        self.gnn_hidden_dim = gnn_hidden_dim
+        self.gnn_structure = GNN_structure
+        self.node_feat_dim = 46
+        self.heads = heads
+        self.x_dim = x_dim
+        self.gnn_layers=gnn_layers
+
+        if GNN_structure == 1:
+            from .GNNs import GraphFeatureExtractor_phase_aware
+            self.gnn = GraphFeatureExtractor_phase_aware(in_dim=self.node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads,num_layers=gnn_layers) #ok
+        elif GNN_structure == 2:
+            from .GNNs import GraphFeatureExtractor_AttentionPool_phase_aware
+            self.gnn = GraphFeatureExtractor_AttentionPool_phase_aware(in_dim=self.node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads, num_layers=gnn_layers)  # Good
+        elif GNN_structure == 3:
+            from .GNNs import GraphFeatureExtractor_JK_Set2Set_phase_aware
+            self.gnn = GraphFeatureExtractor_JK_Set2Set_phase_aware(in_dim=self.node_feat_dim, hidden_dim=gnn_hidden_dim, x_dim=x_dim, heads=heads,num_layers=gnn_layers)
+
+
+    def forward(self, main_graph):
+        x_feat = self.gnn(main_graph)
+
+
+        return x_feat.reshape(6,6)
+
 # =============================================================================
 # Hybrid GNN + DMN model
 # =============================================================================
@@ -759,6 +788,9 @@ def generate_dmn_params_for_new_graph_validation(
             target_constants.append(extract_engineering_constants(C_tgt))
             prediction_constants.append(extract_engineering_constants(C_pred))
 
+            # target_constants.append(extract_components(C_tgt))
+            # prediction_constants.append(extract_components(C_pred))
+
         return target_constants, prediction_constants
 
 
@@ -844,15 +876,7 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
     gnn_layers = ckpt["gnn_layers"]
     tnn_layers = ckpt["tnn_layers"]
 
-    print(N_layers)
-    print(node_feat_dim)
-    print(gnn_hidden_dim)
-    print(gnn_structure)
-    print(heads)
-    print(nodes_per_mech_per_phase)
-    print(gnn_layers)
-    print(tnn_layers)
-    print(tnn_hidden_dim)
+
     # gnn_layers = 3
     # tnn_layers = 3
 
@@ -896,10 +920,29 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
             C_pred = imn.homogenize_from_flat_params(flat_p)
             C_tgt = training_data_set[sid]["C_Target"]
 
-            print('Solving for: ' + str(id))
+            diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
+            tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
+            error = diff_norm_sq / tgt_norm_sq.clamp_min(
+                torch.finfo(C_tgt.dtype).eps
+            )
+            print('Solving for: ' + str(id) + f'--------------------------------------------------   {error*100} %')
+
+
             try:
-                target_constants.append(extract_engineering_constants(C_tgt))
-                prediction_constants.append(extract_engineering_constants(C_pred))
+                ec_target = extract_engineering_constants(C_tgt)
+                ec_pred = extract_engineering_constants(C_pred)
+                # for k in ec_target.keys():
+                #     ec_error = 100*abs(ec_target[k] - ec_pred[k])/ec_target[k]
+                #     print(f'Target {k} error: {ec_error}')
+                #
+                # print(ec_target)
+                # print(ec_pred)
+
+
+                target_constants.append(ec_target)
+                prediction_constants.append(ec_pred)
+                # target_constants.append(extract_components(C_tgt))
+                # prediction_constants.append(extract_components(C_pred))
             except:
                 print('Skippig a sample! :-)')
                 continue
@@ -1008,6 +1051,11 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
     elif mode == 'DMN':
         model = DMNCalculator3D(N_layers, ['MATRIX', 'UD1']).float().to(device)
 
+    elif mode == 'GNN':
+        model = JustGNN(gnn_hidden_dim=cfg['gnn_hidden_dim'], heads=cfg['gnn_heads'], x_dim=36, GNN_structure=cfg['gnn_structure'], gnn_layers=cfg['gnn_layers']).float().to(device)
+
+
+
     if mode == "GNN_DMN":
         # The paper optimizes H and T with the normal learning rate and p_bar
         # with its own learning rate. A larger p_bar LR (e.g. 1e-2) was used in
@@ -1077,6 +1125,17 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
         ckpt = {
             "dmn": model.state_dict(),
             "N_layers": model.N_layers,
+        }
+
+    elif mode =='GNN':
+        GNN_FILE_PATH = imn_trained_data_folder / f"gnn_generator.pt"
+        ckpt = {
+            "gnn": model.state_dict(),
+            "x_dim": model.x_dim,
+            "gnn_hidden_dim": model.gnn_hidden_dim,
+            "heads": model.heads,
+            "gnn_layers": model.gnn_layers,
+            "gnn_structure": model.gnn_structure,
         }
 
 
@@ -1212,3 +1271,20 @@ def extract_engineering_constants(C, notation='voigt'):
     #     "G12": G12, "G23": G23,
     #
     # }
+
+def extract_components(C, notation='voigt'):
+
+
+    # ----------------------------
+    # Check input
+    # ----------------------------
+    C = np.array(C, dtype=float)
+    if C.shape != (6, 6):
+        raise ValueError("C must be a 6x6 matrix")
+
+    components = {}
+    for x in range(0, 6):
+        for y in range(0, 6):
+            components[str(x)+"_"+str(y)] = C[x][y]
+
+    return components

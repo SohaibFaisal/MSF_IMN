@@ -17,7 +17,7 @@ from .IMN_calculator import IMNCalculator
 from .DMN_calculator_3D import DMNCalculator3D
 
 
-Mode = Literal["IMN", "GNN", "GNN_IMN", "DMN", "GNN_DMN"]
+Mode = Literal["IMN", "GNN_IMN", "DMN", "GNN_DMN"]
 
 lock = threading.Lock()
 running = True
@@ -195,7 +195,7 @@ def _split_indices(num_samples: int, val_ratio: float = 0.2, seed: int = 123) ->
 
 
 # -----------------------------------------------------------------------------
-# Graph loading/cache: used by GNN, GNN_IMN, and GNN_DMN
+# Graph loading/cache: only used by GNN_IMN and GNN_DMN
 # -----------------------------------------------------------------------------
 
 def load_graph_npz_2(path: str | Path, target_col: int = 7) -> Data:
@@ -258,8 +258,6 @@ def _sample_graphs_to_device(
         main_graph = _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz"), device)
     elif mode == 'dmn':
         main_graph = _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}_DMN.npz"), device)
-    elif mode == 'gnn':
-        main_graph = _to_device(graph_cache.get(folder / f"graph_with_materials_stage_{ss}_rve_{rr}_mesh_{mm}.npz"), device)
     phase_graphs = [
         _to_device(graph_cache.get(folder / f"graph_stage_{ss}_rve_{rr}_mesh_{mm}_target_{ph}.npz"), device)
         for ph in sample["Phases"]
@@ -347,78 +345,6 @@ def _loss_direct_model(model: torch.nn.Module, sample: dict[str, Any], device: t
     loss_reg = model.regularization_loss()
     return loss_C + lambda_reg * loss_reg
 
-
-
-def _extract_gnn_stiffness(output: Any) -> torch.Tensor:
-    """Extract a 6x6 stiffness matrix from a direct-GNN model output.
-
-    Supported outputs:
-      * Tensor with shape (6, 6)
-      * Tensor with 36 values
-      * Tensor with 21 values (upper-triangular symmetric representation)
-      * Dictionary containing ``C_pred``
-    """
-    if isinstance(output, dict):
-        if "C_pred" not in output:
-            raise KeyError("Direct GNN output dictionary must contain 'C_pred'.")
-        output = output["C_pred"]
-
-    if not torch.is_tensor(output):
-        raise TypeError(
-            "Direct GNN must return a torch.Tensor or a dictionary containing 'C_pred'."
-        )
-
-    # Remove batch dimensions of size one, e.g. (1, 6, 6) or (1, 36).
-    while output.ndim > 2 and output.shape[0] == 1:
-        output = output.squeeze(0)
-
-    if output.shape == (6, 6):
-        C_pred = output
-    elif output.numel() == 36:
-        C_pred = output.reshape(6, 6)
-    elif output.numel() == 21:
-        values = output.reshape(-1)
-        C_pred = values.new_zeros((6, 6))
-        upper = torch.triu_indices(6, 6, device=values.device)
-        C_pred[upper[0], upper[1]] = values
-        C_pred = C_pred + torch.triu(C_pred, diagonal=1).transpose(0, 1)
-    else:
-        raise ValueError(
-            f"Direct GNN output must represent a 6x6 matrix; got shape {tuple(output.shape)}."
-        )
-
-    # Enforce the minor symmetry expected for an elastic stiffness matrix.
-    return 0.5 * (C_pred + C_pred.transpose(-1, -2))
-
-
-def _loss_gnn(
-    model: torch.nn.Module,
-    sample: dict[str, Any],
-    mesh_folder: Path,
-    graph_cache: GraphCPUCache,
-    device: torch.device,
-) -> torch.Tensor:
-    """Loss for a direct GNN that maps one mesh graph to the 6x6 stiffness matrix."""
-    main_graph, phase_graphs = _sample_graphs_to_device(
-        sample, mesh_folder, graph_cache, "gnn", device
-    )
-
-    # Preferred interface: model(main_graph). A fallback with sample is kept for
-    # models that also use material or phase metadata from the dataset entry.
-    try:
-        output = model(main_graph)
-    except TypeError:
-        output = model(main_graph, sample)
-
-    C_pred = _extract_gnn_stiffness(output)
-    if not torch.isfinite(C_pred).all():
-        raise RuntimeError(
-            f"Direct GNN produced NaN/Inf for sample {sample.get('ids')}"
-        )
-
-    loss = _normalized_frobenius_loss(C_pred, sample["C_Target"])
-    del main_graph, phase_graphs, output, C_pred
-    return loss
 
 def _loss_gnn_imn(
     model: torch.nn.Module,
@@ -533,13 +459,6 @@ def _make_loss_fn(
     if mode in {"IMN", "DMN"}:
         return lambda model, sample: _loss_direct_model(model, sample, device)
 
-    if mode == "GNN":
-        if graph_cache is None:
-            raise ValueError("GNN requires a graph cache.")
-        return lambda model, sample: _loss_gnn(
-            model, sample, mesh_folder, graph_cache, device
-        )
-
     if mode == "GNN_IMN":
         if graph_cache is None:
             raise ValueError("GNN_IMN requires a graph cache.")
@@ -560,7 +479,7 @@ def _make_loss_fn(
             raise ValueError("GNN_DMN requires a graph cache.")
         return lambda model, sample: _loss_gnn_dmn(model, sample, mesh_folder, graph_cache, device)
 
-    raise ValueError(f"Unknown mode {mode!r}. Use one of: IMN, GNN, GNN_IMN, DMN, GNN_DMN.")
+    raise ValueError(f"Unknown mode {mode!r}. Use one of: IMN, GNN_IMN, DMN, GNN_DMN.")
 
 
 # -----------------------------------------------------------------------------
@@ -627,11 +546,10 @@ def run_optimization(
     mode: Mode = "GNN_IMN",
 ):
     """
-    Unified optimization loop for five modes:
+    Unified optimization loop for four modes:
 
       IMN      : model is the IMN calculator. No graphs are loaded.
       DMN      : model is the DMN calculator. No graphs are loaded.
-      GNN      : model maps the mesh graph directly to the 6x6 stiffness matrix.
       GNN_IMN  : model maps graphs -> IMN flat parameters; IMNCalculator homogenizes.
       GNN_DMN  : model uses graphs and returns either loss or C_pred.
     """
@@ -654,7 +572,7 @@ def run_optimization(
     val_every = max(1, int(val_every))
     _clear_plot_data(plot_data)
 
-    uses_graphs = mode in {"GNN", "GNN_IMN", "GNN_DMN"}
+    uses_graphs = mode in {"GNN_IMN", "GNN_DMN"}
     graph_cache = GraphCPUCache(max_graphs=graph_cache_size) if uses_graphs else None
     imn_cache = (
         IMNPhaseCountCache(N_layers, nodes_per_mech_per_phase, device, tensor_dtype)
@@ -826,11 +744,6 @@ def run_optimization_IMN(*args, **kwargs):
 
 def run_optimization_DMN(*args, **kwargs):
     kwargs["mode"] = "DMN"
-    return run_optimization(*args, **kwargs)
-
-
-def run_optimization_GNN(*args, **kwargs):
-    kwargs["mode"] = "GNN"
     return run_optimization(*args, **kwargs)
 
 

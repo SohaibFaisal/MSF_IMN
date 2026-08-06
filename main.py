@@ -1,5 +1,8 @@
 import os
 import shutil
+
+import numpy as np
+
 from IMN_training.GNN_IMN import *
 from IMN_validation.Test_IMN import *
 from datetime import datetime as dt
@@ -66,8 +69,8 @@ SIM_NAME = 'OLA'
 main_id = 1
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 51
-validation_folder_id = 51 # Change here if needed
+train_folder_id = 21
+validation_folder_id = 1 # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
 imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(train_folder_id):04d}")
@@ -84,15 +87,15 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 # PROBLEM DEFINITION
 # -------------------------------------
-training_mode = 'GNN_DMN' # GNN_IMN, IMN, GNN_DMN, DMN
+training_mode = 'GNN' # GNN_IMN, IMN, GNN_DMN, DMN
 
-training_data_generation = True
+training_data_generation = False
 show_mesh = False
 
 
 
 
-imn_training = False
+imn_training = True
 cost_live_plot = True
 
 imn_validation = False
@@ -108,14 +111,14 @@ imn_validation_2 = False # For elastic constants error
 # TRAINING DATA GENERATION
 # -------------------------------------
 if training_data_generation:
-    stage = 1
+    stage = 2
     mesh_size = 0.35
     fiber_collision_tolerance = mesh_size/2
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.01
-    materials_per_mesh = 10
-    mesh_per_config = 10
+    materials_per_mesh = 1
+    mesh_per_config = 1
 
 
     '''
@@ -152,8 +155,79 @@ if training_data_generation:
     '''
 
     rve_info_training_data = [
+
+        # Training 24 -----------------------------------------------------------------------
+        {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+         'UD1': {'FVC': 0.14, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.25
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.16, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.25
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.18, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.20
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.2, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.20
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.18, 'dia': [0.75, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+        # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
+        #  'SFR1': {'FVC': 0.18, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+
+        # # Training 22 -----------------------------------------------------------------------
         # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
         #  'UD1': {'FVC': 0.2, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.15, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.25
+        # {'MATRIX': {'size': [3.0, 2.0, 2.0]},
+        #  'SFR1': {'FVC': 0.2, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}}, # 0.20
+        # {'MATRIX': {'size': [3.0, 2.0, 2.0]},
+        #  'SFR1': {'FVC': 0.15, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}}, # 0.20
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.2, 'dia': [0.75, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.15, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+
+        # Training 21 -----------------------------------------------------------------------
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.32, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
+        # {'MATRIX': {'size': [0.2, 3.0, 3.0]},
+        #  'UD1': {'FVC': 0.05, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.25
+        # {'MATRIX': {'size': [3.0, 2.0, 2.0]},
+        #  'SFR1': {'FVC': 0.26, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}}, # 0.20
+        # {'MATRIX': {'size': [3.0, 2.0, 2.0]},
+        #  'SFR1': {'FVC': 0.04, 'dia': [0.25, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]}}, # 0.20
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.27, 'dia': [0.75, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.04, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+
+        # Training 23 -----------------------------------------------------------------------
+        # {'MATRIX': {'size': [4.0, 2.0, 2.0]},
+        #  'UD1': {'FVC': 0.07, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'SFR1': {'FVC': 0.08, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        # 'PR1': {'FVC': 0.07, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+        # #
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'UD1': {'FVC': 0.12, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR1': {'FVC': 0.08, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+        #
+        # {'MATRIX': {'size': [5.0, 2.0, 2.0]},
+        #  'UD1': {'FVC': 0.1, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'SFR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},},  # 0.22
+        #
+        # {'MATRIX': {'size': [4.0, 4.0, 4.0]},
+        #  'SFR1': {'FVC': 0.1, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR1': {'FVC': 0.08, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+        #
+        # {'MATRIX': {'size': [4.0, 4.0, 4.0]},
+        #  'SFR1': {'FVC': 0.05, 'dia': [0.5, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'SFR2': {'FVC': 0.04, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR1': {'FVC': 0.08, 'dia': [0.7, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+        #
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'UD1': {'FVC': 0.12, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR1': {'FVC': 0.05, 'dia': [0.75, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
+        #  'PR2': {'FVC': 0.05, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+
+
+
 
 
         # {'MATRIX': {'size': [0.2, 5.0, 3.0]},
@@ -180,8 +254,8 @@ if training_data_generation:
         #  'SFR1': {'FVC': 0.05, 'dia': [0.55, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'SFR2': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2, 0]},
         #  'SFR3': {'FVC': 0.09, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [2.5, 0]}},
-        {'MATRIX': {'size': [2.0, 2.0, 2.0]},
-         'PR1': {'FVC': 0.17, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
+        # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+        #  'PR1': {'FVC': 0.17, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.22
         # {'MATRIX': {'size': [2.0, 2.0, 2.0]},
         #  'PR1': {'FVC': 0.15, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
         #  'PR2': {'FVC': 0.15, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
@@ -266,7 +340,6 @@ if training_data_generation:
 
     key_map_file = training_dataset_folder / 'key_map.npz'
     np.savez_compressed(str(key_map_file), **key_map, allow_pickle=True)
-
     solve_abaqus_input_files(total_samples, training_dataset_folder)
     os.system(f"abaqus python homogenize_abaqus.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.0001")
     # os.system(f"abaqus python homogenize_blocks.py -- {os.getcwd()}/{str(training_dataset_folder)} 0.01")
@@ -318,7 +391,7 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 50 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
@@ -341,7 +414,7 @@ if imn_training:
 if imn_validation:
 
     steps = 50
-    create_new_mesh = True # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
+    create_new_mesh = False # Or use a mesh from the training_data_gen_folder/training_data_id/Meshes
     test_mesh_size = [2,2,2]
     # nodes_per_mech_per_phase = 2
 
@@ -432,8 +505,8 @@ if imn_validation:
     else:
         os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
         rve_info_validation_data = [
-            {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-             'UD1': {'FVC': 0.22, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},
+            {'MATRIX': {'size': [0.2, 6.0, 6.0]},
+             'UD1': {'FVC': 0.17, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
         ]
         # Has to be same as the one used to create the existing mesh
 
@@ -448,6 +521,7 @@ if imn_validation:
             IMN_material[phase + f' {i + 1} '] = mat[i]
             i += 1
 
+        create_mesh_graph(mesh_folder, stage, r, g_id, training_mode) # If not only created
         create_FEAP_validation_files(rve_info_validation_data[r], strain, mesh_folder,
                                      new_folder, imn_validation_folder, steps, test_mesh_size,
                                      IMN_material, stage, r, g_id, training_mode)
@@ -467,7 +541,7 @@ if imn_validation:
         elif training_mode == 'GNN_DMN':
             generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-        validation(new_folder, True, val_plot, stage, r, g_id, [1,2,3,4, 5,6])
+        validation(new_folder, True, val_plot, stage, r, g_id, [2,5])
 
 
 
@@ -475,7 +549,9 @@ if imn_validation:
 
 
 if imn_validation_2:
-    single = True
+
+
+    single = False
     if single:
         for x in [20]:
             stage = 1
@@ -507,21 +583,26 @@ if imn_validation_2:
         training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(4):04d}")  # Remove later
         mesh_folder = training_dataset_folder / 'Meshes'
 
-        training_models = {'Interpolation': [12,3], 'Extrapolation to higher FVC': [12,16], 'Extrapolation to bigger RVEs': [12,17], 'Extrapolation to new RVE configs': [12,18]}
+        training_models = {
+                            # 'GAT IMN - Interpolation': [12,22],
+                           'GAT IMN - Extrapolation to higher FVC': [12,21],
+                           # 'GAT IMN - Extrapolation to unique RVEs': [12,23]
+                           }
         multiple_errors = []
+        sample_numbers = 300
         for k,v in training_models.items():
             imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(v[0]):04d}")
             training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(v[1]):04d}")  # Remove later
             mesh_folder = training_dataset_folder / 'Meshes'
 
             if 'IMN' in k:
-                const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder, 500, 2)
+                const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder, sample_numbers, 2)
             elif 'DMN' in k:
                 const_t, const_p = generate_dmn_params_for_new_graph_validation(mesh_folder, ['MATRIX', 'UD1'], imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
-                                                                                400, 2)
+                                                                                sample_numbers, 2)
             else:
                 const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
-                                                                                300, 2)
+                                                                                sample_numbers, 2)
 
 
             errors = dict()
@@ -535,7 +616,7 @@ if imn_validation_2:
             multiple_errors.append(errors)
 
         # ['#FF0000', '#000080']
-        plot_just_mean_multi(multiple_errors, labels=[x for x in training_models.keys()])
+        plot_error_boxplots_multi(multiple_errors, labels=[x for x in training_models.keys()])
 
 
 
@@ -546,7 +627,7 @@ if False:
     # Create a randomized subset from training data
     from Training_data_generation.dataset_subset import dataset_subset
     source_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(2):04d}")  # Define here
-    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(15):04d}")  # Define here
+    new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(22):04d}")  # Define here
     dataset_subset(source_dataset_folder, new_dataset_folder,300)
 
 if False:
@@ -571,14 +652,21 @@ if False:
 if False:
     # Compare validation results
     from IMN_validation.compare_validations import compare_validations
+    from IMN_validation.compare_validation_errors import compare_validation_errors
 
-    load_case = [2,4,5]
+    load_case = [2,5]
     folders = {
 
-        'GAT IMN': 7,
+        'RVE (a)': 101,
+        'RVE (b)': 102,
+        'RVE (c)': 103,
+        'RVE (d)': 104,
 
                }
-    compare_validations(load_case, folders, False)
+    compare_validation_errors(load_case, folders, True,
+    error_method="normalized_absolute",dns_mode='separate')
+    compare_validations(load_case, folders, True)
+
 
 
 if False:
@@ -587,6 +675,38 @@ if False:
     source_folders = list(Path(F_Training_data_generation + '\\Training_data' + f"{int(idx):04d}") for idx in [721,722,723])
     combined_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(724):04d}")  # Define here
     combine_datasets_with_meshes([source_folders][0], combined_dataset_folder)
+
+if False:
+    # Relative errors
+    load_case = [2,5]
+    val_folds = [[101,101],[102,102],[103,103],[104,104]]
+
+    data_dict = dict()
+    error_dict = dict()
+
+    for fold in val_folds:
+        for lc in load_case:
+            p = Path(F_IMN_validation + '\\Validation' + f"{int(fold[0]):04d}" + '\\Val_stage_2_rve_0_mesh_0\\plots')
+            data_dict[str(fold[0]) + '_strain_DNS_' + str(lc)] = np.asarray(np.load(p / f'LC{lc}_strain_DNS.npz', allow_pickle=True)['data'])
+            data_dict[str(fold[0]) + '_strain_IMN_' + str(lc)] = np.asarray(np.load(p / f'LC{lc}_strain_IMN.npz', allow_pickle=True)['data'])
+            data_dict[str(fold[0]) + '_stress_DNS_' + str(lc)] = np.asarray(np.load(p / f'LC{lc}_stress_DNS.npz', allow_pickle=True)['data'])
+            data_dict[str(fold[0]) + '_stress_IMN_' + str(lc)] = np.asarray(np.load(p / f'LC{lc}_stress_IMN.npz', allow_pickle=True)['data'])
+
+
+
+    for fold in val_folds:
+        for lc in load_case:
+            print(data_dict[str(fold[0]) + '_stress_IMN_' + str(lc)])
+            print(data_dict[str(fold[0]) + '_stress_DNS_' + str(lc)])
+            error_dict[str(fold[0]) + '_error_' + str(lc)] = abs((data_dict[str(fold[0]) + '_stress_IMN_' + str(lc)] - data_dict[str(fold[0]) + '_stress_DNS_' + str(lc)]))
+            print(error_dict[str(fold[0]) + '_error_' + str(lc)])
+
+    for k in error_dict.keys():
+        print(k, error_dict[k])
+        if 'error_2' in k:
+            plt.plot(error_dict[k][1:])
+
+    plt.show()
 
 
 print('End at : ', dt.now())

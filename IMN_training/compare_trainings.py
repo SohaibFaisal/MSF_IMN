@@ -127,7 +127,7 @@ def compare_trainings(
             )
 
     ax.set_xlabel("Epoch")
-    ax.set_ylabel("Training loss")
+    ax.set_ylabel("Loss")
     ax.set_yscale(yscale)
 
     ax.grid(True, which="major", linestyle=":", linewidth=0.7, alpha=0.55)
