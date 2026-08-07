@@ -664,39 +664,155 @@ def graph_runs(training_dataset_folder,imn_trained_data_folder, num_samples, opt
         # return model
         return best_val
 
-
-
-def get_dataset_main(num_samples,training_dataset_folder):
+def get_dataset_main_normalized(num_samples, training_dataset_folder):
 
     main_data_set = {}
-    npz = np.load(str(training_dataset_folder / f'material_dictionary.npz'), allow_pickle=True)
+    C_all = []
+    npz = np.load(
+        str(training_dataset_folder / "material_dictionary.npz"),
+        allow_pickle=True,
+    )
     C_in = {
-        k: npz[k].item()  # unwrap the dict from numpy object array
+        k: npz[k].item()
         for k in npz.files
     }
-    C_out = np.load(str(training_dataset_folder / f'homogenize.npz'), allow_pickle=True)
-    npz = np.load(str(training_dataset_folder / f'key_map.npz'), allow_pickle=True)
 
+    C_out = np.load(
+        str(training_dataset_folder / "homogenize.npz"),
+        allow_pickle=True,
+    )
+
+    npz = np.load(
+        str(training_dataset_folder / "key_map.npz"),
+        allow_pickle=True,
+    )
     key_map = {
-        k: npz[k].item()  # unwrap the dict from numpy object array
+        k: npz[k].item()
         for k in npz.files
     }
+
+    # ---------------------------------------------------------
+    # First pass: collect all stiffness matrices
+    # ---------------------------------------------------------
 
     for i in range(num_samples):
         main_data_set[str(i)] = {}
-        stage, rve, mesh = key_map[str(i)]['ids']
-        main_data_set[str(i)]['ids'] = [stage, rve, mesh]
-        phases = key_map[str(i)]['phases']
-        main_data_set[str(i)]['Phases'] = phases
+        C_target = torch.tensor(
+            C_out[str(i)],
+            dtype=torch.float32,)
+
+        fix_homogenized_C(C_target)
+        # Flatten 6x6 -> 36
+        C_target_flat = C_target.flatten()
+        C_all.append(C_target_flat)
+
+
+        phases = key_map[str(i)]["phases"]
+        main_data_set[str(i)]["Phases"] = phases
 
         for phase in phases:
-            main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
+            C_p = torch.tensor(
+                C_in[str(i)][phase],
+                dtype=torch.float32,
+            )
+            main_data_set[str(i)][phase] = C_p
+            C_all.append(C_p.flatten())
 
-        C_target = torch.tensor(C_out[str(i)])
+
+    # Shape: (num_samples, 36)
+    C_all = torch.stack(C_all)
+    # ---------------------------------------------------------
+    # Calculate normalization factors separately for each
+    # of the 36 stiffness components
+    # ---------------------------------------------------------
+    C_mean = C_all.mean(dim=0)   # shape: (36,)
+    C_std = C_all.std(dim=0)     # shape: (36,)
+
+    # Avoid division by zero / very small standard deviations
+    eps = 1e-12
+    C_std = torch.where(
+        C_std < eps,
+        torch.ones_like(C_std),
+        C_std,
+    )
+
+    # ---------------------------------------------------------
+    # Second pass: construct dataset using normalized targets
+    # ---------------------------------------------------------
+    for i in range(num_samples):
+        stage, rve, mesh = key_map[str(i)]["ids"]
+        main_data_set[str(i)]["ids"] = [
+            stage,
+            rve,
+            mesh,
+        ]
+        phases = key_map[str(i)]["phases"]
+        main_data_set[str(i)]["Phases"] = phases
+
+        for phase in phases:
+            C_phase = torch.tensor(
+                C_in[str(i)][phase],
+                dtype=torch.float32
+            ).flatten()
+            C_phase_normalized = (C_phase - C_mean
+                                 ) / C_std
+
+            main_data_set[str(i)][phase] = C_phase_normalized.reshape(6,6)
+
+        C_target = torch.tensor(
+            C_out[str(i)],
+            dtype=torch.float32,
+        )
+
         fix_homogenized_C(C_target)
-        main_data_set[str(i)][f'C_Target'] = C_target
+        # Flatten 6x6 -> 36
+        C_target = C_target.flatten()
 
-    return main_data_set   #, graphs_data_set
+        # Normalize each stiffness component independently
+        C_target_normalized = (
+            C_target - C_mean
+        ) / C_std
+
+
+        main_data_set[str(i)]["C_Target"] = C_target_normalized.reshape(6,6)
+
+    # Return normalization factors as well
+    return main_data_set, C_mean, C_std
+
+
+
+# Working-------------------------------- Without normalization
+# def get_dataset_main(num_samples,training_dataset_folder):
+#
+#     main_data_set = {}
+#     npz = np.load(str(training_dataset_folder / f'material_dictionary.npz'), allow_pickle=True)
+#     C_in = {
+#         k: npz[k].item()  # unwrap the dict from numpy object array
+#         for k in npz.files
+#     }
+#     C_out = np.load(str(training_dataset_folder / f'homogenize.npz'), allow_pickle=True)
+#     npz = np.load(str(training_dataset_folder / f'key_map.npz'), allow_pickle=True)
+#
+#     key_map = {
+#         k: npz[k].item()  # unwrap the dict from numpy object array
+#         for k in npz.files
+#     }
+#
+#     for i in range(num_samples):
+#         main_data_set[str(i)] = {}
+#         stage, rve, mesh = key_map[str(i)]['ids']
+#         main_data_set[str(i)]['ids'] = [stage, rve, mesh]
+#         phases = key_map[str(i)]['phases']
+#         main_data_set[str(i)]['Phases'] = phases
+#
+#         for phase in phases:
+#             main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
+#
+#         C_target = torch.tensor(C_out[str(i)])
+#         fix_homogenized_C(C_target)
+#         main_data_set[str(i)][f'C_Target'] = C_target
+#
+#     return main_data_set   #, graphs_data_set
 
 
 @torch.inference_mode()
@@ -950,6 +1066,98 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
         return target_constants, prediction_constants
 
 
+
+
+@torch.inference_mode()
+def generate_gnn_params_for_new_graph_validation(mesh_folder,
+                                                 phases,
+                                                 imn_trained_data_folder,
+                                                 imn_validation_folder,
+                                                 stage,
+                                                 rve,
+                                                 mesh,
+                                                 training_dataset_folder,
+                                                 num_sam,
+                                                 mode,
+                                                 ):
+
+    GNN_FILE_PATH = imn_trained_data_folder / 'gnn_generator.pt'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    ckpt = torch.load(GNN_FILE_PATH, map_location="cpu")
+
+
+
+    node_feat_dim = 46
+    x_dim = ckpt["x_dim"]
+    gnn_hidden_dim = ckpt["gnn_hidden_dim"]
+    gnn_structure = ckpt["gnn_structure"]
+    heads = ckpt["heads"]
+    gnn_layers = ckpt["gnn_layers"]
+    C_mean =ckpt["C_mean"]
+    C_std = ckpt["C_std"]
+
+
+    # gnn_layers = 3
+    # tnn_layers = 3
+
+
+    # nodes_per_mech_per_phase =2
+
+    new_model = JustGNN(gnn_hidden_dim=gnn_hidden_dim, heads=heads, x_dim=x_dim, GNN_structure=gnn_structure, gnn_layers=gnn_layers).to(device).eval()
+
+    new_model.load_state_dict(ckpt["gnn"])
+    new_model.eval()
+
+    if mode == 1:
+        main_g = load_graph_npz_2(str(mesh_folder / f'graph__with_materials_stage_{stage}_rve_{rve}_mesh_{mesh}.npz')).to(device) # _old
+
+        stiffness_matrix = new_model.forward(main_g)
+        imn_validation_folder.mkdir(parents=True, exist_ok=True)
+        D = np.asfortranarray(stiffness_matrix.detach().cpu().numpy(), dtype=np.float64)
+        D.ravel(order="F").tofile(imn_validation_folder / "D_0.bin")
+        np.array(D.shape, dtype=np.int32).tofile(imn_validation_folder / "D_0.shape")
+
+
+    else:
+        training_data_set = get_dataset_main_normalized(num_sam, training_dataset_folder)
+        target_constants = []
+        prediction_constants = []
+        for id in range(num_sam):
+            sid = str(id)
+            ss, rr, mm = training_data_set[sid]['ids']
+            main_g = load_graph_npz_2(str(mesh_folder / f'graph_with_materials_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device) # old
+            C_pred = new_model.forward(main_g)
+            C_tgt = training_data_set[sid]["C_Target"]
+
+            diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
+            tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
+            error = diff_norm_sq / tgt_norm_sq.clamp_min(
+                torch.finfo(C_tgt.dtype).eps
+            )
+            print('Solving for: ' + str(id) + f'--------------------------------------------------   {error*100} %')
+
+
+            try:
+                ec_target = extract_engineering_constants(C_tgt)
+                ec_pred = extract_engineering_constants(C_pred)
+                # for k in ec_target.keys():
+                #     ec_error = 100*abs(ec_target[k] - ec_pred[k])/ec_target[k]
+                #     print(f'Target {k} error: {ec_error}')
+                #
+                # print(ec_target)
+                # print(ec_pred)
+                target_constants.append(ec_target)
+                prediction_constants.append(ec_pred)
+                # target_constants.append(extract_components(C_tgt))
+                # prediction_constants.append(extract_components(C_pred))
+            except:
+                print('Skippig a sample! :-)')
+                continue
+
+        return target_constants, prediction_constants
+
+
+
 @torch.inference_mode()
 def generate_imn_params(imn_trained_data_folder,imn_validation_folder, mode):
 
@@ -1022,7 +1230,8 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
     device = get_device(use_GPU)
     mesh_folder = training_dataset_folder / 'Meshes'
-    training_data_set = get_dataset_main(num_samples, training_dataset_folder)
+    training_data_set, C_mean,C_std = get_dataset_main_normalized(num_samples, training_dataset_folder) #
+    # training_data_set = get_dataset_main(num_samples, training_dataset_folder)
     node_feat_dim = 8 if 'DMN' in mode else 10
     cfg = dict(
         node_feat_dim=node_feat_dim,  # derived
@@ -1136,6 +1345,8 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
             "heads": model.heads,
             "gnn_layers": model.gnn_layers,
             "gnn_structure": model.gnn_structure,
+            "C_mean": C_mean,
+            "C_std": C_std,
         }
 
 

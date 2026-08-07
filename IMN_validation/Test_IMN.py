@@ -766,7 +766,7 @@ def plot_error_boxplots_multi(
     show_mean=True,
     show_outliers=False,
     use_log_scale=False,
-    max_error=100.0,
+    max_error=200.0,
 ):
     """
     Plot grouped boxplots of prediction errors for multiple models.
@@ -838,19 +838,19 @@ def plot_error_boxplots_multi(
         # ]
 
         # IMN vs DMN
-        # default_colors = [
-        #     "#4C72B0",
-        #     "#DD8452",
-        #     "#55A868",
-        #     "#C44E52",
-        # ]
+        default_colors = [
+            "#4C72B0",
+            "#DD8452",
+            "#55A868",
+            "#C44E52",
+        ]
 
         # IMN vs IMN
-        default_colors = [
-            # "#7FB3E8",  # light blue
-            "#2F6DB3",  # medium blue
-            # "#0A2F6B",  # very dark navy
-        ]
+        # default_colors = [
+        #     "#7FB3E8",  # light blue
+        #     "#2F6DB3",  # medium blue
+        #     "#0A2F6B",  # very dark navy
+        # ]
 
         if n_cases > len(default_colors):
             raise ValueError(
@@ -1023,7 +1023,7 @@ def plot_error_boxplots_multi(
     x = np.arange(len(keys))
 
     # Width occupied by all boxplots in one elastic-constant group.
-    total_group_width = 0.70/3
+    total_group_width = 0.70
     box_spacing = total_group_width / n_cases
     box_width = box_spacing * 0.72
 

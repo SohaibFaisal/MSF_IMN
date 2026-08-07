@@ -1,4 +1,4 @@
-file_name = 'elas_cons_comp_ext2.pdf_tex'
+file_name = 'elas_cons_comp_all.pdf_tex'
 
 with open(file_name, "r") as f:
     lines = f.readlines()

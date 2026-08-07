@@ -53,7 +53,7 @@ def compare_trainings(
 
             train = np.asarray(data[loss_type], dtype=float)
 
-            # train[10:] = np.clip(train[10:], None, 0.03) # Clip peaks
+            train[10:] = np.clip(train[10:], None, 0.03) # Clip peaks
 
             if epochs is not None:
                 train = train[:epochs]
@@ -83,7 +83,7 @@ def compare_trainings(
                 # markeredgewidth=0.9,
                 # linestyle=linestyles[i % len(linestyles)],
                 linestyle=ls,
-                linewidth=1.7,
+                linewidth=1.1,
             )
 
             if loss_type == 'val':

@@ -1,0 +1,108 @@
+%% Creator: Inkscape 1.4.3 (0d15f75, 2025-12-25), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'elas_cons_all.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{517.4628022bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.61026968)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{elas_cons_all.pdf}}%
+    \put(0.16919622,0.04623651){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}E1\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{elas_cons_all.pdf}}%
+    \put(0.30525484,0.04623651){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}E2\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{elas_cons_all.pdf}}%
+    \put(0.44131346,0.04623651){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}nu12\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{elas_cons_all.pdf}}%
+    \put(0.5773721,0.04623651){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}nu23\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{elas_cons_all.pdf}}%
+    \put(0.71343072,0.04623651){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}G12\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{elas_cons_all.pdf}}%
+    \put(0.84948934,0.04623651){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}G23\end{tabular}}}}%
+    \put(0.5093428,0.01833507){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Effective elastic constant\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{elas_cons_all.pdf}}%
+    \put(0.06680855,0.06807233){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{elas_cons_all.pdf}}%
+    \put(0.06680855,0.16833884){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}10\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{elas_cons_all.pdf}}%
+    \put(0.06680855,0.26860537){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}20\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{elas_cons_all.pdf}}%
+    \put(0.06680855,0.36887187){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}30\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{elas_cons_all.pdf}}%
+    \put(0.06680855,0.46913841){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}40\end{tabular}}}}%
+    \put(0.03006647,0.31161024){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Mean absolute percentage error (\%)\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{elas_cons_all.pdf}}%
+    \put(0.13654214,0.19459646){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}11\end{tabular}}}}%
+    \put(0.27260078,0.22119141){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}14\end{tabular}}}}%
+    \put(0.40865939,0.40349179){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}32\end{tabular}}}}%
+    \put(0.54471801,0.3308044){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}25\end{tabular}}}}%
+    \put(0.68077663,0.47585464){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}39\end{tabular}}}}%
+    \put(0.81683525,0.49520256){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}41\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{elas_cons_all.pdf}}%
+    \put(0.16919622,0.19558934){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}11\end{tabular}}}}%
+    \put(0.30525484,0.18870399){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}10\end{tabular}}}}%
+    \put(0.44131346,0.28884299){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}20\end{tabular}}}}%
+    \put(0.5773721,0.31920255){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}23\end{tabular}}}}%
+    \put(0.71343072,0.35054807){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}27\end{tabular}}}}%
+    \put(0.84948934,0.39497853){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}31\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{elas_cons_all.pdf}}%
+    \put(0.20185028,0.19274637){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}11\end{tabular}}}}%
+    \put(0.3379089,0.19662987){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}11\end{tabular}}}}%
+    \put(0.47396752,0.31691392){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}23\end{tabular}}}}%
+    \put(0.61002614,0.31103909){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}23\end{tabular}}}}%
+    \put(0.74608476,0.43401973){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}35\end{tabular}}}}%
+    \put(0.88214343,0.47512463){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}39\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{elas_cons_all.pdf}}%
+    \put(0.09057475,0.57394164){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Interpolation\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{elas_cons_all.pdf}}%
+    \put(0.29348789,0.57394164){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Extrapolation to higher FVC 1\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{elas_cons_all.pdf}}%
+    \put(0.6581125,0.57394164){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Extrapolation to new RVE configs\end{tabular}}}}%
+  \end{picture}%
+\endgroup%

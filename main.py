@@ -69,7 +69,7 @@ SIM_NAME = 'OLA'
 main_id = 1
 data_gen_folder_id = main_id # Change here if needed
 # train_folder_id = main_id # Change here if needed
-train_folder_id = 21
+train_folder_id = 69
 validation_folder_id = 1 # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
@@ -391,7 +391,7 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 50 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 5 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
     # if training_mode == 'GNN_IMN':
     #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
@@ -540,6 +540,8 @@ if imn_validation:
             generate_dmn_params(imn_trained_data_folder, imn_validation_folder)
         elif training_mode == 'GNN_DMN':
             generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
+        elif training_mode == 'GNN':
+            generate_gnn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
         validation(new_folder, True, val_plot, stage, r, g_id, [2,5])
 
@@ -584,12 +586,12 @@ if imn_validation_2:
         mesh_folder = training_dataset_folder / 'Meshes'
 
         training_models = {
-                            # 'GAT IMN - Interpolation': [12,22],
-                           'GAT IMN - Extrapolation to higher FVC': [12,21],
-                           # 'GAT IMN - Extrapolation to unique RVEs': [12,23]
+                            'GAT IMN': [11,1],
+                           'GNN DMN': [1,1],
+                           'GAT': [21,1]
                            }
         multiple_errors = []
-        sample_numbers = 300
+        sample_numbers = 500
         for k,v in training_models.items():
             imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(v[0]):04d}")
             training_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(v[1]):04d}")  # Remove later
@@ -599,6 +601,10 @@ if imn_validation_2:
                 const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder, sample_numbers, 2)
             elif 'DMN' in k:
                 const_t, const_p = generate_dmn_params_for_new_graph_validation(mesh_folder, ['MATRIX', 'UD1'], imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
+                                                                                sample_numbers, 2)
+            elif k == 'GAT':
+                const_t, const_p = generate_gnn_params_for_new_graph_validation(mesh_folder, ['MATRIX', 'UD1'], imn_trained_data_folder, imn_validation_folder, 0, 0, 0,
+                                                                                training_dataset_folder,
                                                                                 sample_numbers, 2)
             else:
                 const_t, const_p = generate_imn_params_for_new_graph_validation(mesh_folder, 0, imn_trained_data_folder, imn_validation_folder, 0, 0, 0, training_dataset_folder,
@@ -630,12 +636,12 @@ if False:
     new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(22):04d}")  # Define here
     dataset_subset(source_dataset_folder, new_dataset_folder,300)
 
-if False:
+if True:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
     folders = {
-        'GAT IMN - 5 Layers': 11,
-        'GAT DMN - 5 Layers': 1,
+        'GAT IMN': 12,
+
 
 
 
@@ -647,7 +653,7 @@ if False:
                # 'Layers: 5 - Nodes: 2': 52,
                # 'Layers: 5 - Nodes: 3': 53
                }
-    compare_trainings(folders, False, 100) # Set True to show the plot, False to save it in the main Directory
+    compare_trainings(folders, True, 100) # Set True to show the plot, False to save it in the main Directory
 
 if False:
     # Compare validation results
