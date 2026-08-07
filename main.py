@@ -1,50 +1,34 @@
-import os
 import shutil
-
-import numpy as np
-
 from IMN_training.GNN_IMN import *
 from IMN_validation.Test_IMN import *
 from datetime import datetime as dt
 from Training_data_generation.data_generation import *
-from output_DMN_params_from_pt import export_dmn_params_from_checkpoint
 start = dt.now()
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-
+# ------------------------------------------------------------------------
 # import argparse
 # parser = argparse.ArgumentParser()
 # parser.add_argument("--layers", type=int, default=5)
 # parser.add_argument("--nodes", type=int, default=2)
 # parser.add_argument("--epochs", type=int, default=300)
 # args = parser.parse_args()
-#
+
 # print('Running study for : ')
 # print("Layers:", args.layers)
 # print("Nodes per mech per phase:", args.nodes)
 # print("Epochs:", args.epochs)
-
-print('Start at : ', dt.now())
 # N_layers = args.layers
 # nodes_per_mech_per_phase = args.nodes
 # num_epochs = args.epochs
 # train_folder_id = f'072{N_layers}'
+# -----------------------------------------------------------------------
+print('Start at : ', dt.now())
+
 N_layers = 5
 nodes_per_mech_per_phase = 2
 num_epochs = 100
-
-
-
-#N_layers = 4
-#nodes_per_mech_per_phase = 1
-#num_epochs = 5
-#train_folder_id = str(N_layers) + str(nodes_per_mech_per_phase)
-# Example:
-# train_model(lr=learning_rate, batch_size=batch_size, epochs=epochs)
-
-
-
 
 # -------------------------------------
 # DO NOT CHANGE
@@ -52,13 +36,6 @@ num_epochs = 100
 F_IMN_training = 'IMN_training'
 F_IMN_validation = 'IMN_validation'
 F_Training_data_generation = 'Training_data_generation'
-# -------------------------------------
-
-
-# -------------------------------------
-# HYPER-PARAMETERS
-# -------------------------------------
-
 # -------------------------------------
 
 
@@ -92,16 +69,12 @@ training_mode = 'GNN' # GNN_IMN, IMN, GNN_DMN, DMN
 training_data_generation = False
 show_mesh = False
 
-
-
-
 imn_training = True
 cost_live_plot = True
 
 imn_validation = False
 val_solve = True
 val_plot = True
-
 
 imn_validation_2 = False # For elastic constants error
 # -------------------------------------
@@ -119,40 +92,6 @@ if training_data_generation:
     strain = 0.01
     materials_per_mesh = 1
     mesh_per_config = 1
-
-
-    '''
-        rve_info_training_data must follow this format.
-        
-        rve_info_training_data = [RVE1, RVE2, RVE3, ......] (List if Dictionaries)
-        
-        RVE1 = {Phase1, Phase2, Phase3, ...} (Dictionary of dictionaries)
-        
-        Phase1 = 'MATRIX' : {'size':[length x, length y, length z]}
-        Phase2,3,4... = 'UD1': {'FVC': fvc, 'dia': [avg_dia, dia_normal_dist], 'ori': [avg_theta, theta_norm_dist, avg_phi, phi_norm_dist], 'len': [avg_len, len_norm_dist]}
-        For example:
-        
-        rve_info_training_data = [
-            {
-        'MATRIX': {'size': [0.2, 3.0, 3.0]},
-         'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}
-         }, 
-         
-                 {
-        'MATRIX': {'size': [0.2, 3.0, 3.0]},
-         'UD1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'UD2': {'FVC': 0.15, 'dia': [0.35, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'SFR1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]},
-         'PR1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}
-         }
-         
-                 {
-        'MATRIX': {'size': [0.2, 3.0, 3.0]},
-         'PR1': {'FVC': 0.25, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}
-         }
-
-                ]
-    '''
 
     rve_info_training_data = [
 
@@ -300,9 +239,6 @@ if training_data_generation:
                         print(f"Mesh attempt {attempts} failed for RVE {r}, mesh {g_id}: {e}")
 
 
-        # os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
-        # os.system(f'copy Extracting_graph_from_mesh.py ' + str(mesh_folder))
-
         shutil.copy("temp_abaqus.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh_DMN.py", mesh_folder)
         shutil.copy("Extracting_graph_from_mesh.py", mesh_folder)
@@ -313,8 +249,7 @@ if training_data_generation:
                 pass
                 print(f' Creating main abaqus file for RVE: {r} and mesh: {g_id}')
                 create_abaqus_main_file(mesh_folder, stage, r, g_id)
-
-        # solve_abaqus_main_files(int(len(rve_info_training_data)), training_dataset_folder)
+        # solve_abaqus_main_files(int(len(rve_info_training_data)), training_dataset_folder) NOT NEEDED
 
     except Exception as e:
         raise e
@@ -391,16 +326,8 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 5 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL TO THE SAMPLES IN THE DATA FOLDER
+    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL OR LESS THAN THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
-    # if training_mode == 'GNN_IMN':
-    #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
-    # elif training_mode == 'IMN':
-    #     IMN(5, total_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder)
-    # elif training_mode == 'GNN_DMN':
-    #     GNNIMN(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU)
-    # elif training_mode == 'DMN':
-    #     DMN(5, total_samples, num_epochs, lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder)
 # -------------------------------------
 
 
@@ -636,15 +563,11 @@ if False:
     new_dataset_folder = Path(F_Training_data_generation + '\\Training_data' + f"{int(22):04d}")  # Define here
     dataset_subset(source_dataset_folder, new_dataset_folder,300)
 
-if True:
+if False:
     # Create combined training graphs
     from IMN_training.compare_trainings import compare_trainings
     folders = {
         'GAT IMN': 12,
-
-
-
-
                # 'Layers: 3 - Nodes: 3': 33,
                # 'Layers: 4 - Nodes: 1': 41,
                # 'Layers: 4 - Nodes: 2': 42,

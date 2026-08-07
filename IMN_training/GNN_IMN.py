@@ -1230,6 +1230,8 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
     device = get_device(use_GPU)
     mesh_folder = training_dataset_folder / 'Meshes'
+    C_mean = 0
+    C_std = 1
     training_data_set, C_mean,C_std = get_dataset_main_normalized(num_samples, training_dataset_folder) #
     # training_data_set = get_dataset_main(num_samples, training_dataset_folder)
     node_feat_dim = 8 if 'DMN' in mode else 10
@@ -1284,7 +1286,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
 
     best_val = run_live_optimization(num_epochs, num_samples, training_data_set, mesh_folder, 1, opt, model, cost_live_plot, imn_trained_data_folder, 1, N_layers, device,
-                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=1000, mode=mode )
+                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=1000, mode=mode, C_mean=C_mean,C_std=C_std, )
 
 
 
