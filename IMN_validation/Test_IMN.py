@@ -766,7 +766,7 @@ def plot_error_boxplots_multi(
     show_mean=True,
     show_outliers=False,
     use_log_scale=False,
-    max_error=200.0,
+    max_error=500.0,
 ):
     """
     Plot grouped boxplots of prediction errors for multiple models.

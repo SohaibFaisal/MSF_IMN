@@ -405,7 +405,7 @@ def _loss_gnn(
         sample, mesh_folder, graph_cache, "gnn", device
     )
 
-    max_value = np.max(main_graph['x'][:,10:])
+    max_value = torch.max(main_graph['x'][:,10:]).to(device)
     main_graph['x'][:, 10:] = main_graph['x'][:,10:]/max_value
 
     # Preferred interface: model(main_graph). A fallback with sample is kept for

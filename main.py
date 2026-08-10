@@ -76,7 +76,7 @@ imn_validation = False
 val_solve = True
 val_plot = True
 
-imn_validation_2 = False # For elastic constants error
+imn_validation_2 = True # For elastic constants error
 # -------------------------------------
 
 
@@ -513,9 +513,10 @@ if imn_validation_2:
         mesh_folder = training_dataset_folder / 'Meshes'
 
         training_models = {
-                            'GAT IMN': [11,1],
-                           'GNN DMN': [1,1],
-                           'GAT': [21,1]
+
+                           # 'GNN DMN': [1,1],
+                           'GAT': [69,1],
+            'GAT IMN': [11, 1],
                            }
         multiple_errors = []
         sample_numbers = 500

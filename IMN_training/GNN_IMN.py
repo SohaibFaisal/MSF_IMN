@@ -782,37 +782,37 @@ def get_dataset_main_normalized(num_samples, training_dataset_folder):
 
 
 # Working-------------------------------- Without normalization
-# def get_dataset_main(num_samples,training_dataset_folder):
-#
-#     main_data_set = {}
-#     npz = np.load(str(training_dataset_folder / f'material_dictionary.npz'), allow_pickle=True)
-#     C_in = {
-#         k: npz[k].item()  # unwrap the dict from numpy object array
-#         for k in npz.files
-#     }
-#     C_out = np.load(str(training_dataset_folder / f'homogenize.npz'), allow_pickle=True)
-#     npz = np.load(str(training_dataset_folder / f'key_map.npz'), allow_pickle=True)
-#
-#     key_map = {
-#         k: npz[k].item()  # unwrap the dict from numpy object array
-#         for k in npz.files
-#     }
-#
-#     for i in range(num_samples):
-#         main_data_set[str(i)] = {}
-#         stage, rve, mesh = key_map[str(i)]['ids']
-#         main_data_set[str(i)]['ids'] = [stage, rve, mesh]
-#         phases = key_map[str(i)]['phases']
-#         main_data_set[str(i)]['Phases'] = phases
-#
-#         for phase in phases:
-#             main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
-#
-#         C_target = torch.tensor(C_out[str(i)])
-#         fix_homogenized_C(C_target)
-#         main_data_set[str(i)][f'C_Target'] = C_target
-#
-#     return main_data_set   #, graphs_data_set
+def get_dataset_main(num_samples,training_dataset_folder):
+
+    main_data_set = {}
+    npz = np.load(str(training_dataset_folder / f'material_dictionary.npz'), allow_pickle=True)
+    C_in = {
+        k: npz[k].item()  # unwrap the dict from numpy object array
+        for k in npz.files
+    }
+    C_out = np.load(str(training_dataset_folder / f'homogenize.npz'), allow_pickle=True)
+    npz = np.load(str(training_dataset_folder / f'key_map.npz'), allow_pickle=True)
+
+    key_map = {
+        k: npz[k].item()  # unwrap the dict from numpy object array
+        for k in npz.files
+    }
+
+    for i in range(num_samples):
+        main_data_set[str(i)] = {}
+        stage, rve, mesh = key_map[str(i)]['ids']
+        main_data_set[str(i)]['ids'] = [stage, rve, mesh]
+        phases = key_map[str(i)]['phases']
+        main_data_set[str(i)]['Phases'] = phases
+
+        for phase in phases:
+            main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
+
+        C_target = torch.tensor(C_out[str(i)])
+        fix_homogenized_C(C_target)
+        main_data_set[str(i)][f'C_Target'] = C_target
+
+    return main_data_set   #, graphs_data_set
 
 
 @torch.inference_mode()
@@ -1119,16 +1119,25 @@ def generate_gnn_params_for_new_graph_validation(mesh_folder,
 
 
     else:
-        training_data_set = get_dataset_main_normalized(num_sam, training_dataset_folder)
+        training_data_set = get_dataset_main(num_sam, training_dataset_folder)
         target_constants = []
         prediction_constants = []
         for id in range(num_sam):
+            # sid = id
+            print('----------------------------------------##########-----------------------')
             sid = str(id)
             ss, rr, mm = training_data_set[sid]['ids']
             main_g = load_graph_npz_2(str(mesh_folder / f'graph_with_materials_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device) # old
+            print(main_g['x'])
+            max_value = torch.max(main_g['x'][:, 10:]).to(device)
+            main_g['x'][:, 10:] = main_g['x'][:, 10:] / max_value
+            print(main_g['x'])
             C_pred = new_model.forward(main_g)
+            print(C_pred)
             C_tgt = training_data_set[sid]["C_Target"]
-
+            print(C_tgt)
+            C_tgt = C_tgt/max_value
+            print(C_tgt)
             diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
             tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
             error = diff_norm_sq / tgt_norm_sq.clamp_min(

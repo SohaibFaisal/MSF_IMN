@@ -992,4 +992,8 @@ class GraphFeatureExtractor_JK_Set2Set_phase_aware(nn.Module):
         y = F.relu(self.fc3(y))
         y = self.fc4(y)
 
+
+
+        y = torch.sigmoid(y) # JUST FOR GNN ALONE> REMOVE FOR NORMAL
+
         return y
