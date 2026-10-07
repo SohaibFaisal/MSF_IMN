@@ -1,0 +1,827 @@
+@article{Liu.,
+author = {{Zeliang Liu} and {Haoyan Wei} and {Tianyu Huang} and {C.T. Wu}},
+ title = {Intelligent multiscale simulation based on process-guided composite database},
+ journal = {arXiv preprint arXiv.2003.09491},
+}
+
+
+@article{PratikFegade.,
+ abstract = {mlsys 2022},
+ author = {{Pratik Fegade} and {Tianqi Chen} and {Phillip B. Gibbons} and {Todd C. Mowry}},
+ title = {The CoRa Tensor Compiler: Compilation for Ragged Tensors with Minimal Padding: arXiv preprint arXiv:2110.10221v3},
+ keywords = {Machine learning;MLSys},
+ file = {2110.10221v3:Attachments/2110.10221v3.pdf:application/pdf}
+}
+
+
+@article{QimaiLi.,
+ author = {{Qimai Li} and {Zhichao Han} and {Xiao-Ming Wu}},
+ title = {Deeper Insights into Graph Convolutional Networks for Semi-Supervised Learning},
+ journal = {arXiv preprint arXiv:1801.07606v1},
+ file = {1801.07606v1:Attachments/1801.07606v1.pdf:application/pdf}
+}
+
+
+@article{Rao.2020,
+ abstract = {Computational Materials Science, 184 (2020) 109850. doi:10.1016/j.commatsci.2020.109850},
+ author = {Rao, Chengping and Liu, Yang},
+ year = {2020},
+ title = {Three-dimensional convolutional neural network (3D-CNN) for heterogeneous material homogenization},
+ keywords = {3D-CNN;Convolutional neural network;Deep learning;Heterogeneous material;Multiscale homogenization;Transfer learning},
+ pages = {109850},
+ volume = {184},
+ issn = {09270256},
+ journal = {Computational Materials Science},
+ doi = {10.1016/j.commatsci.2020.109850},
+ file = {1-s2.0-S0927025620303414-main:Attachments/1-s2.0-S0927025620303414-main.pdf:application/pdf}
+}
+
+
+@article{Scarselli.2009,
+ abstract = {Many underlying relationships among data in several areas of science and engineering, e.g., computer vision, molecular chemistry, molecular biology, pattern recognition, and data mining, can be represented in terms of graphs. In this paper, we propose a new neural network model, called graph neural network (GNN) model, that extends existing neural network methods for processing the data represented in graph domains. This GNN model, which can directly process most of the practically useful types of graphs, e.g., acyclic, cyclic, directed, and undirected, implements a function tau(G,n) is an element of IR(m) that maps a graph G and one of its nodes n into an m-dimensional Euclidean space. A supervised learning algorithm is derived to estimate the parameters of the proposed GNN model. The computational cost of the proposed algorithm is also considered. Some experimental results are shown to validate the proposed learning algorithm, and to demonstrate its generalization capabilities.},
+ author = {Scarselli, Franco and Gori, Marco and Tsoi, Ah Chung and Hagenbuchner, Markus and Monfardini, Gabriele},
+ year = {2009},
+ title = {The graph neural network model},
+ keywords = {Algorithms;Artificial Intelligence;Databases, Factual;graph neural networks (GNNs);graph processing;Graphical domains;Internet;Linear Models;Neural Networks, Computer;Nonlinear Dynamics;Pattern Recognition, Automated;recursive neural networks;Regression Analysis;Reproducibility of Results},
+ pages = {61--80},
+ volume = {20},
+ number = {},
+ journal = {IEEE transactions on neural networks},
+ doi = {10.1109/TNN.2008.2005605},
+ file = {The{\_}Graph{\_}Neural{\_}Network{\_}Model:Attachments/The{\_}Graph{\_}Neural{\_}Network{\_}Model.pdf:application/pdf}
+}
+
+
+@article{ShakedBrody.,
+ author = {{Shaked Brody} and {Uri Alon} and {Eran Yahav}},
+ title = {HOW ATTENTIVE ARE GRAPH ATTENTION NETWORKS?},
+ journal = {arXiv preprint arXiv:2105.14491v3},
+ file = {2105.14491v3:Attachments/2105.14491v3.pdf:application/pdf}
+}
+
+
+@article{Sperduti.1997,
+ abstract = {Standard neural networks and statistical methods are usually believed to be inadequate when dealing with complex structures because of their feature-based approach. In fact, feature-based approaches usually fail to give satisfactory solutions because of the sensitivity of the approach to the a priori selection of the features, and the incapacity to represent any specific information on the relationships among the components of the structures. However, we show that neural networks can, in fact, represent and classify structured patterns. The key idea underpinning our approach is the use of the so called {\textquotedbl}generalized recursive neuron{\textquotedbl}, which is essentially a generalization to structures of a recurrent neuron. By using generalized recursive neurons, all the supervised networks developed for the classification of sequences, such as backpropagation through time networks, real-time recurrent networks, simple recurrent networks, recurrent cascade correlation networks, and neural trees can, on the whole, be generalized to structures. The results obtained by some of the above networks (with generalized recursive neurons) on the classification of logic terms are presented.},
+ author = {Sperduti, A. and Starita, A.},
+ year = {1997},
+ title = {Supervised neural networks for the classification of structures},
+ pages = {714--735},
+ volume = {8},
+ number = {},
+ journal = {IEEE transactions on neural networks},
+ doi = {10.1109/72.572108},
+ file = {Supervised{\_}neural{\_}networks{\_}for{\_}the{\_}classification{\_}of{\_}structures:Attachments/Supervised{\_}neural{\_}networks{\_}for{\_}the{\_}classification{\_}of{\_}structures.pdf:application/pdf}
+}
+
+
+@article{Su.2022,
+ author = {Su, Tung-Huan and Huang, Szu-Jui and Jean, Jimmy Gaspard and Chen, Chuin-Shan},
+ year = {2022},
+ title = {Multiscale computational solid mechanics: data and machine learning},
+ pages = {568--585},
+ volume = {38},
+ journal = {Journal of Mechanics},
+ doi = {10.1093/jom/ufac037},
+ file = {ufac037:Attachments/ufac037.pdf:application/pdf}
+}
+
+
+@article{ThomasN.Kipf.,
+ author = {{Thomas N. Kipf} and {Max Welling}},
+ title = {SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS},
+ journal = {arXiv preprint arXiv:1609.02907v4},
+ file = {1609.02907v4:Attachments/1609.02907v4.pdf:application/pdf}
+}
+
+
+@article{TingJuWei1.,
+ author = {{Ting-Ju Wei1} and {Wen-Ning Wan} and {Chuin-Shan Chen}},
+ title = {Deep Material Network Overview, applications and current directions},
+ journal = {arXiv preprint arXiv:2504.12159v1},
+ file = {Deep Material Network Overview, applications and current directions:Attachments/Deep Material Network Overview, applications and current directions.pdf:application/pdf}
+}
+
+
+@article{TobiasPfaff.,
+ author = {{Tobias Pfaff} and {Meire Fortunato} and {Alvaro Sanchez-Gonzalez} and {Peter W. Battaglia}},
+ title = {LEARNING MESH-BASED SIMULATION WITH GRAPH NETWORKS},
+ journal = {arXiv preprint arXiv:2010.03409v4},
+ file = {2010.03409v4:Attachments/2010.03409v4.pdf:application/pdf}
+}
+
+
+@article{UriAlon.,
+ author = {{Uri Alon} and {Eran Yahav}},
+ title = {ON THE BOTTLENECK OF GRAPH NEURAL NETWORKS AND ITS PRACTICAL IMPLICATIONS},
+ journal = {arXiv preprint arXiv:2006.05205v4},
+ file = {2006.05205v4:Attachments/2006.05205v4.pdf:application/pdf}
+}
+
+
+@article{PetarVelickovic.,
+ author = {{Petar Velickovic} and {Guillem Cucurull} and {Arantxa Casanova} and {Adriana Romero} and {Pietro Lio} and {Yoshua Bengio}},
+ title = {GRAPH ATTENTION NETWORKS},
+ journal = {arXiv preprint arXiv:1710.10903v3},
+ file = {1710.10903v3:Attachments/1710.10903v3.pdf:application/pdf}
+}
+
+
+@article{vanNguyen.2022,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 389 (2022) 114300. doi:10.1016/j.cma.2021.114300},
+ author = {{van Nguyen}, Dung and Noels, Ludovic},
+ year = {2022},
+ title = {Interaction-based material network: A general framework for (porous) microstructured materials},
+ pages = {114300},
+ volume = {389},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2021.114300},
+ file = {Interaction-based material network A general framework for (porous) microstructured materials,:Attachments/Interaction-based material network A general framework for (porous) microstructured materials,.pdf:application/pdf}
+}
+
+
+@article{Vlassis.,
+ author = {Vlassis, Nikolaos N. and Ma, Ran and Sun, WaiChing},
+ title = {Geometric deep learning for computational mechanics Part II: Graph embedding for interpretable multiscale plasticity},
+ journal = {arXiv preprint arXiv:2208.00246v1},
+ file = {2208.00246v1:Attachments/2208.00246v1.pdf:application/pdf}
+}
+
+
+@article{Vlassis.2020,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 371 (2020) 113299. doi:10.1016/j.cma.2020.113299},
+ author = {Vlassis, Nikolaos N. and Ma, Ran and Sun, WaiChing},
+ year = {2020},
+ title = {Geometric deep learning for computational mechanics Part I: anisotropic hyperelasticity},
+ pages = {113299},
+ volume = {371},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2020.113299},
+ file = {1-s2.0-S0045782520304849-main:Attachments/1-s2.0-S0045782520304849-main.pdf:application/pdf}
+}
+
+
+@article{Wan.2024,
+ abstract = {DOI: 10.1093/jom/ufae053 Journal of Mechanics, 40, 0, 00-00-2024. Abstract: The deep material network (DMN) is a multiscale material modeling method well-known for its ability to extrapolate learned knowledge from elastic training data to nonlinear material behaviors. DMN is based on a two-layer building block structure. In contrast, the later proposed interaction-based material network (IMN) adopts a different approach, focusing on interactions within the material nodes rather than relying on laminate composite structures. Despite the increasing interest in both models, a comprehensive comparison of these two computational frameworks has yet to be conducted. This study provides an in-depth review and comparison of DMN and IMN, examining their underlying computational frameworks of offline training and online prediction. Additionally, we present a case study where both models are trained on short-fiber reinforced composites. We trained each model using elastic linear datasets to evaluate their performance and subjected them to multiple loading tests. Their performance is closely compared, and the possible factors that cause differences are explored. The superiority of IMN in offline training and online prediction is found.},
+ author = {Wan, Wen-Ning and Wei, Ting-Ju and Su, Tung-Huan and Chen, Chuin-Shan},
+ year = {2024},
+ title = {Decoding material networks: exploring performance of deep material network and interaction-based material networks},
+ keywords = {Deep material network;interaction-based material network;Mechanistic machine learning},
+ pages = {796--807},
+ volume = {40},
+ journal = {Journal of Mechanics},
+ doi = {10.1093/jom/ufae053},
+ file = {Decoding material networks exploring performance of deep material network and interaction-based material networks (2):Attachments/Decoding material networks exploring performance of deep material network and interaction-based material networks (2).pdf:application/pdf}
+}
+
+
+@article{Wei.2025,
+ abstract = {Materials {\&} Design, 257 (2025) 114397. doi:10.1016/j.matdes.2025.114397},
+ author = {Wei, Ting-Ju and Chen, Chuin-Shan},
+ year = {2025},
+ title = {Foundation model for composite microstructures: Reconstruction, stiffness, and nonlinear behavior prediction},
+ keywords = {Composite material;Foundation model;Masked autoencoder;Self-supervised learning;Transfer learning},
+ pages = {114397},
+ volume = {257},
+ issn = {02641275},
+ journal = {Materials {\&} Design},
+ doi = {10.1016/j.matdes.2025.114397},
+ file = {Foundation model for composite microstructures Reconstruction, stiffness, (2):Attachments/Foundation model for composite microstructures Reconstruction, stiffness, (2).pdf:application/pdf}
+}
+
+
+@article{Wei.2025b,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 441 (2025) 117977. doi:10.1016/j.cma.2025.117977},
+ author = {Wei, Ting-Ju and Su, Tung-Huan and Chen, Chuin-Shan},
+ year = {2025},
+ title = {Orientation-aware interaction-based deep material network in polycrystalline materials modeling},
+ keywords = {Crystal plasticity;Deep material network;Mechanistic machine learning;Multiscale material modeling;Texture evolution prediction},
+ pages = {117977},
+ volume = {441},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2025.117977},
+ file = {Orientation-aware interaction-based deep material network in polycrystalline materials modeling  (2):Attachments/Orientation-aware interaction-based deep material network in polycrystalline materials modeling  (2).pdf:application/pdf}
+}
+
+
+@proceedings{Wu.2024,
+ year = {2024},
+ title = {Fast Prediction of Stress Distribution: A GNN-based surrogate model for unstructured mesh FEA},
+ editor = {Wu, Jiaqian and Du, Chaoyu and Dillenburger, Benjamin and Kraus and {Michael Anton}},
+ publisher={International Association for Shell and Spatial Structures},
+}
+
+
+@article{Wu.2025,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 441 (2025) 117994. doi:10.1016/j.cma.2025.117994},
+ author = {Wu, Ling and Noels, Ludovic},
+ year = {2025},
+ title = {Stochastic deep material networks as efficient surrogates for stochastic homogenisation of non-linear heterogeneous materials},
+ keywords = {Composites;Deep-Material Network;Homogenisation;Stochastic;Stochastic Volume Elements (SVEs)},
+ pages = {117994},
+ volume = {441},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2025.117994},
+ file = {Stochastic deep material networks as efficient surrogates for stochastic homogenisation of non-linear heterogeneous materials:Attachments/Stochastic deep material networks as efficient surrogates for stochastic homogenisation of non-linear heterogeneous materials.pdf:application/pdf}
+}
+
+
+@article{Wu.2020,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 369 (2020) 113234. doi:10.1016/j.cma.2020.113234},
+ author = {Wu, Ling and {van Nguyen}, Dung and Kilingar, Nanda Gopala and Noels, Ludovic},
+ year = {2020},
+ title = {A recurrent neural network-accelerated multi-scale model for elasto-plastic heterogeneous materials subjected to random cyclic and non-proportional loading paths},
+ pages = {113234},
+ volume = {369},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2020.113234},
+ file = {1-s2.0-S0045782520304199-main:Attachments/1-s2.0-S0045782520304199-main.pdf:application/pdf}
+}
+
+
+@article{Xu.2020,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 363 (2020) 112893. doi:10.1016/j.cma.2020.112893},
+ author = {Xu, Rui and Yang, Jie and Yan, Wei and Huang, Qun and Giunta, Gaetano and Belouettar, Salim and Zahrouni, Hamid and Zineb, Tarak Ben and Hu, Heng},
+ year = {2020},
+ title = {Data-driven multiscale finite element method: From concurrence to separation},
+ pages = {112893},
+ volume = {363},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2020.112893},
+ file = {1-s2.0-S004578252030075X-main:Attachments/1-s2.0-S004578252030075X-main.pdf:application/pdf}
+}
+
+
+@article{Yang.2020,
+ abstract = {Materials {\&} Design, 189 (2020) 108509. doi:10.1016/j.matdes.2020.108509},
+ author = {Yang, Charles and Kim, Youngsoo and Ryu, Seunghwa and Gu, Grace X.},
+ year = {2020},
+ title = {Prediction of composite microstructure stress-strain curves using convolutional neural networks},
+ keywords = {Computational mechanics;Convolutional neural networks;Machine learning;Mechanical properties;Microstructure},
+ pages = {108509},
+ volume = {189},
+ issn = {02641275},
+ journal = {Materials {\&} Design},
+ doi = {10.1016/j.matdes.2020.108509},
+ file = {1-s2.0-S0264127520300423-main:Attachments/1-s2.0-S0264127520300423-main.pdf:application/pdf}
+}
+
+
+
+
+@article{Yang.2020b,
+author = {Yang, Hang and Qiu, Hai and Tang, Shan and Xiang, Qian and Guo, Xu},
+year = {2020},
+month = {05},
+pages = {1-16},
+title = {Exploring elastoplastic constitutive law of microstructured materials through Artificial Neural Network (ANN) — a mechanistic-based data-driven approach},
+volume = {87},
+journal = {Journal of Applied Mechanics},
+doi = {10.1115/1.4047208}
+}
+
+
+@article{vanNguyen.2022b,
+ abstract = {European Journal of Mechanics / A Solids, 91 (2022) 104384. doi:10.1016/j.euromechsol.2021.104384},
+ author = {{van Nguyen}, Dung and Noels, Ludovic},
+ year = {2022},
+ title = {Micromechanics-based material networks revisited from the interaction viewpoint; robust and efficient implementation for multi-phase composites},
+ keywords = {Closed form implementation;Data driven;Deep material network;Finite strain},
+ pages = {104384},
+ volume = {91},
+ issn = {09977538},
+ journal = {European Journal of Mechanics - A/Solids},
+ doi = {10.1016/j.euromechsol.2021.104384},
+ file = {Micromechanics-based material networks revisited from the interaction:Attachments/Micromechanics-based material networks revisited from the interaction.pdf:application/pdf}
+}
+
+
+@article{Peng.2021,
+ author = {Peng, Grace C. Y. and Alber, Mark and Tepole, Adrian Buganza and Cannon, William R. and De, Suvranu and Dura-Bernal, Salvador and Garikipati, Krishna and Karniadakis, George and Lytton, William W. and Perdikaris, Paris and Petzold, Linda and Kuhl, Ellen},
+ year = {2021},
+ title = {Multiscale modeling meets machine learning: What can we learn?},
+ keywords = {Biomedicine;Machine learning;Multiscale modeling;Physics-based simulation},
+ pages = {1017--1037},
+ volume = {28},
+ number = {},
+ journal = {Archives of computational methods in engineering : state of the art reviews},
+ doi = {10.1007/s11831-020-09405-5},
+ file = {s11831-020-09405-5:Attachments/s11831-020-09405-5.pdf:application/pdf}
+}
+
+
+@article{Mozaffar.2019,
+ author = {Mozaffar, M. and Bostanabad, R. and Chen, W. and Ehmann, K. and Cao, J. and Bessa, M. A.},
+ year = {2019},
+ title = {Deep learning predicts path-dependent plasticity},
+ pages = {26414--26420},
+ volume = {116},
+ number = {},
+ journal = {Proceedings of the National Academy of Sciences of the United States of America},
+ doi = {10.1073/pnas.1911815116},
+ file = {mozaffar-et-al-2019-deep-learning-predicts-path-dependent-plasticity:Attachments/mozaffar-et-al-2019-deep-learning-predicts-path-dependent-plasticity.pdf:application/pdf}
+}
+
+
+@article{MarioMichaelKrell.,
+ author = {{Mario Michael Krell} and {Matej Kosec} and {Sergio P. Perez} and {Andrew Fitzgibbon}},
+ title = {EFFICIENT SEQUENCE PACKING WITHOUT CROSS-CONTAMINATION: ACCELERATING LARGE LANGUAGE MODELS WITHOUT IMPACTING PERFORMANCE},
+ journal = {arXiv preprint arXiv:2107.02027v2},
+ file = {2107.02027v2:Attachments/2107.02027v2.pdf:application/pdf}
+}
+
+
+@proceedings{.2005,
+ year = {2005},
+ title = {Proceedings. 2005 IEEE International Joint Conference on Neural Networks, 2005},
+ publisher = {IEEE},
+ isbn = {0-7803-9048-2}
+}
+
+
+@proceedings{.2010,
+ year = {2010},
+ title = {The 2010 International Joint Conference on Neural Networks (IJCNN)},
+ publisher = {IEEE},
+ isbn = {978-1-4244-6916-1}
+}
+
+
+
+@article{Aldakheel.2023,
+  title={Efficient multiscale modeling of heterogeneous materials using deep neural networks},
+  author={Aldakheel, Fadi and Elsayed, Elsayed S and Zohdi, Tarek I and Wriggers, Peter},
+  journal={Computational Mechanics},
+  volume={72},
+  number={1},
+  pages={155--171},
+  year={2023},
+  publisher={Springer}
+}
+
+@article{ChuangLiu.,
+ author = {{Chuang Liu} and {Yibing Zhan} and {Jia Wu} and {Chang Li} and {Bo Du} and {Wenbin Hu} and {Tongliang Liu} and {Dacheng Tao}},
+ title = {Graph Pooling for Graph Neural Networks: Progress, Challenges, and Opportunities},
+ journal = {arXiv preprint arXiv:2204.07321v2},
+ file = {2204.07321v2:Attachments/2204.07321v2.pdf:application/pdf}
+}
+
+
+@article{Gajek.2020,
+ abstract = {Journal of the Mechanics and Physics of Solids, 142 (2020) 103984. doi:10.1016/j.jmps.2020.103984},
+ author = {Gajek, Sebastian and Schneider, Matti and B{\"o}hlke, Thomas},
+ year = {2020},
+ title = {On the micromechanics of deep material networks},
+ keywords = {Computational homogenization;Deep material network;Fiber reinforced polyamide;J2-elasto-plasticity;Laminate;Metal matrix composite;Micromechanics;Volterra series},
+ pages = {103984},
+ volume = {142},
+ issn = {00225096},
+ journal = {Journal of the Mechanics and Physics of Solids},
+ doi = {10.1016/j.jmps.2020.103984},
+ file = {On the micromechanics of deep material networks:Attachments/On the micromechanics of deep material networks.pdf:application/pdf}
+}
+
+
+@article{Gajek.2021,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 384 (2021) 113952. doi:10.1016/j.cma.2021.113952},
+ author = {Gajek, Sebastian and Schneider, Matti and B{\"o}hlke, Thomas},
+ year = {2021},
+ title = {An FE--DMN method for the multiscale analysis of short fiber reinforced plastic components},
+ pages = {113952},
+ volume = {384},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2021.113952},
+ file = {1-s2.0-S0045782521002899-main:Attachments/1-s2.0-S0045782521002899-main.pdf:application/pdf}
+}
+
+
+
+
+@inproceedings{Gallicchio.2010,
+author = {Gallicchio, Claudio and Micheli, Alessio},
+year = {2010},
+month = {08},
+pages = {1 - 8},
+title = {Graph Echo State Networks},
+booktitle = {Proceedings of the International Joint Conference on Neural Networks},
+doi = {10.1109/IJCNN.2010.5596796}
+}
+
+@article{Ghavamian.2019,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 357 (2019) 112594. doi:10.1016/j.cma.2019.112594},
+ author = {Ghavamian, F. and Simone, A.},
+ year = {2019},
+ title = {Accelerating multiscale finite element simulations of history-dependent materials using a recurrent neural network},
+ pages = {112594},
+ volume = {357},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2019.112594},
+ file = {1-s2.0-S0045782519304700-main:Attachments/1-s2.0-S0045782519304700-main.pdf:application/pdf}
+}
+
+@inproceedings{Gori.2005,
+author = {Gori, Marco and Monfardini, Gabriele and Scarselli, Franco},
+year = {2005},
+month = {01},
+pages = {729 - 734 vol. 2},
+title = {A new model for earning in raph domains},
+volume = {2},
+isbn = {0-7803-9048-2},
+booktitle = {Proceedings of the International Joint Conference on Neural Networks},
+doi = {10.1109/IJCNN.2005.1555942}
+}
+
+
+
+@article{Huang.2022,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 398 (2022) 115197. doi:10.1016/j.cma.2022.115197},
+ author = {Huang, Tianyu and Liu, Zeliang and Wu, C. T. and Chen, Wei},
+ year = {2022},
+ title = {Microstructure-guided deep material network for rapid nonlinear material modeling and uncertainty quantification},
+ pages = {115197},
+ volume = {398},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2022.115197},
+ file = {Microstructure-guided deep material network for rapid nonlinear:Attachments/Microstructure-guided deep material network for rapid nonlinear.pdf:application/pdf}
+}
+
+
+@article{JakeTopping.,
+ author = {{Jake Topping} and {Francesco Di Giovanni} and {Benjamin P. Chamberlain} and {Xiaowen Dong} and {Michael M. Bronstein}},
+ title = {UNDERSTANDING OVER-SQUASHING AND BOTTLENECKS ON GRAPHS VIA CURVATURE},
+ journal = {arXiv preprint arXiv:2111.14522v3},
+ file = {2111.14522v3:Attachments/2111.14522v3.pdf:application/pdf}
+}
+
+
+@article{Jean.2025,
+ abstract = {Computational Mechanics, https://doi.org/10.1007/s00466-024-02493-1},
+ author = {Jean, Jimmy Gaspard and Su, Tung-Huan and Huang, Szu-Jui and Wu, Cheng-Tang and Chen, Chuin-Shan},
+ year = {2025},
+ title = {Graph-enhanced deep material network: multiscale materials modeling with microstructural informatics},
+ keywords = {Composite materials;Deep material network;Graph neural network;Graph-based mechanistic deep learning;Multiscale modeling},
+ pages = {113--136},
+ volume = {75},
+ number = {},
+ issn = {0178-7675},
+ journal = {Computational Mechanics},
+ doi = {10.1007/s00466-024-02493-1},
+ file = {New Graph-enhanced deep material network multiscalematerials:Attachments/New Graph-enhanced deep material network multiscalematerials.pdf:application/pdf}
+}
+
+
+@article{Jones.2023,
+ abstract = {Computational Mechanics, https://doi.org/10.1007/s00466-023-02300-3},
+ author = {Jones, Reese and Safta, Cosmin and Frankel, Ari},
+ year = {2023},
+ title = {Deep learning and multi-level featurization of graph representations of microstructural data},
+ keywords = {Graph convolutional neural networks;Inelasticity;Microstructure response;Multilevel graphs},
+ pages = {57--75},
+ volume = {72},
+ number = {},
+ issn = {0178-7675},
+ journal = {Computational Mechanics},
+ doi = {10.1007/s00466-023-02300-3},
+ file = {s00466-023-02300-3:Attachments/s00466-023-02300-3.pdf:application/pdf}
+}
+
+
+@article{KentaOono.,
+ author = {{Kenta Oono} and {Taiji Suzuki}},
+ title = {GRAPH NEURAL NETWORKS EXPONENTIALLY LOSE EXPRESSIVE POWER FOR NODE CLASSIFICATION},
+ journal = {arXiv preprint arXiv:1905.10947v5},
+ file = {1905.10947v5:Attachments/1905.10947v5.pdf:application/pdf}
+}
+
+
+@article{KeyuluXu.,
+ author = {{Keyulu Xu} and {Chengtao Li} and {Yonglong Tian} and {Tomohiro Sonobe} and {Ken-ichi Kawarabayashi} and {Stefanie Jegelka}},
+ title = {Representation Learning on Graphs with Jumping Knowledge Networks},
+ journal = {arXiv preprint arXiv:1806.03536v2},
+ file = {1806.03536v2:Attachments/1806.03536v2.pdf:application/pdf}
+}
+
+
+@article{KeyuluXu.b,
+ author = {{Keyulu Xu} and {Weihua Hu} and {Jure Leskovec}},
+ title = {HOW POWERFUL ARE GRAPH NEURAL NETWORKS?},
+ journal = {arXiv preprint arXiv:1810.00826v3},
+ file = {1810.00826v3:Attachments/1810.00826v3.pdf:application/pdf}
+}
+
+
+@article{Lefik.2009,
+ author = {Lefik, M. and Boso, D. P. and Schrefler, B. A.},
+ year = {2009},
+ title = {Artificial Neural Networks in numerical modelling of composites},
+ keywords = {Artificial Neural Networks;Effective properties;Hierarchical structures;Multiscale analysis;Stress and strain recovery},
+ pages = {1785--1804},
+ volume = {198},
+ number = {},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2008.12.036},
+ file = {1-s2.0-S0045782509000206-main:Attachments/1-s2.0-S0045782509000206-main.pdf:application/pdf}
+}
+
+
+@article{Li.2021,
+ abstract = {Neurocomputing, 454 (2021) 14-24. doi:10.1016/j.neucom.2021.04.038},
+ author = {Li, Jian and Wang, Xing and Tu, Zhaopeng and Lyu, Michael R.},
+ year = {2021},
+ title = {On the diversity of multi-head attention},
+ keywords = {Diversity;Multi-head attention;Natural language processing;Neural machine translation;Routing-by-agreement;Sentence encoding},
+ pages = {14--24},
+ volume = {454},
+ issn = {09252312},
+ journal = {Neurocomputing},
+ doi = {10.1016/j.neucom.2021.04.038},
+ file = {1-s2.0-S0925231221005725-main:Attachments/1-s2.0-S0925231221005725-main.pdf:application/pdf}
+}
+
+
+@article{Li.2024,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 419 (2024) 116687. doi:10.1016/j.cma.2023.116687},
+ author = {Li, Tianyi},
+ year = {2024},
+ title = {Micromechanics-informed parametric deep material network for physics behavior prediction of heterogeneous materials with a varying morphology},
+ keywords = {Deep material network;Machine learning;Neural network;Parameterized microstructures;Structure--property relationships},
+ pages = {116687},
+ volume = {419},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2023.116687},
+ file = {Micromechanics-informed parametric deep material network for:Attachments/Micromechanics-informed parametric deep material network for.pdf:application/pdf}
+}
+
+
+@article{LingxiaoZhao.,
+ author = {{Lingxiao Zhao} and {Leman Akoglu}},
+ title = {PAIRNORM: TACKLING OVERSMOOTHING IN GNNS},
+ journal = {arXiv preprint arXiv:1909.12223v2},
+ file = {1909.12223v2:Attachments/1909.12223v2.pdf:application/pdf}
+}
+
+
+@article{Liu.2020,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 363 (2020) 112913. doi:10.1016/j.cma.2020.112913},
+ author = {Liu, Zeliang},
+ year = {2020},
+ title = {Deep material network with cohesive layers: Multi-stage training and interfacial failure analysis},
+ pages = {112913},
+ volume = {363},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2020.112913},
+ file = {Deep material network with cohesive layers Multi-stage training and interfacial failure analysis:Attachments/Deep material network with cohesive layers Multi-stage training and interfacial failure analysis.pdf:application/pdf}
+}
+
+
+@article{Liu.2021,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 384 (2021) 113914. doi:10.1016/j.cma.2021.113914},
+ author = {Liu, Zeliang},
+ year = {2021},
+ title = {Cell division in deep material networks applied to multiscale strain localization modeling},
+ pages = {113914},
+ volume = {384},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2021.113914},
+ file = {Cell division in deep material networks applied to multiscale strain:Attachments/Cell division in deep material networks applied to multiscale strain.pdf:application/pdf}
+}
+
+
+@article{Liu.2019,
+ abstract = {Journal of the Mechanics and Physics of Solids, 127 (2019) 20-46. doi:10.1016/j.jmps.2019.03.004},
+ author = {Liu, Zeliang and Wu, C. T.},
+ year = {2019},
+ title = {Exploring the 3D architectures of deep material network in data-driven multiscale mechanics},
+ keywords = {3D building-block;CFRP composites;Crystal plasticity;Hyperelasticity;Machine learning;Three-scale homogenization},
+ pages = {20--46},
+ volume = {127},
+ issn = {00225096},
+ journal = {Journal of the Mechanics and Physics of Solids},
+ doi = {10.1016/j.jmps.2019.03.004},
+ file = {Exploring the 3D architectures of deep material network in data-driven multiscale mechanics:Attachments/Exploring the 3D architectures of deep material network in data-driven multiscale mechanics.pdf:application/pdf}
+}
+
+
+@article{Liu.2019b,
+ abstract = {Computer Methods in Applied Mechanics and Engineering, 345 (2019) 1138-1168. doi:10.1016/j.cma.2018.09.020},
+ author = {Liu, Zeliang and Wu, C. T. and Koishi, M.},
+ year = {2019},
+ title = {A deep material network for multiscale topology learning and accelerated nonlinear modeling of heterogeneous materials},
+ pages = {1138--1168},
+ volume = {345},
+ issn = {00457825},
+ journal = {Computer Methods in Applied Mechanics and Engineering},
+ doi = {10.1016/j.cma.2018.09.020},
+ file = {A deep material network for multiscale topology learning and accelerated nonlinear modeling of heterogeneous materials:Attachments/A deep material network for multiscale topology learning and accelerated nonlinear modeling of heterogeneous materials.pdf:application/pdf}
+}
+
+
+@article{Liu.2019c,
+ abstract = {Computational Mechanics, https://doi.org/10.1007/s00466-019-01704-4},
+ author = {Liu, Zeliang and Wu, C. T. and Koishi, M.},
+ year = {2019},
+ title = {Transfer learning of deep material network for seamless structure--property predictions},
+ keywords = {Failure analysis;Machine learning;Materials design;Micromechanics;Multiscale modeling;Nonlinear plasticity},
+ pages = {451--465},
+ volume = {64},
+ number = {},
+ issn = {0178-7675},
+ journal = {Computational Mechanics},
+ doi = {10.1007/s00466-019-01704-4},
+ file = {Transfer learning of deep material network for seamless:Attachments/Transfer learning of deep material network for seamless.pdf:application/pdf}
+}
+
+
+@article{Zhang.2021,
+ abstract = {Computational Mechanics, https://doi.org/10.1007/s00466-020-01928-9},
+ author = {Zhang, Lei and Cheng, Lin and Li, Hengyang and Gao, Jiaying and Yu, Cheng and Domel, Reno and Yang, Yang and Tang, Shaoqiang and Liu, Wing Kam},
+ year = {2021},
+ title = {Hierarchical deep-learning neural networks: finite elements and beyond},
+ keywords = {Data-Driven;Fundamental building block;Neural network interpolation functions;NURBS and IGA);r- and rh-adaptivity;Rational functions (i.e. RKPM},
+ pages = {207--230},
+ volume = {67},
+ number = {},
+ issn = {0178-7675},
+ journal = {Computational Mechanics},
+ doi = {10.1007/s00466-020-01928-9},
+ file = {s00466-020-01928-9:Attachments/s00466-020-01928-9.pdf:application/pdf}
+}
+
+
+@article{ZonghanWu.,
+ author = {{Zonghan Wu} and {Shirui Pan} and {Fengwen Chen} and {Guodong Long} and {Chengqi Zhang}},
+ title = {A Comprehensive Survey on Graph Neural Networks},
+ journal = {arXiv preprint arXiv:1901.00596},
+}
+
+
+@article{homogenization,
+title = {Numerical evaluation of effective elastic properties of composites reinforced by spatially randomly distributed short fibers with certain aspect ratio},
+journal = {Composite Structures},
+volume = {131},
+pages = {843-851},
+year = {2015},
+issn = {0263-8223},
+doi = {https://doi.org/10.1016/j.compstruct.2015.06.045},
+author = {Lehua Qi and Wenlong Tian and Jiming Zhou},
+keywords = {Elastic properties, Finite element analysis (FEA), Numerical homogenization, Periodic boundary condition, Short-fiber composites},
+}
+
+@article{RSA1,
+title = {Periodic boundary condition and its numerical implementation algorithm for the evaluation of effective mechanical properties of the composites with complicated micro-structures},
+journal = {Composites Part B: Engineering},
+volume = {162},
+pages = {1-10},
+year = {2019},
+issn = {1359-8368},
+doi = {https://doi.org/10.1016/j.compositesb.2018.10.053},
+author = {Wenlong Tian and Lehua Qi and Xujiang Chao and Junhao Liang and Mingwang Fu},
+keywords = {Discontinuous reinforcement, Metal-matrix composites (MMCs), Mechanical properties, Finite element analysis (FEA), Periodic boundary condition},
+}
+
+@article{RSA2,
+title = {Representative volume element for composites reinforced by spatially randomly distributed discontinuous fibers and its applications},
+journal = {Composite Structures},
+volume = {131},
+pages = {366-373},
+year = {2015},
+issn = {0263-8223},
+doi = {https://doi.org/10.1016/j.compstruct.2015.05.014},
+author = {Wenlong Tian and Lehua Qi and Jiming Zhou and Junhao Liang and Yuqin Ma},
+keywords = {Short-fiber composites, Fiber Growth Method, Finite element analysis (FEA), Representative volume element (RVE), Numerical homogenization},
+}
+
+
+@article{HU2024104017,
+title = {A temporal graph neural network for cross-scale modelling of polycrystals considering microstructure interaction},
+journal = {International Journal of Plasticity},
+volume = {179},
+pages = {104017},
+year = {2024},
+issn = {0749-6419},
+doi = {https://doi.org/10.1016/j.ijplas.2024.104017},
+url = {https://www.sciencedirect.com/science/article/pii/S074964192400144X},
+author = {Yuanzhe Hu and Guowei Zhou and Myoung-Gyu Lee and Peidong Wu and Dayong Li},
+keywords = {Graph neural network, Crystal plasticity, Grain interaction, Recurrent neural network, Complex loading},
+}
+
+
+
+@article{IBRAGIMOVA2022103374,
+title = {A convolutional neural network based crystal plasticity finite element framework to predict localised deformation in metals},
+journal = {International Journal of Plasticity},
+volume = {157},
+pages = {103374},
+year = {2022},
+issn = {0749-6419},
+doi = {https://doi.org/10.1016/j.ijplas.2022.103374},
+url = {https://www.sciencedirect.com/science/article/pii/S0749641922001541},
+author = {Olga Ibragimova and Abhijit Brahme and Waqas Muhammad and Daniel Connolly and Julie Lévesque and Kaan Inal},
+keywords = {Machine learning, Artificial neural networks, Crystal plasticity, Convolution neural networks, FEM},
+}
+
+
+
+@article{https://doi.org/10.1002/nme.70014,
+author = {Sterr, Benedikt and Gajek, Sebastian and Hrymak, Andrew and Schneider, Matti and Böhlke, Thomas},
+title = {Deep Material Networks for Fiber Suspensions With Infinite Material Contrast},
+journal = {International Journal for Numerical Methods in Engineering},
+volume = {126},
+number = {7},
+pages = {e70014},
+keywords = {deep material network, effective viscosity, fiber-reinforced composites, infinite material contrast, non-Newtonian suspension, supervised machine learning},
+doi = {https://doi.org/10.1002/nme.70014},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.70014},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/nme.70014},
+year = {2025}
+}
+
+
+
+@article{FRANCIS2025118329,
+title = {Micropolar deep material network},
+journal = {Computer Methods in Applied Mechanics and Engineering},
+volume = {446},
+pages = {118329},
+year = {2025},
+issn = {0045-7825},
+doi = {https://doi.org/10.1016/j.cma.2025.118329},
+url = {https://www.sciencedirect.com/science/article/pii/S0045782525006012},
+author = {Noah M. Francis and Dongil Shin and Ricardo A. Lebensohn and Fatemeh Pourahmadian and Rémi Dingreville},
+keywords = {Micropolar, Deep material network, Composites, Homogenization, Size effect},
+}
+
+
+
+@article{SHIN2024117279,
+title = {Deep material network for thermal conductivity problems: Application to woven composites},
+journal = {Computer Methods in Applied Mechanics and Engineering},
+volume = {431},
+pages = {117279},
+year = {2024},
+issn = {0045-7825},
+doi = {https://doi.org/10.1016/j.cma.2024.117279},
+url = {https://www.sciencedirect.com/science/article/pii/S0045782524005358},
+author = {Dongil Shin and Peter Jefferson Creveling and Scott Alan Roberts and Rémi Dingreville},
+keywords = {Woven composite, Thermal conductivity, Reduced order modeling, Machine learning, Deep material network},
+}
+
+
+
+@article{BHATKEELANJESRINIVAS2026118517,
+title = {Rapid Offline Training for Deep Material Networks via a displacement-based laminate formulation and a novel sampling technique for a compliance-based fatigue model},
+journal = {Computer Methods in Applied Mechanics and Engineering},
+volume = {449},
+pages = {118517},
+year = {2026},
+issn = {0045-7825},
+doi = {https://doi.org/10.1016/j.cma.2025.118517},
+url = {https://www.sciencedirect.com/science/article/pii/S0045782525007893},
+author = {Pavan {Bhat Keelanje Srinivas} and Matthias Kabel and Matti Schneider},
+keywords = {Micromechanics, Deep Material Networks, Laminate formulations, Milton’s equation, Compliance-based fatigue},
+}
+
+
+@article{WEI2026119250,
+title = {A parametric multiscale surrogate framework based on texture-generalizable Deep Material Networks for polycrystal modeling},
+journal = {Computer Methods in Applied Mechanics and Engineering},
+volume = {461},
+pages = {119250},
+year = {2026},
+issn = {0045-7825},
+doi = {https://doi.org/10.1016/j.cma.2026.119250},
+url = {https://www.sciencedirect.com/science/article/pii/S0045782526005232},
+author = {Ting-Ju Wei and Tung-Huan Su and Chuin-Shan Chen},
+keywords = {Crystal plasticity, Deep Material Network, Graph neural network, Texture generalization, Surrogate modeling},
+abstract = {This work presents a computational framework for parametric multiscale surrogate modeling of polycrystalline materials. The framework integrates a physics-based Deep Material Network (DMN), specifically an Orientation-aware interaction-based Deep Material Network (ODMN), with two data-driven components: a Texture-Adaptive Clustering and Sampling (TACS) scheme that provides a reduced yet statistically consistent representation of crystallographic texture, and a Graph Neural Network (GNN) that infers the micromechanical equilibrium parameters of the ODMN from grain-level interaction graphs. Referred to as the TACS–GNN–ODMN framework, this combination introduces a microstructure-to-parameter mapping that constructs fully parameterized surrogate models for previously unseen microstructures without retraining. The resulting surrogate model preserves the micromechanical structure of the underlying formulation while substantially reducing computational cost. Numerical results show that the framework accurately predicts nonlinear mechanical responses and crystallographic texture evolution under several loading conditions, in close agreement with full-field direct numerical simulations (DNS). The method further achieves more than two orders of magnitude speed-up over fast Fourier transform (FFT)-based simulations. The framework thus provides an efficient and physically consistent strategy for multiscale modeling of polycrystalline materials and is well suited to large-scale simulations and real-time applications.}
+}
+
+
+
+
+@article{WU2026118554,
+title = {Convolutional neural network-based mapping of material micro-structures to deep material networks for non-linear mechanical response prediction},
+journal = {Computer Methods in Applied Mechanics and Engineering},
+volume = {449},
+pages = {118554},
+year = {2026},
+issn = {0045-7825},
+doi = {https://doi.org/10.1016/j.cma.2025.118554},
+url = {https://www.sciencedirect.com/science/article/pii/S0045782525008266},
+author = {Ling Wu and Ludovic Noels},
+keywords = {Deep-Material network, Convolutional neural network, Data-driven, Stochastic multi-Scale, Composites},
+abstract = {Data-driven approaches make the development of surrogates of complex heterogeneous material responses possible. After being trained using a previously generated data-set during an offline stage, the surrogates can be used as a material law to conduct structural simulations during the online stage. Nevertheless, in view of accounting for the uncertainty and variability of the heterogeneous materials, the surrogates should be able to account for the micro-structure variability, which remains a challenge. Among the possible surrogate candidates, (Interaction-Based-)Deep-Material Networks ((IB-)DMN) offer the advantage that they can extrapolate the response for new material model parameters of the heterogeneous material phases and for arbitrary loading histories outside of their training range. This advantage results from their thermodynamics consistency and from the fact that the IB-DMN learnable parameters represent solely the micro-structure organization and not the phases material response. However, a trained IB-DMN remains an image of a given micro-structure spatial organization realization in terms of clustering etc. A new micro-structure realization thus requires a new training process, limiting the interest of the IB-DMN for stochastic multi-scale analyses. In order to address this limitation, we define the learnable or topological parameters of the IB-DMN from a combination of convolution encoder and neural network, with the micro-structure image serving as input data. After training a CNN encoder-decoder, the encoder part allows extracting the feature vectors of the heterogeneous material directly from micro-structure images. These feature vectors then serve as input of a trained feed-forward neural network (FNN) that predicts the topological parameters of the IB-DMN, yielding a “Image to IB-DMN” framework. The methodology is first illustrated in the context of Unidirectional (UD) composites, for which Stochastic Volumes Elements (SVEs) serve as images of the micro-structure realizations. In a second step we show that the machine learning tools can be trained by considering simultaneously composite families of different inclusion shapes such as circular, elliptical and squared. Despite training considering only elastic data, the predictions for a complex pressure-sensitive elasto-plastic model remain accurate. These results demonstrate the complementary roles of the two networks: the CNN encoder–decoder efficiently extracts reduced feature vectors from micro-structure images with diverse inclusion geometries, and the FNN accurately maps these features to the topological parameters of the IB-DMN, establishing a robust, end-to-end image-to-model framework capable of generalizing across different micro-structural configurations.}
+}
+

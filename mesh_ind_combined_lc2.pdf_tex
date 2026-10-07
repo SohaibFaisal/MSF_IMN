@@ -1,0 +1,111 @@
+%% Creator: Inkscape 1.4.3 (0d15f75, 2025-12-25), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'mesh_ind_combined_lc2.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{610.08671798bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.66885431)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.0897501,0.02250485){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.000\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.25335128,0.02250485){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.002\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.41695245,0.02250485){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.004\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.58055364,0.02250485){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.006\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.74415483,0.02250485){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.008\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.90775602,0.02250485){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.010\end{tabular}}}}%
+    \put(0.49875304,0.0002731){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Strain ($\epsilon_y$) [-]\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.03737603,0.0391003){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.03737603,0.16449356){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}5\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.03737603,0.28988682){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}10\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.03737603,0.41528006){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}15\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.03737603,0.54067332){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}20\end{tabular}}}}%
+    \put(0.01221079,0.35621047){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Stress ($\sigma_y$) [MPa]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.61969129){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (a)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.64340709){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}DNS\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.59449407){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (b)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.56929686){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (c)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.54409964){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (d)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.51890243){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (a) - Error (Mean = 0.73\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=18]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.49370521){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (b) - Error (Mean = 0.52\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=19]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.468508){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (c) - Error (Mean = 1.17\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=20]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.10343222,0.44331078){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Mesh (d) - Error (Mean = 2.06\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=21]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.96013015,0.0391003){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=22]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.96013015,0.17468203){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}1\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=23]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.96013015,0.31026374){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}2\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=24]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.96013015,0.44584545){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}3\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=25]{mesh_ind_combined_lc2.pdf}}%
+    \put(0.96013015,0.58142715){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}4\end{tabular}}}}%
+    \put(0.99641694,0.35621051){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Normalized absolute error [\%]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=26]{mesh_ind_combined_lc2.pdf}}%
+  \end{picture}%
+\endgroup%

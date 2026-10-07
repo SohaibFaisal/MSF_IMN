@@ -69,7 +69,7 @@ training_mode = 'GNN' # GNN_IMN, IMN, GNN_DMN, DMN
 training_data_generation = False
 show_mesh = False
 
-imn_training = True
+imn_training = False
 cost_live_plot = True
 
 imn_validation = False
@@ -290,6 +290,18 @@ if training_data_generation:
 # TRAINING
 # -------------------------------------
 if imn_training:
+
+    SEED = 42
+    import random
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SEED)
+        torch.cuda.manual_seed_all(SEED)
+
+
     # N_layers = 4
     # num_epochs = 11
     lr = 2e-3
@@ -356,7 +368,7 @@ if imn_validation:
     -------------------------------   
     '''
     mat1 = [2, 1500, 0.35, 5.0, 7.0, 20, 8]
-    mat2 = [1, 7500, 0.2, 0.2, 0.2, 0, 0]
+    mat2 = [1, 60000, 0.2, 0.2, 0.2, 0, 0]
     mat3 = [1, 7500, 0.2, 0.2, 0.2, 0, 0]
     mat4 = [1, 7500, 0.2, 0.2, 0.2, 0, 0]
     mat = [mat1, mat2, mat3, mat4]
@@ -377,8 +389,8 @@ if imn_validation:
         rve_info_validation_data = [
             # {'MATRIX': {'size': [4.0, 3.0, 3.0]},
             #  'SFR1': {'FVC': 0.15, 'dia': [0.45, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.20
-            {'MATRIX': {'size': [0.2, 3.0, 3.0]},
-             'UD1': {'FVC': 0.15, 'dia': [0.3, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
+            {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+             'PR1': {'FVC': 0.15, 'dia': [0.4, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}}, # 0.25
             # {'MATRIX': {'size': [4.5, 4, 4]},
             #  'UD1': {'FVC': 0.08, 'dia': [0.6, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.3, 0]},
             # 'SFR1': {'FVC': 0.08, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3.5, 0]},
@@ -426,14 +438,14 @@ if imn_validation:
                 elif training_mode == 'GNN_DMN':
                     generate_dmn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-                validation(new_folder, val_solve,val_plot, stage, r, g_id, [2,4,5], )
+                validation(new_folder, val_solve,val_plot, stage, r, g_id, [2,4], )
 
 
     else:
         os.system(f'copy temp_abaqus.py ' + str(mesh_folder))
         rve_info_validation_data = [
-            {'MATRIX': {'size': [0.2, 6.0, 6.0]},
-             'UD1': {'FVC': 0.17, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
+            {'MATRIX': {'size': [2.0, 2.0, 2.0]},
+             'PR1': {'FVC': 0.17, 'dia': [0.65, 0], 'ori': [0, 0, np.pi / 2, 0], 'len': [3, 0]}},  # 0.22
         ]
         # Has to be same as the one used to create the existing mesh
 
@@ -470,7 +482,7 @@ if imn_validation:
         elif training_mode == 'GNN':
             generate_gnn_params_for_new_graph_validation(mesh_folder, phases, imn_trained_data_folder, imn_validation_folder, stage, r, g_id, 0, 0, 1)
 
-        validation(new_folder, True, val_plot, stage, r, g_id, [2,5])
+        validation(new_folder, True, val_plot, stage, r, g_id, [2,4])
 
 
 
@@ -516,7 +528,7 @@ if imn_validation_2:
 
                            # 'GNN DMN': [1,1],
                            'GAT': [69,1],
-            'GAT IMN': [11, 1],
+            'GAT IMN': [12, 1],
                            }
         multiple_errors = []
         sample_numbers = 500
@@ -579,23 +591,38 @@ if False:
                }
     compare_trainings(folders, True, 100) # Set True to show the plot, False to save it in the main Directory
 
-if False:
+if True:
     # Compare validation results
     from IMN_validation.compare_validations import compare_validations
     from IMN_validation.compare_validation_errors import compare_validation_errors
+    from IMN_validation.compare_validations_combined import compare_validations_combined
 
-    load_case = [2,5]
+    load_case = [2,4]
     folders = {
 
-        'RVE (a)': 101,
-        'RVE (b)': 102,
-        'RVE (c)': 103,
-        'RVE (d)': 104,
+        'Material (a)': 601,
+        'Material (b)': 602,
+        'Material (c)': 603,
+        'Material (d)': 604,
 
                }
-    compare_validation_errors(load_case, folders, True,
-    error_method="normalized_absolute",dns_mode='separate')
-    compare_validations(load_case, folders, True)
+    # compare_validation_errors(load_case, folders, True,
+    # error_method="normalized_absolute",dns_mode='separate')
+    # compare_validations(load_case, folders, True)
+
+    compare_validations_combined(
+        load_case=load_case,
+        folders=folders,
+        error_method="normalized_absolute",
+
+        # Each prediction compared to its own DNS
+        dns_error_mode="separate",
+
+        # But only one DNS curve shown in the figure
+        dns_display_mode="separate",
+
+        save_folder="plots",
+    )
 
 
 

@@ -397,15 +397,15 @@ def _loss_gnn(
     mesh_folder: Path,
     graph_cache: GraphCPUCache,
     device: torch.device,
-        C_mean,
-        C_std
+        max_value,
+
 ) -> torch.Tensor:
     """Loss for a direct GNN that maps one mesh graph to the 6x6 stiffness matrix."""
     main_graph, phase_graphs = _sample_graphs_to_device(
         sample, mesh_folder, graph_cache, "gnn", device
     )
 
-    max_value = torch.max(main_graph['x'][:,10:]).to(device)
+    # max_value = torch.max(main_graph['x'][:,10:]).item()
     main_graph['x'][:, 10:] = main_graph['x'][:,10:]/max_value
 
     # Preferred interface: model(main_graph). A fallback with sample is kept for
@@ -533,8 +533,7 @@ def _make_loss_fn(
     nodes_per_mech_per_phase: int,
     dtype: torch.dtype,
     imn_cache: IMNPhaseCountCache | None,
-        C_mean=0,
-        C_std=1,
+        max_value=1
 ) -> Callable[[torch.nn.Module, dict[str, Any]], torch.Tensor]:
     mode = mode.upper()  # type: ignore[assignment]
 
@@ -545,7 +544,7 @@ def _make_loss_fn(
         if graph_cache is None:
             raise ValueError("GNN requires a graph cache.")
         return lambda model, sample: _loss_gnn(
-            model, sample, mesh_folder, graph_cache, device, C_mean,C_std,
+            model, sample, mesh_folder, graph_cache, device, max_value
         )
 
     if mode == "GNN_IMN":
@@ -633,8 +632,8 @@ def run_optimization(
     imn_dtype="float64",
     samples_per_epoch=None,
     mode: Mode = "GNN_IMN",
-        C_mean=0,
-        C_std=1,
+
+        max_value=1,
 ):
     """
     Unified optimization loop for five modes:
@@ -680,8 +679,7 @@ def run_optimization(
         nodes_per_mech_per_phase=nodes_per_mech_per_phase,
         dtype=tensor_dtype,
         imn_cache=imn_cache,
-        C_mean=C_mean,
-        C_std=C_std,
+        max_value=max_value
     )
 
     print("CUDA available:", torch.cuda.is_available())
@@ -884,8 +882,7 @@ def run_live_optimization(
     imn_dtype="float32",
     samples_per_epoch=None,
     mode: Mode = "GNN_IMN",
-        C_mean = 0,
-        C_std = 1,
+        max_value = 1,
 ):
     if mode == 'GNN_DMN':
         use_amp = False
@@ -914,8 +911,7 @@ def run_live_optimization(
         imn_dtype,
         samples_per_epoch,
         mode,
-        C_mean,
-        C_std
+        max_value
     )
 
     if not cost_live_plot:

@@ -782,37 +782,113 @@ def get_dataset_main_normalized(num_samples, training_dataset_folder):
 
 
 # Working-------------------------------- Without normalization
-def get_dataset_main(num_samples,training_dataset_folder):
+# def get_dataset_main(num_samples,training_dataset_folder):
+#
+#     main_data_set = {}
+#     npz = np.load(str(training_dataset_folder / f'material_dictionary.npz'), allow_pickle=True)
+#     C_in = {
+#         k: npz[k].item()  # unwrap the dict from numpy object array
+#         for k in npz.files
+#     }
+#     C_out = np.load(str(training_dataset_folder / f'homogenize.npz'), allow_pickle=True)
+#     npz = np.load(str(training_dataset_folder / f'key_map.npz'), allow_pickle=True)
+#
+#     key_map = {
+#         k: npz[k].item()  # unwrap the dict from numpy object array
+#         for k in npz.files
+#     }
+#
+#     for i in range(num_samples):
+#         main_data_set[str(i)] = {}
+#         stage, rve, mesh = key_map[str(i)]['ids']
+#         main_data_set[str(i)]['ids'] = [stage, rve, mesh]
+#         phases = key_map[str(i)]['phases']
+#         main_data_set[str(i)]['Phases'] = phases
+#
+#         for phase in phases:
+#             main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
+#
+#         C_target = torch.tensor(C_out[str(i)])
+#         fix_homogenized_C(C_target)
+#         main_data_set[str(i)][f'C_Target'] = C_target
+#
+#     return main_data_set   #, graphs_data_set
+
+
+# Gives the max value for GNN normalization
+def get_dataset_main(num_samples, training_dataset_folder):
 
     main_data_set = {}
-    npz = np.load(str(training_dataset_folder / f'material_dictionary.npz'), allow_pickle=True)
-    C_in = {
-        k: npz[k].item()  # unwrap the dict from numpy object array
-        for k in npz.files
-    }
-    C_out = np.load(str(training_dataset_folder / f'homogenize.npz'), allow_pickle=True)
-    npz = np.load(str(training_dataset_folder / f'key_map.npz'), allow_pickle=True)
 
-    key_map = {
-        k: npz[k].item()  # unwrap the dict from numpy object array
+    npz = np.load(
+        str(training_dataset_folder / 'material_dictionary.npz'),
+        allow_pickle=True
+    )
+    C_in = {
+        k: npz[k].item()
         for k in npz.files
     }
+
+    C_out = np.load(
+        str(training_dataset_folder / 'homogenize.npz'),
+        allow_pickle=True
+    )
+
+    npz = np.load(
+        str(training_dataset_folder / 'key_map.npz'),
+        allow_pickle=True
+    )
+    key_map = {
+        k: npz[k].item()
+        for k in npz.files
+    }
+
+    # Global maximum over ALL C_in and C_target matrices
+    max_value = -float("inf")
 
     for i in range(num_samples):
+
         main_data_set[str(i)] = {}
+
         stage, rve, mesh = key_map[str(i)]['ids']
         main_data_set[str(i)]['ids'] = [stage, rve, mesh]
+
         phases = key_map[str(i)]['phases']
         main_data_set[str(i)]['Phases'] = phases
 
+        # C_in matrices
         for phase in phases:
-            main_data_set[str(i)][f'{phase}'] = torch.tensor(C_in[str(i)][phase])
 
-        C_target = torch.tensor(C_out[str(i)])
+            C_phase = torch.tensor(
+                C_in[str(i)][phase],
+                dtype=torch.float32
+            )
+
+            main_data_set[str(i)][phase] = C_phase
+
+            # Update global maximum
+            max_value = max(
+                max_value,
+                torch.max(C_phase).item()
+            )
+
+        # C_target matrix
+        C_target = torch.tensor(
+            C_out[str(i)],
+            dtype=torch.float32
+        )
+
         fix_homogenized_C(C_target)
-        main_data_set[str(i)][f'C_Target'] = C_target
 
-    return main_data_set   #, graphs_data_set
+        main_data_set[str(i)]['C_Target'] = C_target
+
+        # Update global maximum
+        max_value = max(
+            max_value,
+            torch.max(C_target).item()
+        )
+
+    return main_data_set, max_value
 
 
 @torch.inference_mode()
@@ -876,7 +952,7 @@ def generate_dmn_params_for_new_graph_validation(
         )
 
     else:
-        training_data_set = get_dataset_main(num_sam, training_dataset_folder)
+        training_data_set, dummy = get_dataset_main(num_sam, training_dataset_folder)
 
         target_constants = []
         prediction_constants = []
@@ -1020,7 +1096,7 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
         imn.output_params_from_p_flat(p_flat, imn_validation_folder)
 
     else:
-        training_data_set = get_dataset_main(num_sam, training_dataset_folder)
+        training_data_set, dummy = get_dataset_main(num_sam, training_dataset_folder)
         target_constants = []
         prediction_constants = []
         for id in range(num_sam):
@@ -1119,7 +1195,7 @@ def generate_gnn_params_for_new_graph_validation(mesh_folder,
 
 
     else:
-        training_data_set = get_dataset_main(num_sam, training_dataset_folder)
+        training_data_set, max_value = get_dataset_main(num_sam, training_dataset_folder)
         target_constants = []
         prediction_constants = []
         for id in range(num_sam):
@@ -1128,16 +1204,16 @@ def generate_gnn_params_for_new_graph_validation(mesh_folder,
             sid = str(id)
             ss, rr, mm = training_data_set[sid]['ids']
             main_g = load_graph_npz_2(str(mesh_folder / f'graph_with_materials_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device) # old
-            print(main_g['x'])
-            max_value = torch.max(main_g['x'][:, 10:]).to(device)
+            # print(main_g['x'])
             main_g['x'][:, 10:] = main_g['x'][:, 10:] / max_value
-            print(main_g['x'])
+            # print(main_g['x'])
             C_pred = new_model.forward(main_g)
-            print(C_pred)
+            C_pred = C_pred*max_value
+            # print(C_pred)
             C_tgt = training_data_set[sid]["C_Target"]
-            print(C_tgt)
-            C_tgt = C_tgt/max_value
-            print(C_tgt)
+            # print(C_tgt)
+            # C_tgt = C_tgt/max_value
+            # print(C_tgt)
             diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
             tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
             error = diff_norm_sq / tgt_norm_sq.clamp_min(
@@ -1241,7 +1317,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
     mesh_folder = training_dataset_folder / 'Meshes'
     C_mean = 0
     C_std = 1
-    training_data_set, C_mean,C_std = get_dataset_main_normalized(num_samples, training_dataset_folder) #
+    training_data_set, max_value = get_dataset_main(num_samples, training_dataset_folder) #
     # training_data_set = get_dataset_main(num_samples, training_dataset_folder)
     node_feat_dim = 8 if 'DMN' in mode else 10
     cfg = dict(
@@ -1295,7 +1371,7 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
 
 
     best_val = run_live_optimization(num_epochs, num_samples, training_data_set, mesh_folder, 1, opt, model, cost_live_plot, imn_trained_data_folder, 1, N_layers, device,
-                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=1000, mode=mode, C_mean=C_mean,C_std=C_std, )
+                                             nodes_per_mech_per_phase, trial, accumulation_steps=100, samples_per_epoch=1000, mode=mode, max_value=max_value )
 
 
 

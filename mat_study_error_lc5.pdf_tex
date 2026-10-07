@@ -1,0 +1,91 @@
+%% Creator: Inkscape 1.4.3 (0d15f75, 2025-12-25), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'mat_study_error_lc5.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{410.2210578bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.68247052)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{mat_study_error_lc5.pdf}}%
+    \put(0.1311969,0.05635077){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.000\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{mat_study_error_lc5.pdf}}%
+    \put(0.29334006,0.05635077){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.002\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{mat_study_error_lc5.pdf}}%
+    \put(0.45548324,0.05635077){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.004\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{mat_study_error_lc5.pdf}}%
+    \put(0.61762645,0.05635077){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.006\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{mat_study_error_lc5.pdf}}%
+    \put(0.77976958,0.05635077){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.008\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{mat_study_error_lc5.pdf}}%
+    \put(0.94191279,0.05635077){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.010\end{tabular}}}}%
+    \put(0.53655485,0.02328747){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Strain ($\gamma_{yz}$) [-]\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{mat_study_error_lc5.pdf}}%
+    \put(0.07359713,0.08103184){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{mat_study_error_lc5.pdf}}%
+    \put(0.07359713,0.17425357){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}10\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{mat_study_error_lc5.pdf}}%
+    \put(0.07359713,0.26747526){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}20\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{mat_study_error_lc5.pdf}}%
+    \put(0.07359713,0.36069699){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}30\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{mat_study_error_lc5.pdf}}%
+    \put(0.07359713,0.45391872){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}40\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{mat_study_error_lc5.pdf}}%
+    \put(0.07359713,0.54714044){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}50\end{tabular}}}}%
+    \put(0.03617106,0.36016108){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Normalized absolute error [\%]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{mat_study_error_lc5.pdf}}%
+    \put(0.17183685,0.596235){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}RVE (a)  - Mean = 1.88\%\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{mat_study_error_lc5.pdf}}%
+    \put(0.17183685,0.5639841){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}RVE (b)  - Mean = 1.58\%\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{mat_study_error_lc5.pdf}}%
+    \put(0.17183685,0.53173319){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}RVE (c)  - Mean = 6.60\%\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{mat_study_error_lc5.pdf}}%
+    \put(0.17183685,0.49948229){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}RVE (d)  - Mean = 33.69\%\end{tabular}}}}%
+  \end{picture}%
+\endgroup%

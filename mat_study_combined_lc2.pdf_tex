@@ -1,0 +1,127 @@
+%% Creator: Inkscape 1.4.3 (0d15f75, 2025-12-25), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'mat_study_combined_lc2.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{611.49681752bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.66731209)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{mat_study_combined_lc2.pdf}}%
+    \put(0.08870029,0.02245295){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.000\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{mat_study_combined_lc2.pdf}}%
+    \put(0.24855246,0.02245295){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.002\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{mat_study_combined_lc2.pdf}}%
+    \put(0.40840464,0.02245295){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.004\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{mat_study_combined_lc2.pdf}}%
+    \put(0.5682568,0.02245295){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.006\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{mat_study_combined_lc2.pdf}}%
+    \put(0.72810896,0.02245295){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.008\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{mat_study_combined_lc2.pdf}}%
+    \put(0.88796116,0.02245295){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.010\end{tabular}}}}%
+    \put(0.48833072,0.00027247){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Strain ($\epsilon_y$) [-]\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.03901014){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.1389551){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}5\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.23890002){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}10\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.33884496){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}15\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.4387899){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}20\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.53873481){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}25\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{mat_study_combined_lc2.pdf}}%
+    \put(0.03728993,0.63867975){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}30\end{tabular}}}}%
+    \put(0.01218273,0.35538905){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Stress ($\sigma_y$) [MPa]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.6161065){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (a)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.6419234){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (a) - DNS\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.5644416){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (b)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.5902585){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (b) - DNS\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=18]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.5127767){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (c)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=19]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.5385936){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (c) - DNS\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=20]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.4611118){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (d)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=21]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.48692871){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (d) - DNS\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=22]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.43527935){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (a) - Error (Mean = 1.10\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=23]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.4094469){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (b) - Error (Mean = 0.27\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=24]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.38361445){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (c) - Error (Mean = 3.36\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=25]{mat_study_combined_lc2.pdf}}%
+    \put(0.1031938,0.357782){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Material (d) - Error (Mean = 10.37\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=26]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.03901014){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}0.0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=27]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.12117551){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}2.5\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=28]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.20334089){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}5.0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=29]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.28550624){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}7.5\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=30]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.36767162){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}10.0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=31]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.44983697){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}12.5\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=32]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.53200233){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}15.0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=33]{mat_study_combined_lc2.pdf}}%
+    \put(0.9393715,0.61416769){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}17.5\end{tabular}}}}%
+    \put(0.99642513,0.35538905){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Normalized absolute error [\%]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=34]{mat_study_combined_lc2.pdf}}%
+  \end{picture}%
+\endgroup%

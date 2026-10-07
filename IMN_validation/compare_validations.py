@@ -95,8 +95,9 @@ def compare_validations(
 
             marker_id += 1
 
-
+        marker_id = 0
         for name, folder_id in folders.items():
+
             validation_folder = (
                     Path("IMN_validation")
                     / f"Validation{int(folder_id):04d}"
@@ -113,19 +114,20 @@ def compare_validations(
                 ax.plot(
                     dns_strain,
                     dns_stress,
-                    # color=colors["DNS"],
-                    color='black',
+                    # color='black',
+                    color=colors[str(marker_id+1)],
                     linestyle="none",
                     marker='^',
                     markerfacecolor="none",
                     markevery=max(len(dns_strain) // 25, 1),
-                    linewidth=0.5,
+                    linewidth=1.5,
                     markersize=4,
-                    label="DNS",
+                    label=name + " - DNS",
                 )
+                marker_id += 1
 
-                dns_plotted = True
-                break
+                # dns_plotted = True
+                # break
 
 
 

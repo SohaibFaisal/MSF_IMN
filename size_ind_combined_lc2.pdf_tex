@@ -1,0 +1,117 @@
+%% Creator: Inkscape 1.4.3 (0d15f75, 2025-12-25), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'size_ind_combined_lc2.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{611.40685074bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.66741028)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{size_ind_combined_lc2.pdf}}%
+    \put(0.08870666,0.02245626){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.000\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{size_ind_combined_lc2.pdf}}%
+    \put(0.2485556,0.02245626){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.002\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{size_ind_combined_lc2.pdf}}%
+    \put(0.4084045,0.02245626){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.004\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{size_ind_combined_lc2.pdf}}%
+    \put(0.56825343,0.02245626){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.006\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{size_ind_combined_lc2.pdf}}%
+    \put(0.72810235,0.02245626){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.008\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{size_ind_combined_lc2.pdf}}%
+    \put(0.88795128,0.02245626){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}0.010\end{tabular}}}}%
+    \put(0.48832896,0.00027251){\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Strain ($\epsilon_y$) [-]\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{size_ind_combined_lc2.pdf}}%
+    \put(0.03729543,0.03901588){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}0\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{size_ind_combined_lc2.pdf}}%
+    \put(0.03729543,0.16829006){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}5\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{size_ind_combined_lc2.pdf}}%
+    \put(0.03729543,0.29756423){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}10\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{size_ind_combined_lc2.pdf}}%
+    \put(0.03729543,0.42683837){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}15\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{size_ind_combined_lc2.pdf}}%
+    \put(0.03729543,0.55611254){\makebox(0,0)[rt]{\lineheight{1.25}\smash{\begin{tabular}[t]{r}20\end{tabular}}}}%
+    \put(0.01218453,0.35544135){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Stress ($\sigma_y$) [MPa]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.61835327){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (a)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=13]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.64201786){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}DNS\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=14]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.59321046){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (b)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=15]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.56806765){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (c)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=16]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.54292484){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (d)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=17]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.51778203){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (a) - Error (Mean = 0.88\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=18]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.49263922){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (b) - Error (Mean = 0.77\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=19]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.46749641){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (c) - Error (Mean = 0.80\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=20]{size_ind_combined_lc2.pdf}}%
+    \put(0.10320899,0.4423536){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}Size (d) - Error (Mean = 0.84\%)\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=21]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.03901588){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}0.00\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=22]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.12489874){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}0.25\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=23]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.2107816){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}0.50\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=24]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.29666443){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}0.75\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=25]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.38254727){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}1.00\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=26]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.4684301){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}1.25\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=27]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.55431295){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}1.50\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=28]{size_ind_combined_lc2.pdf}}%
+    \put(0.93936249,0.6401958){\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}1.75\end{tabular}}}}%
+    \put(0.99642456,0.3554413){\rotatebox{90}{\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}Normalized absolute error [\%]\end{tabular}}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=29]{size_ind_combined_lc2.pdf}}%
+  \end{picture}%
+\endgroup%
