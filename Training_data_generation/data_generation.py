@@ -1062,9 +1062,10 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                         if m[0] == 1:
                             infile.write(f'Elas isot {m[1]} {m[2]}\n\n')
                         elif m[0] == 2:
-                            infile.write(f'Elas isot {m[1]} {m[2]}\n')
-                            infile.write(f'Plas mises {m[3]} {m[4]} {m[5]}\n')
-                            infile.write(f'plas hard {m[6]}\n\n')
+                            infile.write(f'ucon plss {m[1]} {m[2]} {m[3]} {m[4]}\n\n')
+                            # infile.write(f'Elas isot {m[1]} {m[2]}\n')
+                            # infile.write(f'Plas mises {m[3]} {m[4]} {m[5]}\n')
+                            # infile.write(f'plas hard {m[6]}\n\n')
                         elif m[0] == 3:
                             infile.write(f'Elas neoh {m[1]} {m[2]} {m[3]}\n\n')
                         elif m[0] == 5:
@@ -1139,8 +1140,10 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                 # Cyclic
                 infile.write('BATCH\n  prop,,1\nEND\n2 1\n')
                 infile.write('0, 0\n')
-                # infile.write('30, 0.6\n')
-                # infile.write('60, 0\n')
+                infile.write('20, 0.5\n')
+                infile.write('40, 0.25\n')
+                infile.write('60, 0.75\n')
+                infile.write('80, 0.5\n')
                 infile.write('100, 1\n')
                 infile.write('\n')
 
@@ -1161,26 +1164,48 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
     training_dataset_folder.mkdir(exist_ok=True)
     # Create material data set
     ranges = {
-        "E11": RangeSpec(10, 1500, "loguniform"),
-        "E22": RangeSpec(10, 1500, "loguniform"),
-        "E33": RangeSpec(10, 1500, "loguniform"),
+        # "E11": RangeSpec(10, 1500, "loguniform"),
+        # "E22": RangeSpec(10, 1500, "loguniform"),
+        # "E33": RangeSpec(10, 1500, "loguniform"),
+        "E11": RangeSpec(1000, 1500, "loguniform"),
+        "E22": RangeSpec(1000, 1500, "loguniform"),
+        "E33": RangeSpec(1000, 1500, "loguniform"),
 
         "nu12": RangeSpec(0.0, 0.49),
         "nu23": RangeSpec(0.0, 0.49),
         "nu31": RangeSpec(0.0, 0.49),
 
-        "G12": RangeSpec(1, 1250, "loguniform"),
-        "G23": RangeSpec(1, 1250, "loguniform"),
-        "G31": RangeSpec(1, 1250, "loguniform"),
+        # "G12": RangeSpec(1, 1250, "loguniform"),
+        # "G23": RangeSpec(1, 1250, "loguniform"),
+        # "G31": RangeSpec(1, 1250, "loguniform"),
+        "G12": RangeSpec(500, 1250, "loguniform"),
+        "G23": RangeSpec(500, 1250, "loguniform"),
+        "G31": RangeSpec(500, 1250, "loguniform"),
     }
     material_dictionary = {}
     material_samples = sample_many_orthotropic_materials(ranges, n_samples=total_samples * 10, seed=42)
 
 
+    UD_stiffness_multiplier = 1
+    Matrix_E1 = []
+    UD_E1 = []
+
+    Matrix_E2 = []
+    UD_E2 = []
+
+
     for i in range(0,len(material_samples),10):
         material_dictionary[str(int(i/10))] = {}
         material_dictionary[str(int(i/10))]['MATRIX'] = material_samples[i][1]
-        material_dictionary[str(int(i/10))]['UD1'] = material_samples[i+1][1]
+        Matrix_E1.append(extract_engineering_constants(material_samples[i][1])[0])
+        Matrix_E2.append(extract_engineering_constants(material_samples[i][1])[1])
+
+
+        material_dictionary[str(int(i/10))]['UD1'] = material_samples[i+1][1]*UD_stiffness_multiplier
+        UD_E1.append(extract_engineering_constants(material_samples[i+1][1]*UD_stiffness_multiplier)[0])
+        UD_E2.append(extract_engineering_constants(material_samples[i+1][1]*UD_stiffness_multiplier)[1])
+
+        
         material_dictionary[str(int(i/10))]['UD2'] = material_samples[i+2][1]
         material_dictionary[str(int(i / 10))]['UD3'] = material_samples[i + 3][1]
         material_dictionary[str(int(i/10))]['PR1'] = material_samples[i+4][1]
@@ -1189,6 +1214,40 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
         material_dictionary[str(int(i/10))]['SFR1'] = material_samples[i+7][1]
         material_dictionary[str(int(i/10))]['SFR2'] = material_samples[i+8][1]
         material_dictionary[str(int(i / 10))]['SFR3'] = material_samples[i + 9][1]
+
+
+    # Plotting material distributions
+    import matplotlib.pyplot as plt
+
+    plt.rcParams.update({
+        "font.family": "serif",
+        "font.serif": ["Times New Roman", "DejaVu Serif"],
+        "font.size": 11,
+        "axes.labelsize": 12,
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+    })
+
+    fig, ax = plt.subplots(figsize=(3.5, 2.8), constrained_layout=True)
+
+    ax.scatter(Matrix_E1, UD_E1, s=25, color="#4C72B0",
+               edgecolors="black", linewidths=0.4)
+
+    ax.set_xlabel(r"$\text{Matrix}\, E_x$")
+    ax.set_ylabel(r"$\text{Fiber}\, E_x$")
+    ax.tick_params(which="both", top=True, right=True)
+    ax.grid(True, linewidth=0.4, alpha=0.25)
+    ax.set_axisbelow(True)
+
+    fig.savefig("scatter.svg", bbox_inches="tight")  # Vector format
+    #fig.savefig("scatter.png", dpi=600, bbox_inches="tight")
+    #plt.show()
+
+    # import matplotlib.pyplot as plt
+    #
+    # plt.scatter(Matrix_E1, UD_E1, label='E1')
+    # plt.show()
+    #exit()
 
 
     new_name = training_dataset_folder / f'material_dictionary.npz'
@@ -2049,8 +2108,6 @@ def create_FEAP_validation_files(rve_info, strain, mesh_folder, new_folder,imn_v
     convert_to_feap(file_name_for_mesh, file_name_for_FEAP_mesh,material_identifiers)
 
     write_feap_input(file_name_for_FEAP_mesh,new_folder,imn_validation_folder,rve_info['MATRIX']['size'],strain,steps,test_mesh_size,IMN_material,stage, r,g_id, IMN)
-
-
 
 
 

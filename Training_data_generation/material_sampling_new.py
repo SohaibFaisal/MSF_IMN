@@ -185,7 +185,8 @@ def sample_interface_material(
 def sample_many_orthotropic_materials(
     ranges: Dict[str, RangeSpec],
     n_samples: int,
-    seed: int | None = None
+    seed: int | None = None,
+        factor: float = 1.0,
 ) -> List[Tuple[Dict[str, float], np.ndarray]]:
     """
     Convenience wrapper for multiple samples.

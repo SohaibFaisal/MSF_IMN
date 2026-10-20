@@ -1337,6 +1337,9 @@ def Train(N_layers, num_samples, num_epochs, lr, cost_live_plot, imn_trained_dat
         model = HybridGNNIMN(node_feat_dim=cfg['node_feat_dim'], N_layers=N_layers, gnn_hidden_dim=cfg['gnn_hidden_dim'], tnn_hidden_dim=cfg['tnn_hidden_dim'],
                              heads=cfg['gnn_heads'], x_dim=cfg['x_dim'], GNN_structure=cfg['gnn_structure'], nodes_per_mech_per_phase=nodes_per_mech_per_phase, gnn_layers=cfg['gnn_layers'], tnn_layers=cfg['tnn_layers']).float().to(device)
 
+        print('---------------')
+        total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print(f"Total trainable parameters: {total_params:,}")
     elif mode == 'IMN':
         model = IMNModel(5, ['MATRIX', 'UD1']).float().to(device)
 

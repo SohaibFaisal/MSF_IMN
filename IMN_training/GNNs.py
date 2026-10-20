@@ -271,8 +271,11 @@ class GraphFeatureExtractor_phase_aware(nn.Module):
 
         y = target_context_global_pool(x, batch, target_mask)
 
-        y = torch.tanh(self.fc3(y))
+        # y = torch.tanh(self.fc3(y))
+        # y = self.fc4(y)
+        y = F.relu(self.fc3(y))
         y = self.fc4(y)
+        y = F.softplus(y)
 
         return y
 
@@ -899,8 +902,11 @@ class GraphFeatureExtractor_AttentionPool_phase_aware(nn.Module):
 
         y = target_context_attention_pool(x, batch, target_mask, self.gate_nn)
 
+        # y = F.relu(self.fc3(y))
+        # y = self.fc4(y)
         y = F.relu(self.fc3(y))
         y = self.fc4(y)
+        y = F.softplus(y)
 
         return y
 
