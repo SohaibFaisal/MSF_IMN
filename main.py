@@ -8,15 +8,16 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # ------------------------------------------------------------------------
-# import argparse
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--layers", type=int, default=5)
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--main_id", type=int, default=5)
 # parser.add_argument("--nodes", type=int, default=2)
 # parser.add_argument("--epochs", type=int, default=300)
-# args = parser.parse_args()
+args = parser.parse_args()
 
-# print('Running study for : ')
-# print("Layers:", args.layers)
+print('Running study for : ')
+print("main_id:", args.main_id)
+main_id = args.main_id
 # print("Nodes per mech per phase:", args.nodes)
 # print("Epochs:", args.epochs)
 # N_layers = args.layers
@@ -43,11 +44,11 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-main_id = 2003
+# main_id = 2003
 data_gen_folder_id = main_id # Change here if needed
-# train_folder_id = main_id # Change here if needed
-train_folder_id = 2003
-validation_folder_id = 2003 # Change here if needed
+train_folder_id = main_id # Change here if needed
+# train_folder_id = 2003
+validation_folder_id = main_id # Change here if needed
 # -------------------------------------
 training_dataset_folder = Path(F_Training_data_generation + '/Training_data' + f"{int(data_gen_folder_id):04d}") # Remove later
 imn_trained_data_folder = Path(F_IMN_training + '/msf' + f"{int(train_folder_id):04d}")
@@ -66,10 +67,10 @@ imn_validation_folder.mkdir(exist_ok=True)
 # -------------------------------------
 training_mode = 'GNN_IMN' # GNN_IMN, IMN, GNN_DMN, DMN
 
-training_data_generation = True
+training_data_generation = False
 show_mesh = False
 
-imn_training = False
+imn_training = True
 cost_live_plot = True
 
 imn_validation = False
@@ -338,7 +339,7 @@ if imn_training:
     if torch.cuda.is_available():
         print("Using GPU:", torch.cuda.get_device_name(0))
 
-    total_samples = 500 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL OR LESS THAN THE SAMPLES IN THE DATA FOLDER
+    total_samples = 600 # = materials_per_mesh * mesh_per_config * len(rve_info_training_data) HAS TO BE EQUAL OR LESS THAN THE SAMPLES IN THE DATA FOLDER
     Train(N_layers,total_samples,num_epochs,lr, cost_live_plot, imn_trained_data_folder, training_dataset_folder, optimizing_variables, weight_decay, nodes_per_mech_per_phase, use_GPU, training_mode)
 # -------------------------------------
 
