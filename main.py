@@ -8,16 +8,16 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # ------------------------------------------------------------------------
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--main_id", type=int, default=5)
+# import argparse
+# parser = argparse.ArgumentParser()
+# parser.add_argument("--main_id", type=int, default=5)
 # parser.add_argument("--nodes", type=int, default=2)
 # parser.add_argument("--epochs", type=int, default=300)
-args = parser.parse_args()
+# args = parser.parse_args()
 
 print('Running study for : ')
-print("main_id:", args.main_id)
-main_id = args.main_id
+# print("main_id:", args.main_id)
+# main_id = args.main_id
 # print("Nodes per mech per phase:", args.nodes)
 # print("Epochs:", args.epochs)
 # N_layers = args.layers
@@ -44,7 +44,7 @@ F_Training_data_generation = 'Training_data_generation'
 # FOLDER NUMBERS
 # -------------------------------------
 SIM_NAME = 'OLA'
-# main_id = 2003
+main_id = 2005
 data_gen_folder_id = main_id # Change here if needed
 train_folder_id = main_id # Change here if needed
 # train_folder_id = 2003
@@ -91,8 +91,8 @@ if training_data_generation:
 
     smallest_volume_tolerance = mesh_size/2
     strain = 0.01
-    materials_per_mesh = 120
-    mesh_per_config = 5
+    materials_per_mesh = 600
+    mesh_per_config = 1
 
     rve_info_training_data = [
 
