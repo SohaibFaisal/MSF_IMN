@@ -1050,6 +1050,7 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
                                                  training_dataset_folder,
                                                  num_sam,
                                                  mode,
+                                                 randomize=False,
                                                  ):
 
     GNN_FILE_PATH = imn_trained_data_folder / 'gnn_imn_generator.pt'
@@ -1095,11 +1096,15 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
         imn = IMNCalculator(N_layers, phases, nodes_per_mech_per_phase)
         imn.output_params_from_p_flat(p_flat, imn_validation_folder)
 
-    else:
-        training_data_set, dummy = get_dataset_main(num_sam, training_dataset_folder)
+    elif mode==2:
+        training_data_set, dummy = get_dataset_main(4500, training_dataset_folder)
         target_constants = []
         prediction_constants = []
-        for id in range(num_sam):
+        import random
+
+        numbers = [random.randint(0, 4500) for _ in range(500)]
+        # for id in range(num_sam):
+        for id in numbers:
             sid = str(id)
             ss, rr, mm = training_data_set[sid]['ids']
             main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device) # old
@@ -1140,6 +1145,59 @@ def generate_imn_params_for_new_graph_validation(mesh_folder,
                 continue
 
         return target_constants, prediction_constants
+
+    elif mode==3:
+        training_data_set, dummy = get_dataset_main(num_sam, training_dataset_folder)
+        target_constants = []
+        prediction_constants = []
+        imn_flat_p = []
+        for id in range(num_sam):
+            sid = str(id)
+            ss, rr, mm = training_data_set[sid]['ids']
+            main_g = load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}.npz')).to(device)  # old
+            phase_g = [load_graph_npz_2(str(mesh_folder / f'graph_stage_{ss}_rve_{rr}_mesh_{mm}_target_{ph}.npz')) for ph in training_data_set[sid][f"Phases"]]  # old
+            phase_g = [g.to(device) for g in phase_g]
+            flat_p = new_model.forward(training_data_set[sid]['Phases'], main_g,
+                                       phase_g)
+
+            imn_flat_p.append(flat_p)
+
+        if randomize:
+            import random
+            random.shuffle(imn_flat_p)
+        for id,flat_p in zip(range(num_sam), imn_flat_p):
+            sid = str(id)
+            imn = IMNCalculator(N_layers, training_data_set[sid]['Phases'], nodes_per_mech_per_phase)
+            imn.assign_node_stiffness(training_data_set[sid])
+            C_pred = imn.homogenize_from_flat_params(flat_p)
+            C_tgt = training_data_set[sid]["C_Target"]
+            diff_norm_sq = torch.linalg.norm(C_pred - C_tgt, ord="fro") ** 2
+            tgt_norm_sq = torch.linalg.norm(C_tgt, ord="fro") ** 2
+            error = diff_norm_sq / tgt_norm_sq.clamp_min(
+                torch.finfo(C_tgt.dtype).eps
+            )
+            print('Solving for: ' + str(id) + f'--------------------------------------------------   {error * 100} %')
+
+            try:
+                ec_target = extract_engineering_constants(C_tgt)
+                ec_pred = extract_engineering_constants(C_pred)
+                # for k in ec_target.keys():
+                #     ec_error = 100*abs(ec_target[k] - ec_pred[k])/ec_target[k]
+                #     print(f'Target {k} error: {ec_error}')
+                #
+                # print(ec_target)
+                # print(ec_pred)
+
+                target_constants.append(ec_target)
+                prediction_constants.append(ec_pred)
+                # target_constants.append(extract_components(C_tgt))
+                # prediction_constants.append(extract_components(C_pred))
+            except:
+                print('Skippig a sample! :-)')
+                continue
+
+        return target_constants, prediction_constants
+
 
 
 

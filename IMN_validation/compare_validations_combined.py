@@ -12,6 +12,7 @@ def compare_validations_combined(
     error_method="normalized_absolute",
     dns_error_mode="separate",
     dns_display_mode="first",
+    imn_display_mode="first",
 ):
     """
     Plot stress-strain curves and corresponding pointwise errors
@@ -98,6 +99,13 @@ def compare_validations_combined(
         "separate"
             DNS from every folder is displayed.
 
+    imn_display_mode : str, optional
+        Controls which IMN stress curves are displayed.
+        "first": only the first folder.
+        "separate" or "all": every folder.
+        "none": hide all IMN stress curves.
+        Errors are calculated and plotted for every model in all modes.
+
     Returns
     -------
     errors : dict
@@ -121,6 +129,13 @@ def compare_validations_combined(
         "separate",
     }
 
+    valid_imn_modes = {
+        "separate",
+        "first",
+        "all",
+        "none"
+    }
+
     if error_method not in valid_error_methods:
         raise ValueError(
             f"Unknown error_method '{error_method}'. "
@@ -137,6 +152,12 @@ def compare_validations_combined(
         raise ValueError(
             f"Unknown dns_display_mode '{dns_display_mode}'. "
             f"Choose from {sorted(valid_dns_modes)}."
+        )
+
+    if imn_display_mode not in valid_imn_modes:
+        raise ValueError(
+            f"Unknown imn_display_mode '{imn_display_mode}'. "
+            f"Choose from {sorted(valid_imn_modes)}."
         )
 
     if not folders:
@@ -340,14 +361,18 @@ def compare_validations_combined(
             # Plot model stress
             # ====================================================
 
-            ax_stress.plot(
-                model_strain,
-                model_stress,
-                color=color,
-                linestyle="-",
-                linewidth=1.5,
-                label=name,
-            )
+            if (
+                imn_display_mode in {"separate", "all"}
+                or (imn_display_mode == "first" and model_id == 0)
+            ):
+                ax_stress.plot(
+                    model_strain,
+                    model_stress,
+                    color=color,
+                    linestyle="-",
+                    linewidth=1.5,
+                    label=f"{name} - GAT IMN",
+                )
 
             # ====================================================
             # Plot DNS
@@ -628,6 +653,9 @@ def compare_validations_combined(
                 "dns_display_mode":
                     dns_display_mode,
 
+                "imn_display_mode":
+                    imn_display_mode,
+
                 "dns_error_folder_id": (
                     first_folder_id
                     if dns_error_mode == "first"
@@ -774,10 +802,11 @@ def compare_validations_combined(
         fig.savefig(
             save_folder
             / (
-                f"LC{lc}_stress_error_"
+                f"newLC{lc}_stress_error_"
                 f"{error_method}_"
                 f"calc_{dns_error_mode}_"
-                f"display_{dns_display_mode}.svg"
+                f"display_{dns_display_mode}_"
+                f"imn_{imn_display_mode}_new.svg"
             ),
             bbox_inches="tight",
         )

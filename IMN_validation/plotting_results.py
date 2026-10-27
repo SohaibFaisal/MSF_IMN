@@ -10,8 +10,8 @@ mpl.rcParams["svg.fonttype"] = "path"
 MARK_EVERY = 2  # increase if you have many points, decrease if you have few
 
 METHOD_STYLE = {
-    "IMN": dict(linestyle="-",  linewidth=1.5, color='black'),
-    "DNS": dict(linestyle="--",linewidth=1.0, color='red', marker="o", markersize=4.8, markevery=MARK_EVERY, markerfacecolor='None', markeredgecolor='red'),
+    "IMN": dict(linestyle="-",  linewidth=1.5, color='#5881BC', marker="o", markersize=4.8, markevery=MARK_EVERY, markerfacecolor='None', markeredgecolor='#5881BC'),
+    "DNS": dict(linestyle="--",linewidth=1.0, color='black', marker="^", markersize=3.8, markevery=MARK_EVERY, markerfacecolor='black', markeredgecolor='black'),
 }
 
 # ---------------------------
@@ -95,7 +95,7 @@ def plot_loadcase_grid(lc, outpath, stress_imn_lc, strain_imn_lc, stress_dns_lc,
     for k, (title, comp_idx) in enumerate(COMPONENTS):
         ax = axs[k // 3, k % 3]
 
-        _plot_component(ax, strain_imn_lc[lc], stress_imn_lc[lc], comp_idx, "IMN", METHOD_STYLE["IMN"])
+        _plot_component(ax, strain_imn_lc[lc], stress_imn_lc[lc], comp_idx, "GAT IMN", METHOD_STYLE["IMN"])
         _plot_component(ax, strain_dns_lc[lc], stress_dns_lc[lc], comp_idx, "DNS", METHOD_STYLE["DNS"])
 
         ax.set_title(title)
@@ -135,7 +135,7 @@ def plot_mixed_summary(outpath, stress_imn_lc, strain_imn_lc, stress_dns_lc, str
         lc = k + 1  # 1..6
         ax = axs[k // 3, k % 3]
 
-        _plot_component(ax, strain_imn_lc[lc], stress_imn_lc[lc], comp_idx, "IMN", METHOD_STYLE["IMN"])
+        _plot_component(ax, strain_imn_lc[lc], stress_imn_lc[lc], comp_idx, "GAT IMN", METHOD_STYLE["IMN"])
         _plot_component(ax, strain_dns_lc[lc], stress_dns_lc[lc], comp_idx, "DNS", METHOD_STYLE["DNS"])
 
         ax.set_title(f"{title} (LC{lc})")
@@ -173,7 +173,7 @@ def plot_mixed_single_figs(out_dir, stress_imn_lc, strain_imn_lc, stress_dns_lc,
 
 
 
-        _plot_component(ax, strain_imn_lc[lc], stress_imn_lc[lc], comp_idx, "IMN", METHOD_STYLE["IMN"])
+        _plot_component(ax, strain_imn_lc[lc], stress_imn_lc[lc], comp_idx, "GAT IMN", METHOD_STYLE["IMN"])
         _plot_component(ax, strain_dns_lc[lc], stress_dns_lc[lc], comp_idx, "DNS", METHOD_STYLE["DNS"])
 
 

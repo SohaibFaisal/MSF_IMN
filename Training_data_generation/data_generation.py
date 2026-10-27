@@ -1062,7 +1062,7 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                         if m[0] == 1:
                             infile.write(f'Elas isot {m[1]} {m[2]}\n\n')
                         elif m[0] == 2:
-                            infile.write(f'ucon plss {m[1]} {m[2]} {m[3]} {m[4]}\n\n')
+                            infile.write(f'ucon plss {m[1]} {m[2]} {m[3]} {m[4]} {m[5]} {m[6]}\n\n')
                             # infile.write(f'Elas isot {m[1]} {m[2]}\n')
                             # infile.write(f'Plas mises {m[3]} {m[4]} {m[5]}\n')
                             # infile.write(f'plas hard {m[6]}\n\n')
@@ -1075,11 +1075,11 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                     else:
                         if first:
                             if 'IMN' in IMN:
-                                infile.write(f'Mate,1\nSoli\nucon imn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
+                                infile.write(f'Mate,1\nSolid\nucon imn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
                             else:
                                 infile.write(f'Mate,1\nSoli\nucon dmn1 {int(str(imn_validation_folder)[-4:])} {len(list(IMN_material.values()))}\n')
-                            if m[0] == 3:
-                                infile.write('FINITE\n')
+                            # if m[0] == 3:
+                            #     infile.write('FINITE\n')
                             first = False
                         if m[0] == 1:
                             infile.write(f'Elas isot {material_num} {m[1]} {m[2]}\n')
@@ -1140,10 +1140,10 @@ def write_feap_input(mesh_file,new_folder,imn_validation_folder,rve_size,strain,
                 # Cyclic
                 infile.write('BATCH\n  prop,,1\nEND\n2 1\n')
                 infile.write('0, 0\n')
-                infile.write('20, 0.5\n')
-                infile.write('40, 0.25\n')
-                infile.write('60, 0.75\n')
-                infile.write('80, 0.5\n')
+                # infile.write('20, 0.5\n')
+                # infile.write('40, 0.25\n')
+                # infile.write('60, 0.75\n')
+                # infile.write('80, 0.5\n')
                 infile.write('100, 1\n')
                 infile.write('\n')
 
@@ -1167,12 +1167,12 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
         # "E11": RangeSpec(10, 1500, "loguniform"),
         # "E22": RangeSpec(10, 1500, "loguniform"),
         # "E33": RangeSpec(10, 1500, "loguniform"),
-        # "E11": RangeSpec(1000, 1500, "loguniform"),
-        # "E22": RangeSpec(1000, 1500, "loguniform"),
-        # "E33": RangeSpec(1000, 1500, "loguniform"),
-        "E11": RangeSpec(100, 100000, "loguniform"),
-        "E22": RangeSpec(100, 100000, "loguniform"),
-        "E33": RangeSpec(100, 100000, "loguniform"),
+        "E11": RangeSpec(1000, 1500, "loguniform"),
+        "E22": RangeSpec(1000, 1500, "loguniform"),
+        "E33": RangeSpec(1000, 1500, "loguniform"),
+        # "E11": RangeSpec(100, 100000, "loguniform"),
+        # "E22": RangeSpec(100, 100000, "loguniform"),
+        # "E33": RangeSpec(100, 100000, "loguniform"),
 
         "nu12": RangeSpec(0.0, 0.49),
         "nu23": RangeSpec(0.0, 0.49),
@@ -1181,12 +1181,12 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
         # "G12": RangeSpec(1, 1250, "loguniform"),
         # "G23": RangeSpec(1, 1250, "loguniform"),
         # "G31": RangeSpec(1, 1250, "loguniform"),
-        # "G12": RangeSpec(500, 1250, "loguniform"),
-        # "G23": RangeSpec(500, 1250, "loguniform"),
-        # "G31": RangeSpec(500, 1250, "loguniform"),
-        "G12": RangeSpec(100, 100000, "loguniform"),
-        "G23": RangeSpec(100, 100000, "loguniform"),
-        "G31": RangeSpec(100, 100000, "loguniform"),
+        "G12": RangeSpec(500, 1250, "loguniform"),
+        "G23": RangeSpec(500, 1250, "loguniform"),
+        "G31": RangeSpec(500, 1250, "loguniform"),
+        # "G12": RangeSpec(100, 100000, "loguniform"),
+        # "G23": RangeSpec(100, 100000, "loguniform"),
+        # "G31": RangeSpec(100, 100000, "loguniform"),
     }
     material_dictionary = {}
     material_samples = sample_many_orthotropic_materials(ranges, n_samples=total_samples * 10, seed=42)
@@ -1234,7 +1234,7 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
         "ytick.direction": "in",
     })
 
-    fig, ax = plt.subplots(figsize=(3.5, 2.8), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(3.5*2, 2.8*2), constrained_layout=True)
 
     ax.scatter(Matrix_E1, UD_E1, s=25, color="#4C72B0",
                edgecolors="black", linewidths=0.4)
@@ -1245,15 +1245,15 @@ def create_material_dict(rve_info, total_samples, training_dataset_folder,stage,
     ax.grid(True, linewidth=0.4, alpha=0.25)
     ax.set_axisbelow(True)
 
-    fig.savefig("scatter.svg", bbox_inches="tight")  # Vector format
+    fig.savefig("scatter.svg")  # Vector format
     #fig.savefig("scatter.png", dpi=600, bbox_inches="tight")
-    #plt.show()
+    plt.show()
 
     # import matplotlib.pyplot as plt
     #
     # plt.scatter(Matrix_E1, UD_E1, label='E1')
     # plt.show()
-    #exit()
+    exit()
 
 
     new_name = training_dataset_folder / f'material_dictionary.npz'
